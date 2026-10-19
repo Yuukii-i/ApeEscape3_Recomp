@@ -1,0 +1,18 @@
+# Proprietary Sony / Game Assets (LEGAL RISK - NEVER COMMIT)
+SCUS_975.01
+*.iso
+*.bin
+*.irx
+tools/iop/*.irx
+
+# Massive Generated Recompiler Output (Regenerated locally)
+recomp_source/
+
+# Build Directory and Artifacts
+build/
+*.log
+frame_*.png
+
+# Virtual Memory Cards (Saves)
+mc0/
+mc1/
