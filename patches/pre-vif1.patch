@@ -1,0 +1,897 @@
+diff --git a/ps2xRuntime/src/lib/Kernel/EeScheduler.cpp b/ps2xRuntime/src/lib/Kernel/EeScheduler.cpp
+index 09fe23b..bb3d4e8 100644
+--- a/ps2xRuntime/src/lib/Kernel/EeScheduler.cpp
++++ b/ps2xRuntime/src/lib/Kernel/EeScheduler.cpp
+@@ -2,6 +2,7 @@
+ 
+ #include "ps2_log.h"
+ #include "ps2_runtime_macros.h"
++#include "Stubs/CD.h"
+ 
+ #include <algorithm>
+ #include <cassert>
+@@ -266,12 +267,22 @@ void EeScheduler::run()
+             continue;
+         }
+ 
++        static uint32_t s_lastDispatchedPc[32] = {0};
++        static uint32_t s_lastDispatchIdx = 0;
++
+         if (!m_runtime.hasFunction(context.pc))
+         {
+-            fprintf(stderr, "[abort] EeScheduler: missing function at pc=0x%08x, ra=0x%08x, sp=0x%08x\n",
++            fprintf(stderr, "[abort] EeScheduler: missing function at pc=0x%08x, ra=0x%08x, sp=0x%08x, threadId=%d, invocations=%zu\n",
+                     context.pc,
+                     (uint32_t)_mm_extract_epi32(context.r[31], 0),
+-                    (uint32_t)_mm_extract_epi32(context.r[29], 0));
++                    (uint32_t)_mm_extract_epi32(context.r[29], 0),
++                    running ? running->id : -999,
++                    running ? running->invocations.size() : 0);
++            fprintf(stderr, "[abort] Last dispatched PCs by EeScheduler:\n");
++            for (int i = 0; i < 32; ++i) {
++                uint32_t p = s_lastDispatchedPc[(s_lastDispatchIdx + i) % 32];
++                if (p) fprintf(stderr, "  [%d] 0x%08x\n", i, p);
++            }
+             fflush(stderr);
+             m_runtime.reportMissingFunction(m_rdram,
+                                             &context,
+@@ -290,8 +301,36 @@ void EeScheduler::run()
+ 
+         try
+         {
++            if (context.pc >= 0x00120000u && context.pc < 0x0013F800u)
++            {
++                static uint32_t s_range120kHitCount = 0;
++                s_range120kHitCount++;
++                static bool s_reported120k = false;
++                if (!s_reported120k)
++                {
++                    s_reported120k = true;
++                    fprintf(stderr, "[region-0x120000] First execution in 0x120000..0x13F800 at pc=0x%08x (total hits: %u)\n",
++                            context.pc, s_range120kHitCount);
++                    fflush(stderr);
++                }
++                if (ps2_stubs::g_hasReadInto120000.load(std::memory_order_acquire))
++                {
++                    uint32_t count = ++ps2_stubs::g_postRead120000ExecCount;
++                    static bool s_reportedPostRead = false;
++                    if (!s_reportedPostRead)
++                    {
++                        s_reportedPostRead = true;
++                        fprintf(stderr, "[region-0x120000:post-read] First execution in 0x120000..0x13F800 post-sceCdRead at pc=0x%08x (count=%u)\n",
++                                context.pc, count);
++                        fflush(stderr);
++                    }
++                }
++            }
++
+             m_insideInterrupt = !running->invocations.empty() && running->invocations.back().kind == GuestInvocationKind::Interrupt;
+             m_guestExecuting.store(true, std::memory_order_release);
++            const uint32_t entryPc = context.pc;
++            s_lastDispatchedPc[s_lastDispatchIdx++ % 32] = entryPc;
+             function(m_rdram, &context, &m_runtime);
+             m_guestExecuting.store(false, std::memory_order_release);
+             m_insideInterrupt = false;
+diff --git a/ps2xRuntime/src/lib/Kernel/Stubs/CD.cpp b/ps2xRuntime/src/lib/Kernel/Stubs/CD.cpp
+index 94c9c2b..0168889 100644
+--- a/ps2xRuntime/src/lib/Kernel/Stubs/CD.cpp
++++ b/ps2xRuntime/src/lib/Kernel/Stubs/CD.cpp
+@@ -206,6 +206,9 @@ namespace ps2_stubs
+         return snapshot;
+     }
+ 
++    std::atomic<bool> g_hasReadInto120000{false};
++    std::atomic<uint32_t> g_postRead120000ExecCount{0};
++
+     void sceCdRead(uint8_t *rdram, R5900Context *ctx, PS2Runtime *runtime)
+     {
+         push_trace("ps2_stubs::sceCdRead");
+@@ -219,6 +222,14 @@ namespace ps2_stubs
+                 lsn, sectors, buf, phys);
+         fflush(stderr);
+ 
++        if (phys < 0x0013F800u && (phys + sectors * 2048u) > 0x00120000u)
++        {
++            g_hasReadInto120000.store(true, std::memory_order_release);
++            fprintf(stderr, "[region-0x120000] sceCdRead targeting region 0x00120000..0x0013F800 (lsn=%u sectors=%u phys=0x%08x)\n",
++                    lsn, sectors, phys);
++            fflush(stderr);
++        }
++
+         if (IsoDisc::instance().isOpen())
+         {
+             IsoDisc::instance().readSectors(lsn, sectors, rdram + ramOffset);
+diff --git a/ps2xRuntime/src/lib/Kernel/Stubs/CD.h b/ps2xRuntime/src/lib/Kernel/Stubs/CD.h
+index 8cacb4e..7f893c0 100644
+--- a/ps2xRuntime/src/lib/Kernel/Stubs/CD.h
++++ b/ps2xRuntime/src/lib/Kernel/Stubs/CD.h
+@@ -82,4 +82,7 @@ namespace ps2_stubs
+     void sceCdStStop(uint8_t *rdram, R5900Context *ctx, PS2Runtime *runtime);
+     void sceCdSyncS(uint8_t *rdram, R5900Context *ctx, PS2Runtime *runtime);
+     void sceCdTrayReq(uint8_t *rdram, R5900Context *ctx, PS2Runtime *runtime);
++
++    extern std::atomic<bool> g_hasReadInto120000;
++    extern std::atomic<uint32_t> g_postRead120000ExecCount;
+ }
+diff --git a/ps2xRuntime/src/lib/Kernel/Stubs/System.cpp b/ps2xRuntime/src/lib/Kernel/Stubs/System.cpp
+index 8b3022a..cb2a8a2 100644
+--- a/ps2xRuntime/src/lib/Kernel/Stubs/System.cpp
++++ b/ps2xRuntime/src/lib/Kernel/Stubs/System.cpp
+@@ -27,6 +27,9 @@ namespace ps2_stubs
+ 
+     void exit(uint8_t *rdram, R5900Context *ctx, PS2Runtime *runtime)
+     {
++        fprintf(stderr, "[exit] ps2_stubs::exit called! pc=0x%08x ra=0x%08x sp=0x%08x\n",
++                ctx ? ctx->pc : 0, ctx ? getRegU32(ctx, 31) : 0, ctx ? getRegU32(ctx, 29) : 0);
++        fflush(stderr);
+         push_trace("ps2_stubs::exit");
+         if (runtime)
+         {
+diff --git a/ps2xRuntime/src/lib/Kernel/Syscalls/RPC.cpp b/ps2xRuntime/src/lib/Kernel/Syscalls/RPC.cpp
+index d09c92d..53053a8 100644
+--- a/ps2xRuntime/src/lib/Kernel/Syscalls/RPC.cpp
++++ b/ps2xRuntime/src/lib/Kernel/Syscalls/RPC.cpp
+@@ -1,5 +1,6 @@
+ #include "Common.h"
+ #include "RPC.h"
++#include "../Stubs/SIF.h"
+ #include "../../ps2_iop_transport.h"
+ 
+ namespace ps2_syscalls
+@@ -28,6 +29,146 @@ namespace ps2_syscalls
+             pushSifRpcDebugEventLocked(event);
+         }
+ 
++        struct RpcHleCallContext
++        {
++            uint8_t *rdram = nullptr;
++            R5900Context *ctx = nullptr;
++            PS2Runtime *runtime = nullptr;
++            uint32_t clientPtr = 0;
++            uint32_t sid = 0;
++            uint32_t rpcNum = 0;
++            uint32_t mode = 0;
++            uint32_t sendBuf = 0;
++            uint32_t sendSize = 0;
++            uint32_t recvBuf = 0;
++            uint32_t recvSize = 0;
++            uint32_t endFunc = 0;
++            uint32_t endParam = 0;
++        };
++
++        using RpcHleCallHandler = std::function<int32_t(const RpcHleCallContext &)>;
++        using RpcHleBindHandler = std::function<void(uint32_t sid, uint32_t clientPtr)>;
++
++        struct RpcHleService
++        {
++            uint32_t sid = 0;
++            std::string name;
++            RpcHleBindHandler onBind;
++            RpcHleCallHandler onCall;
++        };
++
++        static std::unordered_map<uint32_t, RpcHleService> s_rpcHleServices;
++        static uint32_t s_iopSregs[32] = {};
++
++        static void initRpcHleServices()
++        {
++            static bool s_initialized = false;
++            if (s_initialized) return;
++            s_initialized = true;
++
++            // 0x80001300: DBC Base service
++            s_rpcHleServices[0x80001300u] = {
++                0x80001300u,
++                "DBC_BASE",
++                [](uint32_t sid, uint32_t clientPtr) {
++                    fprintf(stderr, "[rpc:dbc] Bound DBC_BASE (0x%08x) client=0x%08x\n", sid, clientPtr);
++                    fflush(stderr);
++                },
++                [](const RpcHleCallContext &call) -> int32_t {
++                    fprintf(stderr, "[rpc:dbc] Call DBC_BASE fno=0x%x sendBuf=0x%08x (%u) recvBuf=0x%08x (%u)\n",
++                            call.rpcNum, call.sendBuf, call.sendSize, call.recvBuf, call.recvSize);
++                    fflush(stderr);
++                    if (call.rpcNum == 0x80001363u) // sceDbcGetModVersion
++                    {
++                        if (call.recvBuf && call.recvSize >= 4)
++                        {
++                            uint32_t version = 0x0310u; // (0x310 >> 4) == 0x31
++                            if (uint8_t *dst = getMemPtr(call.rdram, call.recvBuf))
++                            {
++                                std::memcpy(dst, &version, 4);
++                            }
++                        }
++                        return 0;
++                    }
++                    if (call.rpcNum == 0x80001304u) // sceDbcSetWorkAddr
++                    {
++                        uint32_t workAddr = 0;
++                        if (call.sendBuf && call.sendSize >= 8)
++                        {
++                            if (const uint8_t *src = getConstMemPtr(call.rdram, call.sendBuf))
++                            {
++                                std::memcpy(&workAddr, src + 4, 4);
++                            }
++                        }
++                        fprintf(stderr, "[rpc:dbc] sceDbcSetWorkAddr workAddr=0x%08x\n", workAddr);
++                        fflush(stderr);
++                        return 0;
++                    }
++                    return 0;
++                }
++            };
++
++            // 0x8000131Cu: DBC Pad Service
++            s_rpcHleServices[0x8000131Cu] = {
++                0x8000131Cu,
++                "DBC_PAD",
++                [](uint32_t sid, uint32_t clientPtr) {
++                    fprintf(stderr, "[rpc:dbc] Bound DBC_PAD (0x%08x) client=0x%08x\n", sid, clientPtr);
++                    fflush(stderr);
++                },
++                [](const RpcHleCallContext &call) -> int32_t {
++                    fprintf(stderr, "[rpc:dbc] Call DBC_PAD fno=0x%x sendBuf=0x%08x (%u) recvBuf=0x%08x (%u)\n",
++                            call.rpcNum, call.sendBuf, call.sendSize, call.recvBuf, call.recvSize);
++                    fflush(stderr);
++                    if (call.recvBuf && call.recvSize > 0)
++                    {
++                        rpcZeroRdram(call.rdram, call.recvBuf, call.recvSize);
++                    }
++                    return 0;
++                }
++            };
++
++            // 0x8000131Eu: DBC Port 0
++            s_rpcHleServices[0x8000131Eu] = {
++                0x8000131Eu,
++                "DBC_PORT0",
++                [](uint32_t sid, uint32_t clientPtr) {
++                    fprintf(stderr, "[rpc:dbc] Bound DBC_PORT0 (0x%08x) client=0x%08x\n", sid, clientPtr);
++                    fflush(stderr);
++                },
++                [](const RpcHleCallContext &call) -> int32_t {
++                    fprintf(stderr, "[rpc:dbc] Call DBC_PORT0 fno=0x%x sendBuf=0x%08x (%u) recvBuf=0x%08x (%u)\n",
++                            call.rpcNum, call.sendBuf, call.sendSize, call.recvBuf, call.recvSize);
++                    fflush(stderr);
++                    if (call.recvBuf && call.recvSize > 0)
++                    {
++                        rpcZeroRdram(call.rdram, call.recvBuf, call.recvSize);
++                    }
++                    return 0;
++                }
++            };
++
++            // 0x8000131Fu: DBC Port 1
++            s_rpcHleServices[0x8000131Fu] = {
++                0x8000131Fu,
++                "DBC_PORT1",
++                [](uint32_t sid, uint32_t clientPtr) {
++                    fprintf(stderr, "[rpc:dbc] Bound DBC_PORT1 (0x%08x) client=0x%08x\n", sid, clientPtr);
++                    fflush(stderr);
++                },
++                [](const RpcHleCallContext &call) -> int32_t {
++                    fprintf(stderr, "[rpc:dbc] Call DBC_PORT1 fno=0x%x sendBuf=0x%08x (%u) recvBuf=0x%08x (%u)\n",
++                            call.rpcNum, call.sendBuf, call.sendSize, call.recvBuf, call.recvSize);
++                    fflush(stderr);
++                    if (call.recvBuf && call.recvSize > 0)
++                    {
++                        rpcZeroRdram(call.rdram, call.recvBuf, call.recvSize);
++                    }
++                    return 0;
++                }
++            };
++        }
++
+         void fillRpcDebugPreview(const uint8_t *rdram, uint32_t addr, uint32_t size, uint8_t *preview, uint32_t &previewSize)
+         {
+             previewSize = 0u;
+@@ -282,6 +423,7 @@ namespace ps2_syscalls
+         client->hdr.sema_id = -1;
+         client->hdr.mode = mode;
+ 
++        initRpcHleServices();
+         uint32_t serverPtr = 0;
+         {
+             std::lock_guard<std::mutex> lock(g_rpc_mutex);
+@@ -295,7 +437,10 @@ namespace ps2_syscalls
+             g_rpc_clients[clientPtr].sid = rpcId;
+         }
+ 
+-        if (!serverPtr && PS2IopTransport::canBindRpc(runtime, rpcId))
++        auto hleIt = s_rpcHleServices.find(rpcId);
++        const bool isHle = (hleIt != s_rpcHleServices.end());
++
++        if (!serverPtr && (isHle || PS2IopTransport::canBindRpc(runtime, rpcId)))
+         {
+             // EE-side servers and HLE routes need a descriptor in guest RAM.
+             // With an emulated IOP, only publish it after the IRX has actually
+@@ -313,6 +458,10 @@ namespace ps2_syscalls
+                 std::lock_guard<std::mutex> lock(g_rpc_mutex);
+                 g_rpc_servers[rpcId] = {rpcId, serverPtr};
+             }
++            if (isHle && hleIt->second.onBind)
++            {
++                hleIt->second.onBind(rpcId, clientPtr);
++            }
+         }
+ 
+         if (serverPtr)
+@@ -321,12 +470,18 @@ namespace ps2_syscalls
+             client->server = serverPtr;
+             client->buf = sd ? sd->buf : 0;
+             client->cbuf = sd ? sd->cbuf : 0;
++            fprintf(stderr, "[rpc:bind] Bound sid=0x%08x client=0x%08x -> server=0x%08x (%s)\n",
++                    rpcId, clientPtr, serverPtr, isHle ? hleIt->second.name.c_str() : "IOP/RPC");
++            fflush(stderr);
+         }
+         else
+         {
+             client->server = 0;
+             client->buf = 0;
+             client->cbuf = 0;
++            fprintf(stderr, "[rpc:bind] UNIMPLEMENTED / refused sid=0x%08x client=0x%08x\n",
++                    rpcId, clientPtr);
++            fflush(stderr);
+         }
+ 
+         SifRpcDebugEvent event = makeRpcDebugEvent("BindRpc", ctx, runtime);
+@@ -502,6 +657,23 @@ namespace ps2_syscalls
+         }
+ 
+         const uint32_t serverPtr = client->server;
++        fprintf(stderr, "[rpc:call] sid=0x%08x fno=0x%x mode=0x%x sendBuf=0x%08x (%u bytes) recvBuf=0x%08x (%u bytes) endFunc=0x%08x endParam=0x%08x\n",
++                sid, rpcNum, mode, sendBuf, sendSize, receiveBuffer, receiveSize, endFunction, endParameter);
++        if (sendBuf != 0u && sendSize > 0u)
++        {
++            const uint32_t dumpLen = std::min<uint32_t>(sendSize, 64u);
++            if (const uint8_t *sptr = getConstMemPtr(rdram, sendBuf))
++            {
++                fprintf(stderr, "  send hex[%u]:", dumpLen);
++                for (uint32_t i = 0; i < dumpLen; ++i)
++                {
++                    fprintf(stderr, " %02x", sptr[i]);
++                }
++                fprintf(stderr, "\n");
++            }
++        }
++        fflush(stderr);
++
+         auto *server = serverPtr
+                            ? reinterpret_cast<t_SifRpcServerData *>(getMemPtr(rdram, serverPtr))
+                            : nullptr;
+@@ -681,6 +853,37 @@ namespace ps2_syscalls
+             runtime->eeScheduler().invokeCurrent(std::move(callback));
+         };
+ 
++        auto hleCallIt = s_rpcHleServices.find(sid);
++        if (hleCallIt != s_rpcHleServices.end() && hleCallIt->second.onCall)
++        {
++            RpcHleCallContext hleCall{};
++            hleCall.rdram = rdram;
++            hleCall.ctx = ctx;
++            hleCall.runtime = runtime;
++            hleCall.clientPtr = clientPtr;
++            hleCall.sid = sid;
++            hleCall.rpcNum = rpcNum;
++            hleCall.mode = mode;
++            hleCall.sendBuf = sendBuf;
++            hleCall.sendSize = sendSize;
++            hleCall.recvBuf = receiveBuffer;
++            hleCall.recvSize = receiveSize;
++            hleCall.endFunc = endFunction;
++            hleCall.endParam = endParameter;
++
++            hleCallIt->second.onCall(hleCall);
++
++            iopResult.handled = true;
++            iopResult.resultAddress = receiveBuffer;
++            if (completionSemaphore != 0u && completionSemaphore != 0xFFFFFFFFu)
++            {
++                (void)signalRpcCompletionSema(runtime, completionSemaphore);
++            }
++
++            finishCall(nullptr, *ctx);
++            return;
++        }
++
+         if (serverDispatched)
+         {
+             GuestInvocation invocation{};
+@@ -974,28 +1177,84 @@ namespace ps2_syscalls
+         uint32_t packetAddr = getRegU32(ctx, 5);
+         uint32_t packetSize = getRegU32(ctx, 6);
+         uint32_t srcExtra = getRegU32(ctx, 7);
++        uint32_t destExtra = getRegU32(ctx, 8);
++        uint32_t sizeExtra = getRegU32(ctx, 9);
+ 
+-        uint32_t sp = getRegU32(ctx, 29);
+-        uint32_t destExtra = 0;
+-        uint32_t sizeExtra = 0;
+-        readStackU32(rdram, sp, 0x10, destExtra);
+-        readStackU32(rdram, sp, 0x14, sizeExtra);
+-
+-        if (sizeExtra > 0 && srcExtra && destExtra)
++        if (sizeExtra > 0 && srcExtra != 0u && destExtra != 0u && runtime != nullptr)
+         {
+-            rpcCopyToRdram(rdram, destExtra, srcExtra, sizeExtra);
++            if (const uint8_t *src = getConstMemPtr(rdram, srcExtra))
++            {
++                runtime->writeIopMemory(destExtra, src, sizeExtra);
++            }
+         }
+ 
+         static int logCount = 0;
+-        if (logCount < 5)
++        if (logCount < 10)
+         {
+-            RUNTIME_LOG("[sceSifSendCmd] cid=0x" << std::hex << cid
+-                                                 << " packet=0x" << packetAddr
+-                                                 << " psize=0x" << packetSize
+-                                                 << " extra=0x" << destExtra << std::dec << std::endl);
++            std::fprintf(stderr, "[sceSifSendCmd] cid=0x%08x packet=0x%08x psize=%u src=0x%08x dst=0x%08x size=%u (ra=0x%08x)\n",
++                         cid, packetAddr, packetSize, srcExtra, destExtra, sizeExtra, getRegU32(ctx, 31));
++            std::fflush(stderr);
+             ++logCount;
+         }
+ 
++        // Handle file3.irx command 1 (handshake and task dispatch)
++        if (cid == 1u)
++        {
++            if (const uint8_t *pkt = getConstMemPtr(rdram, packetAddr))
++            {
++                std::fprintf(stderr, "[CID1:packet 0x%08x] ", packetAddr);
++                for (int i = 0; i < 16; ++i) std::fprintf(stderr, "%02x ", pkt[i]);
++                std::fprintf(stderr, "\n");
++            }
++            const uint8_t *src = getConstMemPtr(rdram, srcExtra);
++            if (src)
++            {
++                std::fprintf(stderr, "[CID1:srcExtra 0x%08x] ", srcExtra);
++                for (int i = 0; i < 64; ++i) std::fprintf(stderr, "%02x ", src[i]);
++                std::fprintf(stderr, "\n");
++            }
++
++            uint32_t ptr08 = 0;
++            uint32_t seq = 0;
++            if (src)
++            {
++                std::memcpy(&ptr08, src + 8, 4);
++            }
++            if (const uint8_t *fcfdMem = getConstMemPtr(rdram, ptr08))
++            {
++                std::fprintf(stderr, "[CID1:fcfdMem at 0x%08x] ", ptr08);
++                for (int i = 0; i < 32; ++i) std::fprintf(stderr, "%02x ", fcfdMem[i]);
++                std::fprintf(stderr, "\n");
++                std::memcpy(&seq, fcfdMem + 4, 4);
++            }
++
++            struct SifReplyPacketCid1
++            {
++                uint32_t data = 0;
++                uint32_t packet_size = 64;
++                uint32_t cid = 1;
++                uint32_t pad0 = 0;
++                uint32_t pad1 = 0;
++                uint32_t cmd_type = 0;
++                uint32_t destExtra = 0;
++                uint32_t seq = 0;
++                uint32_t result = 0;
++                uint32_t pad2 = 0;
++                uint32_t success = 1;
++                uint32_t pad3[5] = {0};
++            } reply{};
++
++            reply.destExtra = ptr08 != 0u ? ptr08 : srcExtra;
++            reply.seq = seq;
++            reply.result = 0;
++            reply.success = 1;
++
++            std::fprintf(stderr, "[sceSifSendCmd:CID1] Dispatching reply: destExtra=0x%08x seq=%u\n", reply.destExtra, reply.seq);
++            std::fflush(stderr);
++
++            ps2_stubs::dispatchSifCommand(rdram, runtime, 1u, &reply, sizeof(reply));
++        }
++
+         // Handle SET_SREG command (0x80000001)
+         if (cid == 0x80000001u && packetAddr != 0u)
+         {
+@@ -1011,6 +1270,7 @@ namespace ps2_syscalls
+ 
+                 if (regIndex < 32)
+                 {
++                    s_iopSregs[regIndex] = regVal;
+                     if (uint8_t *sregMem = getMemPtr(rdram, 0x0076A6C0u))
+                     {
+                         std::memcpy(sregMem + regIndex * 4, &regVal, 4);
+@@ -1020,14 +1280,13 @@ namespace ps2_syscalls
+                         {
+                             uint32_t ack = 1;
+                             std::memcpy(sregMem + 31 * 4, &ack, 4);
+-                            uint32_t sreg30 = 0;
+-                            std::memcpy(&sreg30, sregMem + 30 * 4, 4);
++                            uint32_t sreg30 = s_iopSregs[30];
+                             if (sreg30 == 0)
+                             {
+-                                uint32_t default30 = 0x80;
+-                                std::memcpy(sregMem + 30 * 4, &default30, 4);
+-                                sreg30 = default30;
++                                sreg30 = 0x80; // file3.irx status
++                                s_iopSregs[30] = sreg30;
+                             }
++                            std::memcpy(sregMem + 30 * 4, &sreg30, 4);
+                             std::fprintf(stderr, "[sceSifSendCmd:HANDSHAKE] IOP handshake acknowledged: sreg[31]=1 sreg[30]=0x%x\n", sreg30);
+                             std::fflush(stderr);
+                         }
+diff --git a/ps2xRuntime/src/lib/ps2_runtime.cpp b/ps2xRuntime/src/lib/ps2_runtime.cpp
+index 0529e75..ab9ec05 100644
+--- a/ps2xRuntime/src/lib/ps2_runtime.cpp
++++ b/ps2xRuntime/src/lib/ps2_runtime.cpp
+@@ -11,6 +11,7 @@
+ #include "Kernel/Stubs/GS.h"
+ #include "Kernel/Stubs/MPEG.h"
+ #include "Kernel/Stubs/IsoDisc.h"
++#include "Stubs/CD.h"
+ #include "ps2_host_backend.h"
+ #include "ps2_iop_host.h"
+ #include "ps2x/iop/iop_subsystem.h"
+@@ -18,6 +19,7 @@
+ #include <iostream>
+ #include <stdexcept>
+ #include <fstream>
++#include <filesystem>
+ #include <algorithm>
+ #include <array>
+ #include <cstring>
+@@ -28,6 +30,10 @@
+ #include <unordered_map>
+ #include <sstream>
+ 
++#ifdef _WIN32
++extern "C" __declspec(dllimport) unsigned long __stdcall GetModuleFileNameA(void *hModule, char *lpFilename, unsigned long nSize);
++#endif
++
+ namespace ps2_stubs
+ {
+     void resetSifState();
+@@ -504,8 +510,12 @@ PS2Runtime::PS2Runtime()
+     m_guestHeapLimit = std::min(kGuestHeapHardLimit, PS2_RAM_SIZE);
+     m_guestHeapSuggestedBase = kGuestHeapDefaultBase;
+     m_guestHeapConfigured = false;
++    // The main thread stack occupies [0x01FA0000, 0x02000000] (SetupThread: stack base=0x01FA0000, size=0x60000).
++    // Async callback stacks MUST NOT collide with the main thread's live stack frames.
++    // They are placed below the main stack in [0x01F00000, 0x01FA0000].
++    constexpr uint32_t kDefaultAsyncCallbackStackTop = 0x01FA0000u;
+     m_asyncCallbackStackFloor = std::min(kGuestHeapHardLimit, PS2_RAM_SIZE);
+-    m_asyncCallbackStackTop = PS2_RAM_SIZE;
++    m_asyncCallbackStackTop = kDefaultAsyncCallbackStackTop;
+ }
+ 
+ void PS2Runtime::setDebugUiCallbacks(DebugUiCallback initCallback,
+@@ -758,6 +768,8 @@ bool PS2Runtime::initialize(const char *title)
+     return false;
+ }
+ 
++static void registerConfigStubs(PS2Runtime &runtime, const std::string &configPath);
++
+ bool PS2Runtime::loadELF(const std::string &elfPath)
+ {
+     configureIoPathsFromElf(elfPath);
+@@ -974,7 +986,7 @@ bool PS2Runtime::loadELF(const std::string &elfPath)
+         std::lock_guard<std::mutex> lock(m_asyncCallbackStackMutex);
+         const uint32_t hardLimit = std::min(kGuestHeapHardLimit, PS2_RAM_SIZE);
+         m_asyncCallbackStackFloor = std::min(std::max(hardLimit, suggestedHeapBase), PS2_RAM_SIZE);
+-        m_asyncCallbackStackTop = PS2_RAM_SIZE;
++        m_asyncCallbackStackTop = 0x01FA0000u;
+     }
+ 
+     LoadedModule module;
+@@ -1010,9 +1022,61 @@ bool PS2Runtime::loadELF(const std::string &elfPath)
+                                       elfCrc32,
+                                       elfCrc32Valid);
+ 
+-    // Override recompiled sceCdLayerSearchFile (0x003C5770) with runtime ISO search stub
+-    replaceFunction(0x003C5770u, &ps2_stubs::sceCdLayerSearchFile);
+-    fprintf(stderr, "[override] 0x003C5770 (sceCdLayerSearchFile) replaced with runtime stub\n");
++    // 1. Generic config.toml stub registration
++    registerConfigStubs(*this, "config.toml");
++
++    // 2. Behavior bypass runtime overrides (moved out of recomp_source):
++    // 0x003703D4: Early exit check returning non-zero error code -> force return 0
++    replaceFunction(0x003703D4u, [](uint8_t *rdram, R5900Context *ctx, PS2Runtime *runtime) {
++        fprintf(stderr, "[override] 0x003703D4 called (ra=0x%08x) -> returning 0\n", getRegU32(ctx, 31));
++        fflush(stderr);
++        setReturnS32(ctx, 0);
++        ctx->pc = getRegU32(ctx, 31);
++    });
++
++    // Syscall wrappers called via jump (J) instructions not emitted into recompiled table:
++    static auto wrapperSyscall2 = [](uint8_t *rdram, R5900Context *ctx, PS2Runtime *runtime) {
++        fprintf(stderr, "[syscall-wrapper] Dispatching syscall 2 at pc=0x%08x (ra=0x%08x)\n", ctx->pc, getRegU32(ctx, 31));
++        fflush(stderr);
++        ps2_syscalls::dispatchNumericSyscall(2, rdram, ctx, runtime);
++        ctx->pc = getRegU32(ctx, 31);
++    };
++    static auto wrapperSyscall4 = [](uint8_t *rdram, R5900Context *ctx, PS2Runtime *runtime) {
++        fprintf(stderr, "[syscall-wrapper] Dispatching syscall 4 at pc=0x%08x (ra=0x%08x)\n", ctx->pc, getRegU32(ctx, 31));
++        fflush(stderr);
++        ps2_syscalls::dispatchNumericSyscall(4, rdram, ctx, runtime);
++        ctx->pc = getRegU32(ctx, 31);
++    };
++    static auto wrapperSyscall6 = [](uint8_t *rdram, R5900Context *ctx, PS2Runtime *runtime) {
++        fprintf(stderr, "[syscall-wrapper] Dispatching syscall 6 at pc=0x%08x (ra=0x%08x)\n", ctx->pc, getRegU32(ctx, 31));
++        fflush(stderr);
++        ps2_syscalls::dispatchNumericSyscall(6, rdram, ctx, runtime);
++        ctx->pc = getRegU32(ctx, 31);
++    };
++    replaceFunction(0x004356E0u, wrapperSyscall2);
++    replaceFunction(0x00435700u, wrapperSyscall4);
++    replaceFunction(0x00435720u, wrapperSyscall6);
++
++    static auto stub_sceSifGetSreg = [](uint8_t *rdram, R5900Context *ctx, PS2Runtime *runtime) {
++        const uint32_t reg = getRegU32(ctx, 4);
++        uint32_t val = 0;
++        if (reg < 32)
++        {
++            if (const uint8_t *mem = getMemPtr(rdram, 0x0076A6C0u + reg * 4))
++            {
++                std::memcpy(&val, mem, 4);
++            }
++        }
++        if (reg == 30 || reg == 31)
++        {
++            fprintf(stderr, "[sreg] EE queried sreg[%u] -> 0x%x (ra=0x%08x)\n", reg, val, getRegU32(ctx, 31));
++            fflush(stderr);
++        }
++        setReturnU32(ctx, val);
++        ctx->pc = getRegU32(ctx, 31);
++    };
++    replaceFunction(0x004388F8u, stub_sceSifGetSreg);
++    fprintf(stderr, "[override] 0x004388F8 (sceSifGetSreg) registered with runtime stub\n");
+     fflush(stderr);
+ 
+     IsoDisc::instance().open();
+@@ -1117,6 +1181,178 @@ bool PS2Runtime::registerFunction(uint32_t address, RecompiledFunction func)
+     return replaceFunction(address, func);
+ }
+ 
++namespace
++{
++    struct BoundConfigStub
++    {
++        std::string name;
++        void (*handler)(uint8_t*, R5900Context*, PS2Runtime*);
++    };
++
++    static std::unordered_map<uint32_t, BoundConfigStub> s_boundConfigStubs;
++
++    static const std::unordered_map<std::string, void (*)(uint8_t*, R5900Context*, PS2Runtime*)> &getAvailableRuntimeStubs()
++    {
++        static const std::unordered_map<std::string, void (*)(uint8_t*, R5900Context*, PS2Runtime*)> s_stubs = []{
++            std::unordered_map<std::string, void (*)(uint8_t*, R5900Context*, PS2Runtime*)> m;
++#define REG_STUB(name) m[#name] = &ps2_stubs::name;
++            PS2_STUB_LIST(REG_STUB)
++#undef REG_STUB
++#define REG_SYSCALL(name) m[#name] = &ps2_syscalls::name;
++            PS2_SYSCALL_LIST(REG_SYSCALL)
++#undef REG_SYSCALL
++            return m;
++        }();
++        return s_stubs;
++    }
++
++    static void genericConfigStubThunk(uint8_t *rdram, R5900Context *ctx, PS2Runtime *runtime)
++    {
++        const uint32_t pc = ctx->pc;
++        const uint32_t ra = getRegU32(ctx, 31);
++        ctx->pc = ra;
++        auto it = s_boundConfigStubs.find(pc);
++        if (it != s_boundConfigStubs.end())
++        {
++            it->second.handler(rdram, ctx, runtime);
++        }
++        else
++        {
++            fprintf(stderr, "[stub] genericConfigStubThunk: unbound stub at pc=0x%08x\n", pc);
++            fflush(stderr);
++        }
++        if (ctx->pc == pc)
++        {
++            ctx->pc = ra;
++        }
++    }
++
++    static std::unordered_map<uint32_t, std::string> s_unimplementedConfigStubs;
++
++    static void unimplementedConfigStubThunk(uint8_t *rdram, R5900Context *ctx, PS2Runtime *runtime)
++    {
++        const uint32_t pc = ctx->pc;
++        const uint32_t ra = getRegU32(ctx, 31);
++        auto it = s_unimplementedConfigStubs.find(pc);
++        const char *name = (it != s_unimplementedConfigStubs.end()) ? it->second.c_str() : "unknown";
++        fprintf(stderr, "\n[FATAL] Called unimplemented config stub '%s' at 0x%08x (ra=0x%08x)!\n", name, pc, ra);
++        fflush(stderr);
++        std::abort();
++    }
++}
++
++static void registerConfigStubs(PS2Runtime &runtime, const std::string &configPath)
++{
++    std::ifstream file;
++    std::string resolvedPath;
++
++    std::vector<std::string> candidates;
++    candidates.push_back(configPath);
++    candidates.push_back("../" + configPath);
++    candidates.push_back("../../" + configPath);
++
++#ifdef _WIN32
++    char exeBuf[1024] = {0};
++    if (GetModuleFileNameA(NULL, exeBuf, static_cast<unsigned long>(sizeof(exeBuf))) > 0)
++    {
++        std::filesystem::path exeDir = std::filesystem::path(exeBuf).parent_path();
++        candidates.push_back((exeDir / configPath).string());
++        candidates.push_back((exeDir / ".." / configPath).string());
++        candidates.push_back((exeDir / ".." / ".." / configPath).string());
++        candidates.push_back((exeDir / ".." / ".." / ".." / configPath).string());
++    }
++#endif
++    candidates.push_back("c:/ApeEscape3_Recomp/" + configPath);
++
++    for (const auto &cand : candidates)
++    {
++        file.open(cand);
++        if (file.is_open())
++        {
++            resolvedPath = cand;
++            break;
++        }
++    }
++
++    if (!file.is_open())
++    {
++        fprintf(stderr, "\n[config-stubs] FATAL: Could not open %s in any searched location!\n", configPath.c_str());
++        fflush(stderr);
++        std::abort();
++    }
++
++    const auto &available = getAvailableRuntimeStubs();
++    size_t matchedCount = 0;
++    size_t unmatchedCount = 0;
++
++    std::string line;
++    while (std::getline(file, line))
++    {
++        const size_t atPos = line.find("@0x");
++        if (atPos == std::string::npos)
++        {
++            continue;
++        }
++
++        size_t startPos = line.find_first_not_of(" \t\"'");
++        if (startPos == std::string::npos || startPos >= atPos)
++        {
++            continue;
++        }
++        std::string name = line.substr(startPos, atPos - startPos);
++        while (!name.empty() && (name.back() == '\"' || name.back() == '\'' || name.back() == ' ' || name.back() == '\t'))
++        {
++            name.pop_back();
++        }
++
++        std::string addrStr = line.substr(atPos + 3);
++        size_t endHex = addrStr.find_first_not_of("0123456789abcdefABCDEF");
++        if (endHex != std::string::npos)
++        {
++            addrStr = addrStr.substr(0, endHex);
++        }
++        if (addrStr.empty())
++        {
++            continue;
++        }
++
++        uint32_t addr = 0;
++        try {
++            addr = static_cast<uint32_t>(std::stoul(addrStr, nullptr, 16));
++        } catch (...) {
++            continue;
++        }
++
++        auto it = available.find(name);
++        if (it != available.end())
++        {
++            s_boundConfigStubs[addr] = {name, it->second};
++            runtime.replaceFunction(addr, genericConfigStubThunk);
++            ++matchedCount;
++        }
++        else
++        {
++            ++unmatchedCount;
++            if (!runtime.hasFunction(addr))
++            {
++                s_unimplementedConfigStubs[addr] = name;
++                runtime.replaceFunction(addr, unimplementedConfigStubThunk);
++            }
++        }
++    }
++
++    if (matchedCount == 0)
++    {
++        fprintf(stderr, "\n[config-stubs] FATAL: 0 stubs matched from %s!\n", resolvedPath.c_str());
++        fflush(stderr);
++        std::abort();
++    }
++
++    fprintf(stderr, "[config-stubs] Registered %zu stubs from %s into function table (%zu stubs unmatched in runtime)\n",
++            matchedCount, resolvedPath.c_str(), unmatchedCount);
++    fflush(stderr);
++}
++
+ bool PS2Runtime::hasFunction(uint32_t address) const
+ {
+     uint32_t slot = 0u;
+@@ -1360,6 +1596,32 @@ bool PS2Runtime::dispatchGuestBranch(uint8_t *rdram,
+ {
+     ctx->pc = targetPc;
+     const bool isCall = (kind == GuestBranchKind::DirectCall || kind == GuestBranchKind::IndirectCall);
++    if (targetPc >= 0x00120000u && targetPc < 0x0013F800u)
++    {
++        static uint32_t s_range120kBranchHitCount = 0;
++        s_range120kBranchHitCount++;
++        static bool s_reported120kBranch = false;
++        if (!s_reported120kBranch)
++        {
++            s_reported120kBranch = true;
++            fprintf(stderr, "[region-0x120000:branch] First branch into 0x120000..0x13F800 at targetPc=0x%08x from sourcePc=0x%08x (total hits: %u)\n",
++                    targetPc, sourcePc, s_range120kBranchHitCount);
++            fflush(stderr);
++        }
++        if (ps2_stubs::g_hasReadInto120000.load(std::memory_order_acquire))
++        {
++            static uint32_t s_branchPostReadCount = 0;
++            s_branchPostReadCount++;
++            static bool s_reportedBranchPostRead = false;
++            if (!s_reportedBranchPostRead)
++            {
++                s_reportedBranchPostRead = true;
++                fprintf(stderr, "[region-0x120000:post-read-branch] First branch into 0x120000..0x13F800 post-sceCdRead at targetPc=0x%08x from sourcePc=0x%08x (count=%u)\n",
++                        targetPc, sourcePc, s_branchPostReadCount);
++                fflush(stderr);
++            }
++        }
++    }
+ 
+     // Every inter-function transfer is also a deterministic EE safe point.
+     // Backward edges inside generated functions use eeCheckpointDue(), while
+@@ -1988,9 +2250,10 @@ uint32_t PS2Runtime::reserveAsyncCallbackStack(uint32_t size, uint32_t alignment
+ 
+     std::lock_guard<std::mutex> lock(m_asyncCallbackStackMutex);
+     uint32_t top = m_asyncCallbackStackTop;
+-    if (top > PS2_RAM_SIZE)
++    constexpr uint32_t kMainThreadStackBottom = 0x01FA0000u;
++    if (top > kMainThreadStackBottom)
+     {
+-        top = PS2_RAM_SIZE;
++        top = kMainThreadStackBottom;
+     }
+     top &= ~(kGuestHeapDefaultAlignment - 1u);
+ 
+@@ -2007,7 +2270,11 @@ uint32_t PS2Runtime::reserveAsyncCallbackStack(uint32_t size, uint32_t alignment
+     }
+ 
+     m_asyncCallbackStackTop = base;
+-    return top - 0x10u;
++    const uint32_t stackPointer = top - 0x10u;
++    std::fprintf(stderr, "[reserveAsyncCallbackStack] Reserved async stack [0x%08x..0x%08x], sp=0x%08x (floor=0x%08x)\n",
++                 base, top, stackPointer, m_asyncCallbackStackFloor);
++    std::fflush(stderr);
++    return stackPointer;
+ }
+ 
+ uint8_t PS2Runtime::Load8(uint8_t *rdram, R5900Context *ctx, uint32_t vaddr)
+diff --git a/PS2Recomp b/PS2Recomp
+index eb8688b..852bd50 160000
+--- a/PS2Recomp
++++ b/PS2Recomp
+@@ -1 +1 @@
+-Subproject commit eb8688b2fd191129f103a39543002c005b33409c
++Subproject commit 852bd502481906bed6a1b23b99fe56be56077885-dirty

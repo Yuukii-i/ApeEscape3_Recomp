@@ -16,3 +16,35 @@ frame_*.png
 # Virtual Memory Cards (Saves)
 mc0/
 mc1/
+# Logs and debug output
+logs/
+ps2_log.txt
+
+# Frame dumps
+frames/
+
+# Compiled binaries (local tools)
+ps2_analyzer.exe
+ps2_recomp.exe
+
+# Git bundles (agent transfer artifacts)
+*.bundle
+
+# ImGui layout (user preference)
+imgui.ini
+
+# Git internal refs
+refs/
+
+# Scratch scripts
+scratch_*.py
+
+# Proposed gitignore (merged into main)
+.gitignore.proposed
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Compiled test binaries
+tools/tests/*.exe
