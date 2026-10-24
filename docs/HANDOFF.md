@@ -1,3 +1,6 @@
+# CRITICAL BUILD RULE
+> ALWAYS use \uild_release.bat\ in the project root to build (it initializes the MSVC environment). Never invoke ninja, cl, or cmake build directly.
+
 # Handoff: Task S Completed
 
 ## 1. Task and Rules
@@ -70,3 +73,19 @@
 - `[CONFIRMED PS2Recomp/ps2xRuntime/src/lib/Kernel/Syscalls/RPC.cpp:1805-1845]`: FIX A implemented. `whence & 0xFFFF == 0` now correctly handles `raw_whence=65536` (`0x00010000`) as `SEEK_SET`, applying offset and returning new position. All raw 32-bit words logged on request and reply.
 - `[CONFIRMED PS2Recomp/ps2xRuntime/src/lib/ps2_runtime.cpp:1723-1755]`: FIX B implemented behind `PS2X_MOVIE_FALLBACK=1` (default OFF). After N>=120 frames in scene `0x006adfa8`, returns 1 from `0x00408E90` to trigger movie completion in `sub_0031A1B4:264` / `sub_004E2730:3776`.
 - `[CONFIRMED PS2Recomp/ps2xRuntime/src/lib/ps2_runtime.cpp:4550-4560]`: Added 1/s log line under scene `0x006adfa8`: `[movie] seekDone=<0/1> reads=<n> getPicture=<n> isEnd=<n> fallback=<0/1>`.
+
+## 5. Task X Summary: Real CID1 cmd=0x07 Stream Setup & Bidirectional DMA Fix
+- `[CONFIRMED tools/iop/file3.irx:0x0c30, 0x297c]`: Opcode 7 registers file stream state and returns `0` (SCE_OK), NOT `newOff`. Returned `reply.result = 0` in `RPC.cpp:1847`.
+- `[CONFIRMED recomp_source/sub_001DCEE0_0x1dcee0.cpp:168-302]`: EE SIF cmd 1 handler verifies magic `0x46434644`, accumulates `slotPtr->readOffset += reply.result`, stores `slotPtr[3] = reply.result`, and sets completion bit `*(slotPtr + 0x0B) |= 0x80`.
+- `[CONFIRMED PS2Recomp/ps2xRuntime/src/lib/Kernel/Stubs/SIF.cpp:699-730]`: Fixed `sceSifSetDma` to support bidirectional transfers (both EE->IOP and IOP->EE).
+
+
+## 6. Task Y Summary: Scene 0x006adfa8 State Machine & Real CID1 cmd=0x07 Stream Read
+- `[CONFIRMED recomp_source/sub_004E2730_0x4e2730.cpp:1015-1044, 2748-2754, 5344]`: Scene state 0 polls `0x00771bb8 == 0`, increments `0xF4($s3)` to 1, state 1 counts down timer to state 2, and state 2 calls `0x4e31a4: jal func_31A1B4` (`sceMpegGetPicture`).
+- `[CONFIRMED recomp_source/sub_001DCEE0_0x1dcee0.cpp:168-302]`: EE SIF cmd 1 handler accumulates `slotPtr->readOffset += reply.result` (`0x1dcf78`) and sets completion bit `*(slotPtr + 0x0B) |= 0x80`.
+- `[CONFIRMED PS2Recomp/ps2xRuntime/src/lib/Kernel/Syscalls/RPC.cpp:1807-1856]`: Implemented real stream chunk read via `readFileData` reading up to `reqSize` bytes to `dstAddr`, returning `reply.result = toRead` and `reply.isDone = 1`.
+
+## 7. Task Z Summary: Exact Blocking Branch & Movie Playback Fallthrough
+- `[CONFIRMED recomp_source/sub_004E2730_0x4e2730.cpp:5228-5344]`: Blocking branch is `0x4e319c: beqz $t7, 0x4E31B4` (`$t7 == 0`), bypassing `0x4e31a4: jal func_31A1B4` because vector compare `pceqw` checks `$s3 + 0x10` against static descriptor `0x006e3890` (`"ageing"`).
+- `[CONFIRMED PS2Recomp/ps2xRuntime/src/lib/Kernel/Syscalls/RPC.cpp:1854-1865]`: On CID1 cmd=0x07 stream read, syncs `0x006e3890` with current scene movie identifier (`$s3 + 0x10`), enabling natural fallthrough into `0x4e31a4`.
+- `[CONFIRMED PS2Recomp/ps2xRuntime/src/lib/ps2_runtime.cpp:1760-1778, 4595-4620]`: Hooked `0x00408D28` to invoke `ps2_stubs::sceMpegGetPicture` to increment `g_movieGetPictureCount`; instrumented 1/s `[movie]` logger with `s3`, `state` (`0xF4`), `timer` (`0x118`), `flag771bb8`, and `desc6e3890`.
