@@ -37,7 +37,7 @@ def main():
             line_str = line.strip()
             if line_str.startswith('[probe] first_calls'):
                 first_calls_lines.append(line_str)
-            elif line_str.startswith('[probe] f9') or line_str.startswith('[probe] f10') or line_str.startswith('[probe] 31a') or line_str.startswith('[probe] str_') or line_str.startswith('[probe] c8') or line_str.startswith('[probe] seek') or line_str.startswith('[probe] scan') or line_str.startswith('[probe] 24c8') or line_str.startswith('[probe] ar') or line_str.startswith('[probe] as') or line_str.startswith('[probe] at') or line_str.startswith('[probe] au') or line_str.startswith('[probe] av') or line_str.startswith('[probe] aw'):
+            elif line_str.startswith('[probe] f9') or line_str.startswith('[probe] f10') or line_str.startswith('[probe] 31a') or line_str.startswith('[probe] str_') or line_str.startswith('[probe] c8') or line_str.startswith('[probe] seek') or line_str.startswith('[probe] scan') or line_str.startswith('[probe] 24c8') or line_str.startswith('[probe] ar') or line_str.startswith('[probe] as') or line_str.startswith('[probe] at') or line_str.startswith('[probe] au') or line_str.startswith('[probe] av') or line_str.startswith('[probe] aw') or line_str.startswith('[probe] ax'):
                 f9_f10_lines.append(line_str)
             elif line_str.startswith('[probe] sif_') or line_str.startswith('[probe] intc_') or line_str.startswith('[probe] vt_write'):
                 sif_intc_lines.append(line_str)
