@@ -41,7 +41,7 @@ def main():
                 f9_f10_lines.append(line_str)
             elif line_str.startswith('[probe] sif_') or line_str.startswith('[probe] intc_') or line_str.startswith('[probe] vt_write'):
                 sif_intc_lines.append(line_str)
-            elif '[CID1:batch]' in line_str or '[CID1:Seek:raw_req]' in line_str:
+            elif '[CID1:batch]' in line_str or '[CID1:Seek:raw_req]' in line_str or '[CID1:Open]' in line_str:
                 cid1_lines.append(line_str)
             elif '[sg2]' in line_str:
                 sg2_lines.append(line_str)
