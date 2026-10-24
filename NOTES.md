@@ -1356,6 +1356,7 @@ All 12 IOP modules in `DATA.BIN` were located in the VFI File Record Table (`0x0
 | **Live frame PNG dumps** | N/A | `PS2Recomp/ps2xRuntime/src/lib/ps2_runtime.cpp:4460-4475` | `PS2X_DUMP_FRAMES=1` (Default: OFF) | Dumps presented frames as `frames/frame_live_<counter>.png`. |
 | **Verbose DMA/VIF/RPC logging** | N/A | `ps2_runtime.cpp`, `RPC.cpp`, `gs_frontend.cpp` | `PS2X_VERBOSE_LOG=1` (Default: OFF) | Enables verbose console prints for every DMA transfer tag, VIF packet, and SIF RPC packet. |
 | **sceMpegGetPictureRAW8 HLE** | `sceMpegGetPictureRAW8` | `PS2Recomp/ps2xRuntime/src/lib/Kernel/Stubs/MPEG.cpp` | N/A | RGBA->YCbCr conversion of ffmpeg frame |
+| **CID1 .str stream start offset** | Opcode 0x03 Open | `PS2Recomp/ps2xRuntime/src/lib/Kernel/Syscalls/RPC.cpp` | N/A | CID1 .str stream starts at 0x800 (RPC.cpp) - matches real IOP position after the 2048-byte header |
 
 ## 27. Task W: CID1:Seek & Dolby FMV Stall Analysis
 - **CID1:Seek Word Positions & Whence Flag**:
