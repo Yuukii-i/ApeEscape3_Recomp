@@ -23,6 +23,7 @@ def main():
     probe_lines = []
     first_calls_lines = []
     sif_intc_lines = []
+    cid1_lines = []
     last_scene = None
 
     with open(log_file, 'rb') as bf:
@@ -35,6 +36,8 @@ def main():
                 first_calls_lines.append(line_str)
             elif line_str.startswith('[probe] sif_') or line_str.startswith('[probe] intc_'):
                 sif_intc_lines.append(line_str)
+            elif '[CID1:batch]' in line_str or '[CID1:Seek:raw_req]' in line_str:
+                cid1_lines.append(line_str)
             elif '[movie]' in line_str:
                 movie_lines.append(line_str)
                 if len(movie_lines) > 2:
@@ -75,6 +78,13 @@ def main():
         print(f"-- SIF/INTC Events ({len(sif_intc_lines)}) --")
         for si in sif_intc_lines:
             print(si)
+
+    # Print CID1 Batch / Seek lines
+    if cid1_lines:
+        show_cid1 = cid1_lines[:25]
+        print(f"-- CID1 Batch / Seek ({len(cid1_lines)} total, showing first {len(show_cid1)}) --")
+        for cl in show_cid1:
+            print(cl)
 
     # Print probe lines (last 15 if more)
     if probe_lines:
