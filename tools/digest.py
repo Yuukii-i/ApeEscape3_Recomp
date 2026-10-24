@@ -25,6 +25,7 @@ def main():
     sif_intc_lines = []
     cid1_lines = []
     sg2_lines = []
+    raw8_lines = []
     last_scene = None
 
     with open(log_file, 'rb') as bf:
@@ -41,6 +42,8 @@ def main():
                 cid1_lines.append(line_str)
             elif '[sg2]' in line_str:
                 sg2_lines.append(line_str)
+            elif '[mpeg:raw8]' in line_str:
+                raw8_lines.append(line_str)
             elif '[movie]' in line_str:
                 movie_lines.append(line_str)
                 if len(movie_lines) > 2:
@@ -95,6 +98,13 @@ def main():
         print(f"-- SG2 Audio ({len(sg2_lines)} total, showing first {len(show_sg2)}) --")
         for sl in show_sg2:
             print(sl)
+
+    # Print RAW8 MPEG lines
+    if raw8_lines:
+        show_raw8 = raw8_lines[:25]
+        print(f"-- MPEG RAW8 ({len(raw8_lines)} total, showing first {len(show_raw8)}) --")
+        for rl in show_raw8:
+            print(rl)
 
     # Print probe lines (last 15 if more)
     if probe_lines:
