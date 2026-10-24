@@ -1357,6 +1357,7 @@ All 12 IOP modules in `DATA.BIN` were located in the VFI File Record Table (`0x0
 | **Verbose DMA/VIF/RPC logging** | N/A | `ps2_runtime.cpp`, `RPC.cpp`, `gs_frontend.cpp` | `PS2X_VERBOSE_LOG=1` (Default: OFF) | Enables verbose console prints for every DMA transfer tag, VIF packet, and SIF RPC packet. |
 | **sceMpegGetPictureRAW8 HLE** | `sceMpegGetPictureRAW8` | `PS2Recomp/ps2xRuntime/src/lib/Kernel/Stubs/MPEG.cpp` | N/A | RGBA->YCbCr conversion of ffmpeg frame |
 | **CID1 .str stream start offset** | Opcode 0x03 Open | `PS2Recomp/ps2xRuntime/src/lib/Kernel/Syscalls/RPC.cpp` | N/A | CID1 .str stream starts at 0x800 (RPC.cpp) - matches real IOP position after the 2048-byte header |
+| **Movie YCbCr->RGB VU1 HLE** | VU1 microcode `0xF72A6639E95D7AC8` (startPC 0x048) | `ps2_vu1_core.cpp`, `probe_ae.cpp` | `PS2X_MOVIE_HLE=0` to disable (Default: ON / 1); `PS2X_MOVIE_HLE_VERIFY=1` (Default: OFF / 0) | Native replacement of movie YCbCr->RGB VU1 microcode directly into CT32 GS buffer, eliminating ~1100 MSCAL/s and ~6M point prims/s overhead. When OFF or verify, runs original VU1 microcode. |
 
 ## 27. Task W: CID1:Seek & Dolby FMV Stall Analysis
 - **CID1:Seek Word Positions & Whence Flag**:
