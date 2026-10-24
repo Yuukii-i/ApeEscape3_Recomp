@@ -34,7 +34,7 @@ def main():
             line_str = line.strip()
             if line_str.startswith('[probe] first_calls'):
                 first_calls_lines.append(line_str)
-            elif line_str.startswith('[probe] sif_') or line_str.startswith('[probe] intc_'):
+            elif line_str.startswith('[probe] sif_') or line_str.startswith('[probe] intc_') or line_str.startswith('[probe] vt_write'):
                 sif_intc_lines.append(line_str)
             elif '[CID1:batch]' in line_str or '[CID1:Seek:raw_req]' in line_str:
                 cid1_lines.append(line_str)
