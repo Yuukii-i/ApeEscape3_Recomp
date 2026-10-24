@@ -1355,6 +1355,7 @@ All 12 IOP modules in `DATA.BIN` were located in the VFI File Record Table (`0x0
 | **Movie finished fallback** | `0x00408E90` (`sub_00408E90`) | `PS2Recomp/ps2xRuntime/src/lib/ps2_runtime.cpp:1723-1755` | `PS2X_MOVIE_FALLBACK=1` (Default: OFF) | After N>=120 frames in scene `0x006adfa8`, reports movie completed by returning 1 to `sub_0031A1B4:264`, causing `0x31a330: sw $t7, 0x200($s1)` ($t7=-1) and `0x4e2e1c: bltzl $a0, 0x4e2fc4` in `sub_004E2730:3776` to transition to next scene. When OFF, executes native `sub_00408E90`. |
 | **Live frame PNG dumps** | N/A | `PS2Recomp/ps2xRuntime/src/lib/ps2_runtime.cpp:4460-4475` | `PS2X_DUMP_FRAMES=1` (Default: OFF) | Dumps presented frames as `frames/frame_live_<counter>.png`. |
 | **Verbose DMA/VIF/RPC logging** | N/A | `ps2_runtime.cpp`, `RPC.cpp`, `gs_frontend.cpp` | `PS2X_VERBOSE_LOG=1` (Default: OFF) | Enables verbose console prints for every DMA transfer tag, VIF packet, and SIF RPC packet. |
+| **sceMpegGetPictureRAW8 HLE** | `sceMpegGetPictureRAW8` | `PS2Recomp/ps2xRuntime/src/lib/Kernel/Stubs/MPEG.cpp` | N/A | RGBA->YCbCr conversion of ffmpeg frame |
 
 ## 27. Task W: CID1:Seek & Dolby FMV Stall Analysis
 - **CID1:Seek Word Positions & Whence Flag**:
@@ -1384,4 +1385,7 @@ All 12 IOP modules in `DATA.BIN` were located in the VFI File Record Table (`0x0
 
 ## 31. Task AL: SG2_AUDIO HLE Voice-Status Emulation
 - SG2 HLE voice-status emulation (RPC.cpp) - models IOP stream position; not a patch of guest code
+
+## 32. Task AM: sceMpegGetPictureRAW8 HLE
+- sceMpegGetPictureRAW8 HLE (MPEG.cpp): RGBA->YCbCr conversion of ffmpeg frame
 
