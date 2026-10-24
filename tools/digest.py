@@ -23,7 +23,10 @@ def main():
     probe_lines = []
     last_scene = None
 
-    with open(log_file, 'r', encoding='utf-8', errors='ignore') as f:
+    with open(log_file, 'rb') as bf:
+        bom = bf.read(2)
+    enc = 'utf-16' if bom in (b'\xff\xfe', b'\xfe\xff') else 'utf-8'
+    with open(log_file, 'r', encoding=enc, errors='ignore') as f:
         for line in f:
             line_str = line.strip()
             if '[movie]' in line_str:
