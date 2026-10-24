@@ -26,6 +26,7 @@ def main():
     cid1_lines = []
     sg2_lines = []
     raw8_lines = []
+    f9_f10_lines = []
     last_scene = None
 
     with open(log_file, 'rb') as bf:
@@ -36,6 +37,8 @@ def main():
             line_str = line.strip()
             if line_str.startswith('[probe] first_calls'):
                 first_calls_lines.append(line_str)
+            elif line_str.startswith('[probe] f9') or line_str.startswith('[probe] f10') or line_str.startswith('[probe] 31a') or line_str.startswith('[probe] str_'):
+                f9_f10_lines.append(line_str)
             elif line_str.startswith('[probe] sif_') or line_str.startswith('[probe] intc_') or line_str.startswith('[probe] vt_write'):
                 sif_intc_lines.append(line_str)
             elif '[CID1:batch]' in line_str or '[CID1:Seek:raw_req]' in line_str:
@@ -105,6 +108,12 @@ def main():
         print(f"-- MPEG RAW8 ({len(raw8_lines)} total, showing first {len(show_raw8)}) --")
         for rl in show_raw8:
             print(rl)
+
+    # Print Task AN f9 / f10 / 31a Probe Lines
+    if f9_f10_lines:
+        print(f"-- Task AN Probe Lines ({len(f9_f10_lines)}) --")
+        for fl in f9_f10_lines:
+            print(fl)
 
     # Print probe lines (last 15 if more)
     if probe_lines:
