@@ -21,6 +21,7 @@ def main():
     scene_lines = []
     fps_line = None
     probe_lines = []
+    first_calls_lines = []
     last_scene = None
 
     with open(log_file, 'rb') as bf:
@@ -29,7 +30,9 @@ def main():
     with open(log_file, 'r', encoding=enc, errors='ignore') as f:
         for line in f:
             line_str = line.strip()
-            if '[movie]' in line_str:
+            if line_str.startswith('[probe] first_calls'):
+                first_calls_lines.append(line_str)
+            elif '[movie]' in line_str:
                 movie_lines.append(line_str)
                 if len(movie_lines) > 2:
                     movie_lines.pop(0)
@@ -57,6 +60,12 @@ def main():
         print(f"-- Last Movie Lines ({len(movie_lines)}) --")
         for m in movie_lines:
             print(m)
+
+    # Print one-time first_calls lines
+    if first_calls_lines:
+        print(f"-- First Calls ({len(first_calls_lines)}) --")
+        for fc in first_calls_lines:
+            print(fc)
 
     # Print probe lines (last 15 if more)
     if probe_lines:
