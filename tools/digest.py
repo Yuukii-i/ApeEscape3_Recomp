@@ -22,6 +22,7 @@ def main():
     fps_line = None
     probe_lines = []
     first_calls_lines = []
+    sif_intc_lines = []
     last_scene = None
 
     with open(log_file, 'rb') as bf:
@@ -32,6 +33,8 @@ def main():
             line_str = line.strip()
             if line_str.startswith('[probe] first_calls'):
                 first_calls_lines.append(line_str)
+            elif line_str.startswith('[probe] sif_') or line_str.startswith('[probe] intc_'):
+                sif_intc_lines.append(line_str)
             elif '[movie]' in line_str:
                 movie_lines.append(line_str)
                 if len(movie_lines) > 2:
@@ -66,6 +69,12 @@ def main():
         print(f"-- First Calls ({len(first_calls_lines)}) --")
         for fc in first_calls_lines:
             print(fc)
+
+    # Print one-time SIF / INTC lines
+    if sif_intc_lines:
+        print(f"-- SIF/INTC Events ({len(sif_intc_lines)}) --")
+        for si in sif_intc_lines:
+            print(si)
 
     # Print probe lines (last 15 if more)
     if probe_lines:
