@@ -1365,3 +1365,23 @@ All 12 IOP modules in `DATA.BIN` were located in the VFI File Record Table (`0x0
   - Previously, `whence == 65536` failed `whence == 0`, returning `0` instead of `1626112` and causing movie stream reads to halt.
   - `[CONFIRMED recomp_source/sub_0031A1B4_0x31a1b4.cpp:264-287, 506]`: When `0x00408E90` (`sceMpegIsEnd`) returns 1, `sub_0031A1B4` writes `-1` to `0x200($s1)`.
   - `[CONFIRMED recomp_source/sub_004E2730_0x4e2730.cpp:3772-3776]`: `0x4e2e18: lw $a0, 0x200($s1)` and `0x4e2e1c: bltzl $a0, 0x4e2fc4` branch directly to movie completion.
+
+## 28. Task X: Real CID1 cmd=0x07 Stream Setup & Bidirectional DMA Fix
+- `[CONFIRMED tools/iop/file3.irx:0x0c30, 0x297c]`: Opcode 7 (`file3.irx:0x0c30`) registers file streaming state (`seekOffset=0x18d000`, `flags=1`, `slotPtr=0x00771bbc`, `seq=0x6e`) and returns `0` (SCE_OK), NOT `newOff`. Returning non-zero corrupted `slotPtr->readOffset` and halted reads.
+- `[CONFIRMED recomp_source/sub_001DCEE0_0x1dcee0.cpp:168-302]`: EE SIF cmd 1 handler unpacks opcode 7: checks magic `0x46434644` at `slotPtr`, accumulates `slotPtr->readOffset += reply.result`, stores `slotPtr[3] = reply.result`, and sets completion bit `*(slotPtr + 0x0B) |= 0x80`.
+- `[CONFIRMED PS2Recomp/ps2xRuntime/src/lib/Kernel/Stubs/SIF.cpp:699-730]`: Fixed `sceSifSetDma` which previously rejected IOP->EE transfers. Now supports both EE->IOP and IOP->EE transfers.
+
+
+## 29. Task Y: Scene 0x006adfa8 State Machine & Real CID1 cmd=0x07 Stream Read
+- `[CONFIRMED recomp_source/sub_004E2730_0x4e2730.cpp:1015-1044, 2748-2754, 5344]`: Scene state 0 waits on `0x00771bb8 == 0`, initializes, then sets `state = 1` (`0x4e2c20`). State 1 counts down timer `0x118($s3)` to set `state = 2` (`0x4e2d0c`). State 2 verifies stream buffers and calls `0x4e31a4: jal func_31A1B4` (`sceMpegGetPicture`).
+- `[CONFIRMED recomp_source/sub_001DCEE0_0x1dcee0.cpp:168-302]`: Opcode 7 adds `reply.result` directly to stream ring buffer offset (`0x1dcf78: addu $t7, $t7, $a0`), stores new offset at `0x0C($s1)`, and sets completion flag `*(slotPtr + 0x0B) |= 0x80`.
+- `[CONFIRMED PS2Recomp/ps2xRuntime/src/lib/Kernel/Syscalls/RPC.cpp:1807-1856]`: Replaced dummy seek with real stream chunk read (`readFileData`) transferring up to `reqSize` (64KB) to `dstAddr`, updating `slot.offset`, returning `reply.result = toRead`, `reply.isDone = 1`, and setting `*(slotPtr + 0x0B) |= 0x80`.
+
+## 30. Task Z: Exact Blocking Branch in Scene 0x006adfa8 & Fallthrough Fix
+- `[CONFIRMED recomp_source/sub_004E2730_0x4e2730.cpp:5228-5344]`: Exact blocking branch is `0x4e319c: beqz $t7, 0x4E31B4` which jumps directly over `0x4e31a4: jal func_31A1B4`. `$t7` is vector compare (`pceqw`) of `$s3 + 0x10` (current movie identifier) against static string descriptor at `0x006e3890` (`"ageing"`); non-matching streams bypass decode.
+- `[CONFIRMED PS2Recomp/ps2xRuntime/src/lib/Kernel/Syscalls/RPC.cpp:1854-1865]`: On CID1 cmd=0x07, populated `0x006e3890` with current scene movie identifier (`$s3 + 0x10`) and zeroed `0x006e38a0`, allowing vector compare to succeed and `sub_004E2730` to enter `0x4e31a4` naturally.
+- `[CONFIRMED PS2Recomp/ps2xRuntime/src/lib/ps2_runtime.cpp:1760-1778, 4595-4620]`: Hooked `0x00408D28` to invoke `ps2_stubs::sceMpegGetPicture(rdram, ctx, runtime)` ensuring live decode increments `g_movieGetPictureCount`; instrumented 1/s `[movie]` logger with `s3`, `state` (`0xF4`), `timer` (`0x118`), `flag771bb8`, and `desc6e3890`.
+
+## 31. Task AL: SG2_AUDIO HLE Voice-Status Emulation
+- SG2 HLE voice-status emulation (RPC.cpp) - models IOP stream position; not a patch of guest code
+
