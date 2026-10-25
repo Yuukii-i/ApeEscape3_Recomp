@@ -167,3 +167,7 @@ Call: 319F14(a0=0x772310 [sceMpeg ctx], a1=dst 0x163A280, a2=0x300 (MB capacity)
  #4 release a1=0 from 0x24C46C (inside the 0x24C2DC block).
  #5 alloc: 1DBA64 <- 1DCC30 <- 1DB3E4 (other submit type).
  Steady state afterwards = slots 0/1 re-armed (golden sec.21). i.e. the Open slot MUST be released at 0x24C218 (and the next at 0x24C46C) so the stream jobs land in slots 0/1 again.
+
+## 23 sceMpeg ctx 0x772310 during dolby (PCSX2, 2026-10-25)
+ [+0]=512 [+4]=384 (0x180) [+8]=0x74 frame ctr; [+0x70..]: 512, 384, 0x300 at 0x772380/84/88 (fixed config). Stream header dolby = 512x384, advertise = 512x320. RAW8 a2=768 always. CORRECTS sec 11 note "(+4)=0x140": dolby height is 384.
+ Stream reads (op 7 video, bp 0x24CB10): +0x58 vsize 118784 @ +0x60=36 (+0x50=1,+0x74=3); 104448 @ 54 (+0x50=2,+0x74=4). 0x24CA3C a1=IOP ring addr (+0x4000 per call), a2=0x4000.
