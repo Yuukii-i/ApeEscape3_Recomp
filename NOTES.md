@@ -1404,3 +1404,6 @@ All 12 IOP modules in `DATA.BIN` were located in the VFI File Record Table (`0x0
 
 ## 36. Task CI: Fast path for VIF1 UNPACK vector loop
 - VIF1 UNPACK fast path for S-8/16/32 with constant mask column (PS2X_UNPACK_FAST=0 disables, PS2X_UNPACK_VERIFY=1 compares).
+
+## 37. Task CM: GS DrawSprite 1:1 CT32 textured copy fast path
+- GS DrawSprite 1:1 CT32 textured copy fast path (PS2X_GS_SPRITE_FAST=0 disables, PS2X_GS_SPRITE_VERIFY=1 checks).
