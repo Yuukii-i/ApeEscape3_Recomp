@@ -1392,3 +1392,6 @@ All 12 IOP modules in `DATA.BIN` were located in the VFI File Record Table (`0x0
 ## 32. Task AM: sceMpegGetPictureRAW8 HLE
 - sceMpegGetPictureRAW8 HLE (MPEG.cpp): RGBA->YCbCr conversion of ffmpeg frame
 
+## 33. Task BY: RAW8 column stride guest grid
+- RAW8 column stride = mbCapacity/mbCols (guest grid), black MBs below the picture
+
