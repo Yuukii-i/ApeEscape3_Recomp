@@ -1399,5 +1399,5 @@ All 12 IOP modules in `DATA.BIN` were located in the VFI File Record Table (`0x0
 - native movie path accepts VU1 program start 0x848 (same layout as 0x48, shift env PS2X_MOVIE_848_SHIFT)
 
 ## 35. Task CE: Frame-locked guest time (PS2X_VTIME) and Release PDB symbols
-- Coalesce INTC cause 3/2 interrupts when prior interrupt is pending and model SG2 audio play position from delivered vblanks (16 KB per 36 delivered vblanks) behind PS2X_VTIME=1.
+- Coalesce INTC cause 3/2 interrupts when prior interrupt is pending and model SG2 audio play position from delivered vblanks (16 KB per 36 delivered vblanks) Default ON (PS2X_VTIME=0 to disable).
 
