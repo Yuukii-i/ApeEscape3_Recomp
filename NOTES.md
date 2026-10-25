@@ -1407,3 +1407,6 @@ All 12 IOP modules in `DATA.BIN` were located in the VFI File Record Table (`0x0
 
 ## 37. Task CM: GS DrawSprite 1:1 CT32 textured copy fast path
 - GS DrawSprite 1:1 CT32 textured copy fast path (PS2X_GS_SPRITE_FAST=0 disables, PS2X_GS_SPRITE_VERIFY=1 checks).
+
+## 38. Task CO: GS display-copy sprite
+- GS display-copy sprite (full-scissor alpha-blended copy to the display fbp) is recognised for any scissor size and optionally not rasterised (PS2X_GS_SKIP_DISPLAY_COPY=1), source frame is presented directly.
