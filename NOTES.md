@@ -1358,6 +1358,7 @@ All 12 IOP modules in `DATA.BIN` were located in the VFI File Record Table (`0x0
 | **sceMpegGetPictureRAW8 HLE** | `sceMpegGetPictureRAW8` | `PS2Recomp/ps2xRuntime/src/lib/Kernel/Stubs/MPEG.cpp` | N/A | RGBA->YCbCr conversion of ffmpeg frame |
 | **CID1 .str stream start offset** | Opcode 0x03 Open | `PS2Recomp/ps2xRuntime/src/lib/Kernel/Syscalls/RPC.cpp` | N/A | CID1 .str stream starts at 0x800 (RPC.cpp) - matches real IOP position after the 2048-byte header |
 | **Movie YCbCr->RGB VU1 HLE** | startPC 0x048 + Movie Active + RAW8 Y UNPACK | `ps2_vu1_core.cpp`, `probe_ae.cpp` | `PS2X_MOVIE_HLE=0` to disable (Default: ON / 1); `PS2X_MOVIE_HLE_VERIFY=1` (Default: OFF / 0); `PS2X_MOVIE_HLE_STRICT=1` (Default: OFF / 0) | Native replacement of movie YCbCr->RGB VU1 microcode via ordered in-queue GIF image transfer packets into CT32 GS FRAME_2, eliminating ~1100 MSCAL/s and ~6M point prims/s overhead without racing or mixing with GS draw commands. When OFF or verify, runs original VU1 microcode. |
+| **Clean stale movie CID1 slots on Close** | Opcode 0x04 Close | `PS2Recomp/ps2xRuntime/src/lib/Kernel/Syscalls/RPC.cpp` | `PS2X_CID1_CLOSE_CLEAN=0` to disable (Default: ON / 1) | Frees stale completed stream read job slots for closed fd and decrements dev30 ([0x771BB8]) to allow next movie scene tick (0x4E2730) to start. |
 
 ## 27. Task W: CID1:Seek & Dolby FMV Stall Analysis
 - **CID1:Seek Word Positions & Whence Flag**:
