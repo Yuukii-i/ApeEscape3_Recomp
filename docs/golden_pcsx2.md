@@ -178,3 +178,6 @@ Call: 319F14(a0=0x772310 [sceMpeg ctx], a1=dst 0x163A280, a2=0x300 (MB capacity)
 ## 25 Intro stream group boundary order (PCSX2, intro frames 628-646)
  bp 0x24CB10 @frame 628 (+0x58=139264,+0x50=1); pump 0x24C7DC entry @frame 646 (+0x58 still 139264, cycles 676574826); then 0x24CA3C (ring, a2=0x4000, +0x58=92160 already NEW, cycle +1400) then 0x24CB10 (+0x58=92160, +2800). New +0x58 is set by the pump before the reads. Expression syntax in the PCSX2 MCP: [0xADDR] reads a word; conditional bps accepted (a2 != 0x300).
  ctx at frame 604: [+0x5C]=0x1845 (6213) [+0x60]=[+0x64]=0x25C [+0x74]=0x22 (group 34) ; intro table entry flag t0=0.
+
+## 26 Lag behaviour of the real game (user test, PCSX2 EE cycle rate 50%, ~15 fps)
+ FMVs smudge, flicker black for a few frames, block tearing at the top/bottom borders ("sharp teeth"), recover, never end early. Visual artefacts under lag are native.
