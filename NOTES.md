@@ -1395,3 +1395,6 @@ All 12 IOP modules in `DATA.BIN` were located in the VFI File Record Table (`0x0
 ## 33. Task BY: RAW8 column stride guest grid
 - RAW8 column stride = mbCapacity/mbCols (guest grid), black MBs below the picture
 
+## 34. Task CA: Native movie path accepts VU1 program start 0x848
+- native movie path accepts VU1 program start 0x848 (same layout as 0x48, shift env PS2X_MOVIE_848_SHIFT)
+
