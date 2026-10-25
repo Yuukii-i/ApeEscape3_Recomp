@@ -48,3 +48,21 @@ __pycache__/
 
 # Compiled test binaries
 tools/tests/*.exe
+
+# AI-assistant workflow files (local only; kept: docs/HYPOTHESES.md, docs/golden_pcsx2.md, NOTES.md)
+CLAUDE.md
+.claude/
+.claudeignore
+.mcp.json
+.vscode/
+pcsx2 mcp/
+tools/mips-lsp/
+docs/NEXT_TASK*.md
+docs/REPORT.md
+docs/GEMINI_PROMPT.md
+docs/CODEMAP.md
+docs/SECOND_OPINION_PROMPT.md
+docs/*_OPINION.md
+docs/AGENT_REPORT_REVIEW.md
+docs/last log.txt
+docs/last work.txt
