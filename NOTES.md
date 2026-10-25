@@ -1401,3 +1401,6 @@ All 12 IOP modules in `DATA.BIN` were located in the VFI File Record Table (`0x0
 ## 35. Task CE: Frame-locked guest time (PS2X_VTIME) and Release PDB symbols
 - Coalesce INTC cause 3/2 interrupts when prior interrupt is pending and model SG2 audio play position from delivered vblanks (16 KB per 36 delivered vblanks) Default ON (PS2X_VTIME=0 to disable).
 
+
+## 36. Task CI: Fast path for VIF1 UNPACK vector loop
+- VIF1 UNPACK fast path for S-8/16/32 with constant mask column (PS2X_UNPACK_FAST=0 disables, PS2X_UNPACK_VERIFY=1 compares).
