@@ -171,3 +171,6 @@ Call: 319F14(a0=0x772310 [sceMpeg ctx], a1=dst 0x163A280, a2=0x300 (MB capacity)
 ## 23 sceMpeg ctx 0x772310 during dolby (PCSX2, 2026-10-25)
  [+0]=512 [+4]=384 (0x180) [+8]=0x74 frame ctr; [+0x70..]: 512, 384, 0x300 at 0x772380/84/88 (fixed config). Stream header dolby = 512x384, advertise = 512x320. RAW8 a2=768 always. CORRECTS sec 11 note "(+4)=0x140": dolby height is 384.
  Stream reads (op 7 video, bp 0x24CB10): +0x58 vsize 118784 @ +0x60=36 (+0x50=1,+0x74=3); 104448 @ 54 (+0x50=2,+0x74=4). 0x24CA3C a1=IOP ring addr (+0x4000 per call), a2=0x4000.
+
+## 24 Movie init 0x319F38 (PCSX2, 2026-10-25)
+ 319F38(a0=0x772180,a1,a2=w,a3=h,t0=flag) from 0x4E2B4C: dolby h=0x180; intro (512,0x140,t0=0) ra=0x4E2B50. Stores [a0+0x204]=w [+0x208]=h [+0x20C]=(w/16)*(h/16) (RAW8 a2), [+0x210]=flag byte. w/h read from a per-scene table entry ([table+[scene+0x110]*stride]+4/+8/+0xC). Watchpoint hit on [0x772388] writes at 0x319F8C (ra 0x319F84) with s2=height.
