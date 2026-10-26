@@ -186,3 +186,12 @@ Call: 319F14(a0=0x772310 [sceMpeg ctx], a1=dst 0x163A280, a2=0x300 (MB capacity)
 ctx 0x772180: [+0x48]=0x181B620 (= video buffer 0x181B600 + 0x20) -> {w0=18 (frames in group), w1=4 (sub-chunks), w2=0x1B800}; [+0x4C]=0x181B630 (first sub-chunk) with [+0x10]=0x100 (ready idx), [+0x14]=0x7F38 (size); [+0x50]=1; [+0x70]=0.
 F loop 0x24C544..0x24C714: iterates [+0x70] over w1=4 sub-chunks, [+0x4C] += ((size+0xF)>>4<<4)+0x20 per chunk. Real tick = 2 vblanks (9.84M EE cycles; EE 294.9 MHz, vblank 4.92M cycles); decode 0x408E90 runs once per tick; 0x31A240 gate a1>=[obj+0x1F8] with a1==[+0x1F8] each call (+2/tick).
 Chunk ring read per group: audio 16 KB (cmd1 flags=1) then video (cmd1 flags=0); ring chunk = 18 vblanks (88.6M cycles).
+
+## 28 SG2 at title (post-intro state, cond bp 0x439A28 a0==0x74B240 && t0>0x20; ra 0x3FC06C)
+ Steady state (silent/idle and during title): every vblank one call, N=2: {0x1A,1,0,0x2C800000} {0x1A,2,0,0x00002C80} (volumes only).
+ First call with N>2, ~1.5 s (428M cyc) after resume from post-intro pause: N=7 {0x1C,3,0,0} {0x1A,1,0,0x3FFF0000} {0x1A,2,0,0x00003FFF} {0x1B,3,0,0xBB80} {0x1B,3,0,0xBB80} {0x1A,1,0,0x2C800000} {0x1A,2,0,0x00002C80}
+ == identical to movie stream-start (section 10 call B). Title music = same 2-voice (mask 3) 48 kHz streamed ADPCM path. The 0x18 waveform transfers precede it (N=2 calls, not yet captured).
+ CORRECTION to section 17: op 0x18 a3 low 24 bits (0x177B00/0x177F00) is an IOP RAM address, NOT EE. EE 0x177B00 holds MIPS code (jr ra / addiu sp epilogues) both at title and movie. Audio bytes live in IOP RAM, filled by CID1 (CD stream) reads. IOP RAM not readable via the MCP (0x1C177B00, 0xBC177B00, 0x1F4177B00 all read zero).
+ Title music start sequence (post-intro state, deterministic cycle counts): call @2741.99M cyc N=2 {0x18,0x0002401B,0x58800100,0x00177B00} {0x18,0x0102401B,0x98800100,0x00177F00} (identical to movie call A); then N=7 stream-start @2756.75M cyc (see above). Intro teardown ring (stale, N=0): {0x1D,3} {0x19,0} {0x19,1}.
+ Packing decode of op 0x18 [INFERRED]: S[8]=IOP src 0x177B00; S[0xC]~0x10000 (total bytes); S[0x10]=0x1B5880 (low16 0x5880 = SPU2 dest addr, 0x9880 for voice 2); S[0x14]&0xFF00=0x4000 (chunk); S[0]=0/1 (core/voice).
+ PCSX2 MCP condition syntax: use [addr] for memory deref; *(u32*)/lw() are invalid and silently make the bp fire every time.
