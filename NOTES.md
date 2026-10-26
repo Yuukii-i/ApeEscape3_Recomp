@@ -1429,6 +1429,10 @@ All 12 IOP modules in `DATA.BIN` were located in the VFI File Record Table (`0x0
 ## 44. Task DA: Batch per-block movie GS uploads into one GIF packet per kick
 - Native movie blocks are batched into one ordered GIF packet per kick (PS2X_MOVIE_BATCH=0 disables); GS snapshot read once per kick
 
+## 45. Task DB: Generalise VIF1 UNPACK fast path
+- Generalised VIF1 UNPACK fast path for all vn (S, V2, V3, V4), vl (32, 16, 8-bit), cl >= wl, and arbitrary write mask with mode 0 (PS2X_UNPACK_FAST=0 disables, PS2X_UNPACK_VERIFY=1 checks).
+
+
 
 
 
