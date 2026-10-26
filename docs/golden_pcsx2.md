@@ -195,3 +195,7 @@ Chunk ring read per group: audio 16 KB (cmd1 flags=1) then video (cmd1 flags=0);
  Title music start sequence (post-intro state, deterministic cycle counts): call @2741.99M cyc N=2 {0x18,0x0002401B,0x58800100,0x00177B00} {0x18,0x0102401B,0x98800100,0x00177F00} (identical to movie call A); then N=7 stream-start @2756.75M cyc (see above). Intro teardown ring (stale, N=0): {0x1D,3} {0x19,0} {0x19,1}.
  Packing decode of op 0x18 [INFERRED]: S[8]=IOP src 0x177B00; S[0xC]~0x10000 (total bytes); S[0x10]=0x1B5880 (low16 0x5880 = SPU2 dest addr, 0x9880 for voice 2); S[0x14]&0xFF00=0x4000 (chunk); S[0]=0/1 (core/voice).
  PCSX2 MCP condition syntax: use [addr] for memory deref; *(u32*)/lw() are invalid and silently make the bp fire every time.
+
+## 29 VIF1 block-fill packet with CYCLE.CL=0 (title, pcsx2 EE 0xA80AD0..0xA80B28; 20 copies at 0xA7C368, 0xA80B08...)
+ words: 01005000 (STCYCL cl=0 wl=0x50) 30000000 (STROW) +4 words ROW=(3F800000 3F2F783B 3F793F47 3E812140) 20000000 (STMASK) 55555555 (all fields=row) 7C50003C (UNPACK V4-32 num=0x50 addr 0x3C) 7C500121 (UNPACK num=0x50 addr 0x121) 01000101 (STCYCL 1,1).
+ Both UNPACKs carry NO data: with CL=0 the VIF consumes 0 source qw and writes ROW into 80 qw each.
