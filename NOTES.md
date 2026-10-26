@@ -1420,5 +1420,9 @@ All 12 IOP modules in `DATA.BIN` were located in the VFI File Record Table (`0x0
 ## 41. Task CV: GS sprite fast path extended to alpha-blended, depth-tested CT32 sprites
 - GS sprite fast path extended to alpha-blended, depth-tested CT32 sprites (movie blit); verify with PS2X_GS_SPRITE_VERIFY=1.
 
+## 42. Task CX: GS page-linear fast path for page-aligned full-screen CT32 sprites
+- GS page-linear fast path for page-aligned full-screen CT32 sprites (PS2X_GS_PAGE_FAST=0 disables).
+
+
 
 
