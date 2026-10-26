@@ -1417,4 +1417,8 @@ All 12 IOP modules in `DATA.BIN` were located in the VFI File Record Table (`0x0
 ## 40. Task CQ: GS DrawSprite fast path for 1:1 CT32 bilinear copy with identity blend
 - GS DrawSprite fast path for 1:1 CT32 bilinear copy with identity blend (PS2X_GS_SPRITE_FAST=0 disables, PS2X_GS_SPRITE_VERIFY=1 checks).
 
+## 41. Task CV: GS sprite fast path extended to alpha-blended, depth-tested CT32 sprites
+- GS sprite fast path extended to alpha-blended, depth-tested CT32 sprites (movie blit); verify with PS2X_GS_SPRITE_VERIFY=1.
+
+
 
