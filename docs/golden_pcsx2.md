@@ -181,3 +181,8 @@ Call: 319F14(a0=0x772310 [sceMpeg ctx], a1=dst 0x163A280, a2=0x300 (MB capacity)
 
 ## 26 Lag behaviour of the real game (user test, PCSX2 EE cycle rate 50%, ~15 fps)
  FMVs smudge, flicker black for a few frames, block tearing at the top/bottom borders ("sharp teeth"), recover, never end early. Visual artefacts under lag are native.
+
+## 27 Group descriptor + F loop (PCSX2, intro, idx60=100, g74=15; 2026-10-26)
+ctx 0x772180: [+0x48]=0x181B620 (= video buffer 0x181B600 + 0x20) -> {w0=18 (frames in group), w1=4 (sub-chunks), w2=0x1B800}; [+0x4C]=0x181B630 (first sub-chunk) with [+0x10]=0x100 (ready idx), [+0x14]=0x7F38 (size); [+0x50]=1; [+0x70]=0.
+F loop 0x24C544..0x24C714: iterates [+0x70] over w1=4 sub-chunks, [+0x4C] += ((size+0xF)>>4<<4)+0x20 per chunk. Real tick = 2 vblanks (9.84M EE cycles; EE 294.9 MHz, vblank 4.92M cycles); decode 0x408E90 runs once per tick; 0x31A240 gate a1>=[obj+0x1F8] with a1==[+0x1F8] each call (+2/tick).
+Chunk ring read per group: audio 16 KB (cmd1 flags=1) then video (cmd1 flags=0); ring chunk = 18 vblanks (88.6M cycles).
