@@ -1426,6 +1426,10 @@ All 12 IOP modules in `DATA.BIN` were located in the VFI File Record Table (`0x0
 ## 43. Task CZ: GS page fill path accepts alpha-test sprites with constant alpha
 - GS page fill path accepts alpha-test sprites with constant alpha (AFAIL folded).
 
+## 44. Task DA: Batch per-block movie GS uploads into one GIF packet per kick
+- Native movie blocks are batched into one ordered GIF packet per kick (PS2X_MOVIE_BATCH=0 disables); GS snapshot read once per kick
+
+
 
 
 
