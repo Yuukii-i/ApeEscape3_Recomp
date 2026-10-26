@@ -199,3 +199,9 @@ Chunk ring read per group: audio 16 KB (cmd1 flags=1) then video (cmd1 flags=0);
 ## 29 VIF1 block-fill packet with CYCLE.CL=0 (title, pcsx2 EE 0xA80AD0..0xA80B28; 20 copies at 0xA7C368, 0xA80B08...)
  words: 01005000 (STCYCL cl=0 wl=0x50) 30000000 (STROW) +4 words ROW=(3F800000 3F2F783B 3F793F47 3E812140) 20000000 (STMASK) 55555555 (all fields=row) 7C50003C (UNPACK V4-32 num=0x50 addr 0x3C) 7C500121 (UNPACK num=0x50 addr 0x121) 01000101 (STCYCL 1,1).
  Both UNPACKs carry NO data: with CL=0 the VIF consumes 0 source qw and writes ROW into 80 qw each.
+
+## 30 VIF1 DMA kick + VU1 packet tables (character-select state, pcsx2 cycles ~243.5M)
+ sceDmaSend = guest 0x412FE0 (a0=channel 0x10009000 for VIF1, a1=tag address): sets TADR (+0x30) = phys(a1), QWC=0, CHCR |= 0x105. Caller ra 0x3B3AE4 (wrapper 0x3B3A90, called from 0x103940). cond bp `a0 == 0x10009000`.
+ First chain seen: head 0xBBAB00 = tags {0x10000002 (cnt qwc2) FLUSH DIRECT2} + GS reg packets (A+D) - small GS-register packets chained (title/UI).
+ VU1 "MSCAL 1" (word 0x14000001, program start byte 0x08) packet table in static RAM: 0x720DFC + n*0x30 (>=16 entries). Each entry holds the VU1 data header qw {0x190, 0x3FB, 0x3FA, 0} (same shape as the recomp title capped-run header) + UNPACK 0x64018002 words. => UI/2D batches go through program 0x08; 3D models use other start PCs (not yet found).
+ pcsx2 VU1 memory (0x11008000) is not readable through the MCP, so VU1 input/output cannot be compared directly; compare EE-side packet data (RDRAM) instead.
