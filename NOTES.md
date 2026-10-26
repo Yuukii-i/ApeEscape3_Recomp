@@ -1410,3 +1410,7 @@ All 12 IOP modules in `DATA.BIN` were located in the VFI File Record Table (`0x0
 
 ## 38. Task CO: GS display-copy sprite
 - GS display-copy sprite (full-scissor alpha-blended copy to the display fbp) is recognised for any scissor size and optionally not rasterised (PS2X_GS_SKIP_DISPLAY_COPY=1), source frame is presented directly.
+
+## 39. Task CP: Disable aggressive logs & throttle VU1 code hash
+- PS2X_ENABLE_AGRESSIVE_LOGS default OFF (no function-entry trace/flush per call); VU1 code hash every 1024th MSCAL.
+
