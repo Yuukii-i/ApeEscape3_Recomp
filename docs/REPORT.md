@@ -1,7 +1,7 @@
-# Task ER Report
+# Task ES Report
 - BUILD OK.
-- Grep verified: `er drop` and `er counts` in `ps2xRuntime/src/lib/ps2_vif1_interpreter.cpp`.
-- Added dropped UNPACK logging (`[probe] er drop`, max 40) capturing opcode, num, dest, pos, totalBytes, sizeBytes, m_vu1Data, cl, wl, and srcBase_rdram.
-- Added chunk diagnosis (`[probe] er chunk`, first 10 chunks with dropped unpacks) logging size, start_pos, src, and first 4 words.
-- Added tracking of executed vs dropped UNPACKs per opcode with periodic 5-second console summary `[probe] er counts drop(...) taken(...)`.
-- Committed on branch `task/ER` in PS2Recomp and ApeEscape3_Recomp.
+- Grep verified: `ep ev` at line 159 and `src=0x` at line 1018 in `ps2xRuntime/src/lib/ps2_vif1_interpreter.cpp`.
+- Added source information (src RDRAM addr or 0xFFFFFFFF, plus first 16 source bytes w0..3) to UNPACK events in the EP ring.
+- Restored `ps2x_probeDump()` to output all 64 ring events (`[probe] ep ev %u: ...`) on bad vustores.
+- Removed verbose EQ/ER per-unpack and count print spam.
+- Committed on branch `task/ES` in PS2Recomp and ApeEscape3_Recomp.
