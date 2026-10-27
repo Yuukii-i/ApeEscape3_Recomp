@@ -1,5 +1,5 @@
-# Task FR Report
-- Changed RAM dump trigger in `ps2_runtime.cpp` to dump at draws 0, 60, 300, 1200.
-- Files touched: PS2Recomp ps2_runtime.cpp (.cpp only).
+# Task FS Report
+- Added `fs spr dma` probe in `ps2_memory.cpp` tryProcessScratchpadDma.
+- Files touched: PS2Recomp ps2_memory.cpp (.cpp only).
 - Build: BUILD OK via tools\build.bat.
-- PS2Recomp commit: 6752110 (branch task/FR).
+- PS2Recomp commit: 5706173 (branch task/FS).
