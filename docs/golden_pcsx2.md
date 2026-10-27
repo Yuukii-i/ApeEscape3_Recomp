@@ -212,3 +212,13 @@ Chunk ring read per group: audio 16 KB (cmd1 flags=1) then video (cmd1 flags=0);
 - Sane example inputs: a1 (4x4) = diag(430.02, 401.33, -524185) rows {43D702FB,0,0,0},{0,43C8AAD2,0,0},{0,0,C8FFC3D3,0},{44FFF17E,44FFF180,48FFE3D1,3F800000} (viewport/projection). a2 = rotation/scale {3F83BB57,0,0,0},{B7867255,BFA2D70B,3E169268,3E16911F},{38E21B6B,BE41887F,BF7D39D6,BF7D37AF},{400BE8E6,4243DF0C,4352D70D,43530874}.
 - Output (vf8-11 before store, all finite): {43DD47BE,0,0,0},{439687B6,C3518172,420C4800,3E16911F},{C4FD27D9,C5035249,C36BF000,BF7D37AF},{48D605D6,48DF3E89,48181000,43559CD2}. Recomp bad instances show lanes x,y = +-FLT_MAX in this block.
 - Regs at hit: vf12={0,-1,0,0} vf13={0,0,0,1} vf14={3FD8979F,C15F8AF2,3ED8BCD6,3ED8BAFB} vf15={C3C28AB7,C28F6E72,C325BAFD,C3258663}. VU0 micro memory not readable via MCP.
+
+## s32 camera/view matrix object (PCSX2, paused at title)
+- matmul 0x3BD690 call from 0x3BB334 (ra=0x3BB340): a0=fp+0x1A0, a1=s0, a2=s7=0x00785B30 = persistent camera/view matrix (4x4, 64 B): rows {3F800000,0,0,0},{0,BF7D37AF,3E16911F,0},{0,BE16911F,BF7D37AF,0},{4008F1AF,4219B010,43559CD2,3F800000} (rotation about X + translation). Same data duplicated at 0x785B70 (copy) .
+- Write watchpoint on 0x785B30 hit at PC 0x2542B4 = `sq t3,0x40(t7)` in function 0x254280 (t7=0x785AF0 object): copies qw 0x80..0xB0 of the object over qw 0x40..0x70 (then calls 0x3BAF98 matrix builder -> a2 = t7+0x40). Backtrace: 0x254280 <- 0x15B750 <- 0x1037E8 <- 0x100114.
+
+## s33 camera matrix producer chain (PCSX2)
+- Write watchpoint 0x785B70 (camera matrix copy) hit at PC 0x4060C0 (`sq t0,(a0)`) inside 0x406068 = libvu0 sceVu0InversMatrix (rigid inverse: transpose 3x3, trans = -(R^T t)), called from lookAt-like builder 0x406558 (ra 0x4065E8) <- 0x359EFC <- 0x2540E4 (camera update) <- 0x233E4C <- 0x25B3B0. a0=0x785B70.
+- Builder 0x406558 calls: 0x406248 sceVu0UnitMatrix, 0x405F98 (vec op, recompiled), 0x405FE0 sceVu0Normalize (HLE in recomp), 0x4061A0 sceVu0TransMatrix, 0x406068 InversMatrix (HLE), 0x406020 TransposeMatrix (HLE), 0x405F50 MulMatrix (HLE). Many camera math fns are HLE stubs (Kernel/Stubs/VU.cpp).
+- REAL sceVu0Normalize (0x405FE0, VU0 macro): len=sqrt(x*x+y*y+z*z) (XYZ ONLY); Q=1/len (div by 0 -> +-FLT_MAX); out.xyz = src.xyz*Q; out.w = 0. Recomp HLE (VU.cpp:728) includes w in len and writes out.w = src.w*invLen => DIVERGES (w nonzero, len wrong when w != 0).
+- Camera constants (RDRAM 0x7213E8..): 42800000(64.0) 457BFF00(4031.9) 3D800000(.0625) 3F000000(.5) 3E800000(.25) 38D1B717(1e-4) 40000000 3F800000 BF800000.
