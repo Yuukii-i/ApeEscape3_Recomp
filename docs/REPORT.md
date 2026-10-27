@@ -1,5 +1,5 @@
-# Task FO Report
-- Widened `fm call` probe in `ps2_runtime.cpp` to ranges 0x3B1000..0x3B2600 and 0x254500..0x254900.
+# Task FP Report
+- Extended `fm call` probe in `ps2_runtime.cpp` to also log 0x3BA680, 0x3B45E8, 0x3BA090.
 - Files touched: PS2Recomp ps2_runtime.cpp (.cpp only).
 - Build: BUILD OK via tools\build.bat.
-- PS2Recomp commit: 21ba882 (branch task/FO).
+- PS2Recomp commit: a666211 (branch task/FP).
