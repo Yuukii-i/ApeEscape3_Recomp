@@ -1,8 +1,7 @@
-# Task EO Report
+# Task EP Report
 - BUILD OK.
-- Grep verified: `eo2 unpack` in `ps2xRuntime/src/lib/ps2_vif1_interpreter.cpp`.
-- Extended UNPACK probe range to entire VU memory (qw 0..1023) checking for NaN, Inf, 0x7FFFFFFF, and |f| > 1e15.
-- Added `eo2 unpack` logging (max 80) and 64B RDRAM dumps (first 8) at src address.
-- Added `eo2 vifcode` logging (first 12) showing current and previous 2 VIF code words.
-- Kept `eo vustore` and 5s `eo counts` reporting (with bad UNPACK count).
-- Committed on branch `task/EO` in PS2Recomp and ApeEscape3_Recomp.
+- Grep verified: `ep ev` in `ps2xRuntime/src/lib/ps2_vif1_interpreter.cpp`.
+- Added 64-event ring buffer tracking UNPACK, MSCAL/MSCNT/MSCALF, BASE, OFFSET, MPG, and C80 entry events.
+- On first 3 bad VU stores (qw 970..1011), calls `ps2x_probeDump()` to dump ring events (`[probe] ep ev`) and logs vi13, vi12, and VU quadwords at vi13-2..vi13+1.
+- Removed eo2 unpack/rdram/vifcode print spam while retaining periodic 5s `eo counts`.
+- Committed on branch `task/EP` in PS2Recomp and ApeEscape3_Recomp.
