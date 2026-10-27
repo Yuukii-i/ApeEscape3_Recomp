@@ -1,6 +1,7 @@
-# Task FB Report
-- Build: BUILD OK (~56s).
-- Files rebuilt: ps2_runtime.cpp + link (recomp_source untouched).
-- Repos: PS2Recomp (commit f73f79e), ApeEscape3_Recomp.
-- Hack Ledger: added FB entry in NOTES.md for vf0 backstop in dispatchGuestBranch.
-- Committed on branch task/FB.
+# Task FC Report
+- Added C80 10-qw matrix block audit, classification (NF/BIG/ZR), and UNPACK source tracing.
+- Added 1-sec periodic summary: `[probe] fc c80 total=.. flagged_nonfinite=.. flagged_big=.. zero_rows=..`.
+- Logged first 20 flagged and 6 unflagged events as `[probe] fc blk ...`.
+- Files touched: PS2Recomp ps2_vu1_core.cpp, ps2_vif1_interpreter.cpp (.cpp only, no headers).
+- Build: BUILD OK.
+- Branches: task/FC in PS2Recomp and ApeEscape3_Recomp.
