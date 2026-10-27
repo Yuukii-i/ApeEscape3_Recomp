@@ -1,8 +1,7 @@
-# Task ET Report
+# Task EU Report
 - BUILD OK.
-- Grep verified: `UNPACK-RB` at line 1691 and `mask=` at line 1026 of `ps2xRuntime/src/lib/ps2_vif1_interpreter.cpp`.
-- Extended UNPACK ring event to record mask, mode, row[0..3], and col[0..3].
-- Added post-write `UNPACK-RB` ring event logging first and last written quadwords directly from `m_vu1Data`.
-- Added ring event logging for STMASK, STROW, STCOL, STMOD, MSKPATH3, and FLUSH.
-- Raised ring buffer capacity from 64 to 128 events (256 bytes per event line).
-- Committed on branch `task/ET` in PS2Recomp and ApeEscape3_Recomp.
+- Grep verified: `eu src10` and `eu dst10` in `ps2xRuntime/src/lib/ps2_vif1_interpreter.cpp`.
+- Added UNPACK 0x6C (dest=235, num=10) logging for first 6 occurrences: dumps all 10 source qw (`eu src10`) and 10 read-back destination qw (`eu dst10`).
+- In `ps2_vu1_core.cpp`, added dump of 10 VU qw at 235 on C80 entry when vi13==235 (`eu vu10`).
+- In `ps2_vu1_core.cpp`, added VU store monitoring for qw 235..244 (`eu vustore`, up to 20 lines once per run after 6 matched UNPACKs).
+- Committed on branch `task/EU` in PS2Recomp and ApeEscape3_Recomp.
