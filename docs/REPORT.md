@@ -1,8 +1,7 @@
-# Task EQ Report
+# Task ER Report
 - BUILD OK.
-- Grep verified: `eq unpack` in `ps2xRuntime/src/lib/ps2_vif1_interpreter.cpp`.
-- Implemented UNPACK cmd 0x6C (V4-32) detector checking written qw lane 0/1 for 0x7F7FFFFF, 0xFF7FFFFF, 0xFF7FFFFE, or |f| > 1e30.
-- Prints `[probe] eq unpack` (max 30) with src RDRAM addr/copied, dest, eff, num, tops, and first bad qw.
-- For first 6 bad unpacks, prints `[probe] eq rdram 0x%08X <64 bytes hex> tag=n/a`.
-- Added periodic 5-second console summary `[probe] eq counts bad=N total_v4_32=M`.
-- Committed on branch `task/EQ` in PS2Recomp and ApeEscape3_Recomp.
+- Grep verified: `er drop` and `er counts` in `ps2xRuntime/src/lib/ps2_vif1_interpreter.cpp`.
+- Added dropped UNPACK logging (`[probe] er drop`, max 40) capturing opcode, num, dest, pos, totalBytes, sizeBytes, m_vu1Data, cl, wl, and srcBase_rdram.
+- Added chunk diagnosis (`[probe] er chunk`, first 10 chunks with dropped unpacks) logging size, start_pos, src, and first 4 words.
+- Added tracking of executed vs dropped UNPACKs per opcode with periodic 5-second console summary `[probe] er counts drop(...) taken(...)`.
+- Committed on branch `task/ER` in PS2Recomp and ApeEscape3_Recomp.
