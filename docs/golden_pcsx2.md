@@ -222,3 +222,8 @@ Chunk ring read per group: audio 16 KB (cmd1 flags=1) then video (cmd1 flags=0);
 - Builder 0x406558 calls: 0x406248 sceVu0UnitMatrix, 0x405F98 (vec op, recompiled), 0x405FE0 sceVu0Normalize (HLE in recomp), 0x4061A0 sceVu0TransMatrix, 0x406068 InversMatrix (HLE), 0x406020 TransposeMatrix (HLE), 0x405F50 MulMatrix (HLE). Many camera math fns are HLE stubs (Kernel/Stubs/VU.cpp).
 - REAL sceVu0Normalize (0x405FE0, VU0 macro): len=sqrt(x*x+y*y+z*z) (XYZ ONLY); Q=1/len (div by 0 -> +-FLT_MAX); out.xyz = src.xyz*Q; out.w = 0. Recomp HLE (VU.cpp:728) includes w in len and writes out.w = src.w*invLen => DIVERGES (w nonzero, len wrong when w != 0).
 - Camera constants (RDRAM 0x7213E8..): 42800000(64.0) 457BFF00(4031.9) 3D800000(.0625) 3F000000(.5) 3E800000(.25) 38D1B717(1e-4) 40000000 3F800000 BF800000.
+
+## s34 up-vector at camera update (0x2540E4)
+- Caller 0x169144..0x169168: up built via VU0 macro (vsub.xzw/vaddw.y/vsub/qmfc2). PCSX2 at 0x2540E4 entry: a3 words {0,BF800000,0,0}; vf0={0,0,0,3F800000}; s7 later = same; f22(roll)=0, f23=1.0.
+- PCSX2 at 0x254150: v0=a0=0x785B70, camera matrix rows sane.
+## s35 EE FPU (ex fpu run, ours): 1/0=7FFFFFFF (PS2: 7F7FFFFF), -1/0=FFFFFFFF (FF7FFFFF), 1e30*1e30=7FFFFFFF (7F7FFFFF), cvt.w.s(1e20)=80000000 (7FFFFFFF), cvt.w.s(NaN)=80000000 (7FFFFFFF). sqrt(-1)=1.0 OK.
