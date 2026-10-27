@@ -205,3 +205,10 @@ Chunk ring read per group: audio 16 KB (cmd1 flags=1) then video (cmd1 flags=0);
  First chain seen: head 0xBBAB00 = tags {0x10000002 (cnt qwc2) FLUSH DIRECT2} + GS reg packets (A+D) - small GS-register packets chained (title/UI).
  VU1 "MSCAL 1" (word 0x14000001, program start byte 0x08) packet table in static RAM: 0x720DFC + n*0x30 (>=16 entries). Each entry holds the VU1 data header qw {0x190, 0x3FB, 0x3FA, 0} (same shape as the recomp title capped-run header) + UNPACK 0x64018002 words. => UI/2D batches go through program 0x08; 3D models use other start PCs (not yet found).
  pcsx2 VU1 memory (0x11008000) is not readable through the MCP, so VU1 input/output cannot be compared directly; compare EE-side packet data (RDRAM) instead.
+
+## s31 per-model matrix block producer (PCSX2, paused at title)
+- VIF1 packet (static, RDRAM 0xA15580 / 0xA90900): REF tag `0a000030 <addr>` qwc=10 then VIFcode 0x6C0A8006 (UNPACK V4-32 num=10 dest=6+TOPS) => the 10-qw block is at RDRAM <addr> (e.g. 0x00B72DC0, 0x00B67CD0).
+- Write watchpoint on 0xB72DC0 (and 0xB67CD0) hit at PC 0x003BD6C0 = `sqc2 vf08,(a0)` inside matmul function 0x3BD680..0x3BD6D4 (guest file sub_003BD690_0x3bd690.cpp case 0x3bd690): lqc2 vf4-7 <- (a1) ; lqc2 vf8-11 <- (a2) ; `vcallms 0` (VU0 microprogram at 0) ; sqc2 vf8-11 -> (a0). ra=0x3BB51C. Seen: a0=0xB72DC0 a1=0xB72E60 a2=0xB72E00.
+- Sane example inputs: a1 (4x4) = diag(430.02, 401.33, -524185) rows {43D702FB,0,0,0},{0,43C8AAD2,0,0},{0,0,C8FFC3D3,0},{44FFF17E,44FFF180,48FFE3D1,3F800000} (viewport/projection). a2 = rotation/scale {3F83BB57,0,0,0},{B7867255,BFA2D70B,3E169268,3E16911F},{38E21B6B,BE41887F,BF7D39D6,BF7D37AF},{400BE8E6,4243DF0C,4352D70D,43530874}.
+- Output (vf8-11 before store, all finite): {43DD47BE,0,0,0},{439687B6,C3518172,420C4800,3E16911F},{C4FD27D9,C5035249,C36BF000,BF7D37AF},{48D605D6,48DF3E89,48181000,43559CD2}. Recomp bad instances show lanes x,y = +-FLT_MAX in this block.
+- Regs at hit: vf12={0,-1,0,0} vf13={0,0,0,1} vf14={3FD8979F,C15F8AF2,3ED8BCD6,3ED8BAFB} vf15={C3C28AB7,C28F6E72,C325BAFD,C3258663}. VU0 micro memory not readable via MCP.
