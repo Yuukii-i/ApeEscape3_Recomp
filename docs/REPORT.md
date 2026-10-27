@@ -1,5 +1,5 @@
-# Task FQ Report
-- Added 32MB EE RAM dump at 1st and 2001st call to 0x3B45E8 (`logs/ram_ours_<n>.bin`).
+# Task FR Report
+- Changed RAM dump trigger in `ps2_runtime.cpp` to dump at draws 0, 60, 300, 1200.
 - Files touched: PS2Recomp ps2_runtime.cpp (.cpp only).
 - Build: BUILD OK via tools\build.bat.
-- PS2Recomp commit: 316c4b6 (branch task/FQ).
+- PS2Recomp commit: 6752110 (branch task/FR).
