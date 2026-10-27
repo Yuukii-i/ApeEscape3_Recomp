@@ -1,5 +1,5 @@
-# Task FU Report
-- Added `fu dma` DMA mode census logging in `ps2_memory.cpp` writeIORegister.
-- Files touched: PS2Recomp ps2_memory.cpp (.cpp only).
+# Task FV Report
+- Added GS dump writer in `gs_frontend.cpp` processGIFPacket gated on `PS2X_GSDUMP=1`.
+- Files touched: PS2Recomp ps2xRuntime/src/lib/gs/gs_frontend.cpp (.cpp only).
 - Build: BUILD OK via tools\build.bat.
-- PS2Recomp commit: 3443906 (branch task/FU).
+- PS2Recomp commit: a478d5f (branch task/FV).
