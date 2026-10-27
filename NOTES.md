@@ -1438,3 +1438,4 @@ All 12 IOP modules in `DATA.BIN` were located in the VFI File Record Table (`0x0
 
 
 
+- FIX-VF0 (not a hack, generator bug workaround): 11 lines in 7 recomp_source files re-force vu0_vf[0]={0,0,0,1} after ops that name $vf0 as dest. Proper fix = emitter must skip the vf0 write. Task EZ.
