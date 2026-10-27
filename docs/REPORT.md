@@ -1,7 +1,8 @@
-# Task EP Report
+# Task EQ Report
 - BUILD OK.
-- Grep verified: `ep ev` in `ps2xRuntime/src/lib/ps2_vif1_interpreter.cpp`.
-- Added 64-event ring buffer tracking UNPACK, MSCAL/MSCNT/MSCALF, BASE, OFFSET, MPG, and C80 entry events.
-- On first 3 bad VU stores (qw 970..1011), calls `ps2x_probeDump()` to dump ring events (`[probe] ep ev`) and logs vi13, vi12, and VU quadwords at vi13-2..vi13+1.
-- Removed eo2 unpack/rdram/vifcode print spam while retaining periodic 5s `eo counts`.
-- Committed on branch `task/EP` in PS2Recomp and ApeEscape3_Recomp.
+- Grep verified: `eq unpack` in `ps2xRuntime/src/lib/ps2_vif1_interpreter.cpp`.
+- Implemented UNPACK cmd 0x6C (V4-32) detector checking written qw lane 0/1 for 0x7F7FFFFF, 0xFF7FFFFF, 0xFF7FFFFE, or |f| > 1e30.
+- Prints `[probe] eq unpack` (max 30) with src RDRAM addr/copied, dest, eff, num, tops, and first bad qw.
+- For first 6 bad unpacks, prints `[probe] eq rdram 0x%08X <64 bytes hex> tag=n/a`.
+- Added periodic 5-second console summary `[probe] eq counts bad=N total_v4_32=M`.
+- Committed on branch `task/EQ` in PS2Recomp and ApeEscape3_Recomp.
