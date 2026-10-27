@@ -1,7 +1,7 @@
-# Task FC Report
-- Added C80 10-qw matrix block audit, classification (NF/BIG/ZR), and UNPACK source tracing.
-- Added 1-sec periodic summary: `[probe] fc c80 total=.. flagged_nonfinite=.. flagged_big=.. zero_rows=..`.
-- Logged first 20 flagged and 6 unflagged events as `[probe] fc blk ...`.
-- Files touched: PS2Recomp ps2_vu1_core.cpp, ps2_vif1_interpreter.cpp (.cpp only, no headers).
-- Build: BUILD OK.
-- Branches: task/FC in PS2Recomp and ApeEscape3_Recomp.
+# Task FD Report
+- Retargeted EM candidate to seq containing 0x070 and 0x1EE0 with zero_xy >= 20.
+- Implemented first 1000 + last 1000 pair trace for runs exceeding 2000 pairs.
+- Added lower opcode histogram (en lowop) and data dumps (16 qw at vi13, xtop vi12, 40 qw XGKICK).
+- Files touched: PS2Recomp ps2_vu1_core.cpp (.cpp only, no header edits).
+- Build: BUILD OK via tools\build.bat.
+- Committed on branch task/FD in PS2Recomp and ApeEscape3_Recomp.
