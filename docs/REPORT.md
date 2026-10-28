@@ -1,5 +1,5 @@
-# Task FZ2 Report
-- Added draw gate probe (`fz2 gate`) at 0x268724 / 0x3B3C60 in `ps2_runtime.cpp`.
+# Task FZ2b Report
+- Fixed draw gate probe match condition in `ps2_runtime.cpp` to compare with `*0x64942C`.
 - Files touched: PS2Recomp ps2_runtime.cpp (.cpp only).
 - Build status: BUILD OK via tools\build.bat.
-- PS2Recomp commit: 29bfbb6 (branch task/FZ2).
+- PS2Recomp commit: 54f299e (branch task/FZ2).
