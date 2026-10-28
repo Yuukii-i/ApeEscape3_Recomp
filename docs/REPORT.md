@@ -1,5 +1,5 @@
-# Task GN Report
-- Added VU1 instruction PC histogram probe (`ge2 pc`) in `ps2_vu1_core.cpp` (top 8 buckets per second).
+# Task GO Report
+- Implemented VU1 exact-vs-fast A/B verifier in `ps2_vu1_core.cpp` (gated by `PS2X_VU1_VERIFY=1`, default OFF).
 - Files touched: PS2Recomp ps2_vu1_core.cpp (.cpp only).
 - Build status: BUILD OK via tools\build.bat.
-- PS2Recomp commit: 52ac5ae (branch task/GN).
+- PS2Recomp commit: 83b6e58 (branch task/GO).
