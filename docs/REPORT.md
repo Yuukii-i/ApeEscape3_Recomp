@@ -1,5 +1,6 @@
-# Task FY Report
-- Added snapshot of VU1 memory + registers at 200th/600th store to qw 636 in `ps2_vu1_core.cpp`.
-- Files touched: PS2Recomp ps2_vu1_core.cpp (.cpp only).
-- Build: BUILD OK via tools\build.bat.
-- PS2Recomp commit: 73a9058 (branch task/FY).
+# Task FZ Report
+- Fixed PROT3W (rotate low 3 words only) and PEXCW (swap middle words 1<>2) in `mmi_translation_helpers.cpp`.
+- Rebuilt ~910 recomp_source files (recomp_source is git-ignored).
+- Build duration: ~52 minutes.
+- Build status: BUILD OK via tools\build.bat.
+- PS2Recomp commit: e3de670 (branch task/FZ).
