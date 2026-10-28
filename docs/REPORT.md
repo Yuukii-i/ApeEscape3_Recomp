@@ -1,5 +1,5 @@
-# Task GH Report
-- Applied performance fixes in `gs_cpu_backend.cpp` (cached getenv) and `ps2_vu1_core.cpp` (avoid 64KB xgkick memset).
-- Files touched: PS2Recomp gs_cpu_backend.cpp, ps2_vu1_core.cpp (.cpp only).
+# Task GJ Report
+- Implemented opt-in VU1 fast mode in `ps2_vu1_core.cpp` (gated by `PS2X_VU1_FAST=1`, default OFF).
+- Files touched: PS2Recomp ps2_vu1_core.cpp (.cpp only).
 - Build status: BUILD OK via tools\build.bat.
-- PS2Recomp commit: 2933146 (branch task/GH).
+- PS2Recomp commit: 461146a (branch task/GJ).
