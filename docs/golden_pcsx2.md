@@ -227,3 +227,7 @@ Chunk ring read per group: audio 16 KB (cmd1 flags=1) then video (cmd1 flags=0);
 - Caller 0x169144..0x169168: up built via VU0 macro (vsub.xzw/vaddw.y/vsub/qmfc2). PCSX2 at 0x2540E4 entry: a3 words {0,BF800000,0,0}; vf0={0,0,0,3F800000}; s7 later = same; f22(roll)=0, f23=1.0.
 - PCSX2 at 0x254150: v0=a0=0x785B70, camera matrix rows sane.
 ## s35 EE FPU (ex fpu run, ours): 1/0=7FFFFFFF (PS2: 7F7FFFFF), -1/0=FFFFFFFF (FF7FFFFF), 1e30*1e30=7FFFFFFF (7F7FFFFF), cvt.w.s(1e20)=80000000 (7FFFFFFF), cvt.w.s(NaN)=80000000 (7FFFFFFF). sqrt(-1)=1.0 OK.
+
+## s36 node-draw loop (title, PCSX2)
+- Loop sub_002805B8 0x280814..0x280958 over node vector (s4=34/batch); gate 0x268714 hit every ~6-8k cycles. Cull call 0x26C9B8 returns v0=1 in 4/4 sampled hits (pc 0x28087C). Draw fn 0x26831C ra=0x28092C a0=node a1=renderer 0xCEAD50.
+- Ours (log ga): all 34 nodes pass mask/flag (and=FFFF.., b30=1,b35=1) but gate reached only ~1.5x/frame.
