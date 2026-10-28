@@ -1,5 +1,5 @@
-# Task HM Report
-- Built PERF-HM bundle (next-ready cache, reset skip, fastUpper in interpreter).
-- Files touched: PS2Recomp ps2xRuntime/src/lib/vu/ps2_vu1_core.cpp (.cpp only).
+# Task HN2 Report
+- Built PERF-HN async VIF1 worker bundle.
+- Files touched: ps2_memory.cpp, ps2_runtime.cpp, ps2_vif1_interpreter.cpp, ps2_vu1_core.cpp.
 - Build status: BUILD OK via tools\build.bat.
-- PS2Recomp commit:  (branch task/HM).
+- PS2Recomp commit: 4a75e57 (branch task/HN2).
