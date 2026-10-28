@@ -1,5 +1,6 @@
-# Task HP Report
-- Built PERF-HO2 exact GS rasteriser speedups bundle.
-- Only gs_cpu_backend.cpp recompiled; no recomp_source or header rebuilds.
+# Task HQ Report
+- Built PERF-VK V1+V2 Vulkan GS backend.
+- Compile error fixed: defined missing inline clampInt helper in ps2_vk_gs_backend.cpp.
+- No full rebuild (only GS files recompiled; recomp_source untouched).
 - Build status: BUILD OK via tools\build.bat.
-- PS2Recomp commit: dbf037a (branch task/HP).
+- PS2Recomp commit: c4228bc (branch task/HQ).
