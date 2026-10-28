@@ -1,4 +1,5 @@
 @echo off
+if not defined VULKAN_SDK set "VULKAN_SDK=C:\VulkanSDK\1.4.363.0"
 cd /d C:\ApeEscape3_Recomp
 
 echo [build] Setting up VS 2026 x64 environment...

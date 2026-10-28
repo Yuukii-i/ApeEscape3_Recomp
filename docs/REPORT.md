@@ -1,5 +1,6 @@
-# Task HN2 Report
-- Built PERF-HN async VIF1 worker bundle.
-- Files touched: ps2_memory.cpp, ps2_runtime.cpp, ps2_vif1_interpreter.cpp, ps2_vu1_core.cpp.
+# Task HO Report
+- Built PERF-VK stage V0 (Vulkan bootstrap self-test).
+- CMake reconfigured with Vulkan SDK 1.4.363.0; no full rebuild (recomp_source untouched).
+- Files: CMakeLists.txt, gs_cpu_backend.cpp, ps2_vk_backend.cpp (NEW).
 - Build status: BUILD OK via tools\build.bat.
-- PS2Recomp commit: 4a75e57 (branch task/HN2).
+- PS2Recomp commit: 4d14fd9 (branch task/HO).
