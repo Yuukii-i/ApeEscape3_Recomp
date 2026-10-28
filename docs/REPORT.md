@@ -1,4 +1,4 @@
-# Task HV Report
-- Built PERF-HV (immediate flag writes + MAC/CLIP history ring).
-- Build status: BUILD OK via tools\build.bat (ps2_vu1_core.cpp only).
-- PS2Recomp commit: cfab2bf (branch task/HV).
+# Task HW Report
+- Built PERF-HW (page-granular CPU<->GPU VRAM sync in Vulkan backend).
+- Build status: BUILD OK via tools\build.bat (ps2_vk_gs_backend.cpp only).
+- PS2Recomp commit: 0fd7884 (branch task/HW).
