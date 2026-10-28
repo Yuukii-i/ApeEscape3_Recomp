@@ -1,5 +1,5 @@
-# Task HA Report
-- Added native replacements in `ps2_runtime.cpp` for hot guest fallback functions (0x3AB9F0, 0x49EAA8..0x49EAC4, 0x57F2A0).
-- Files touched: PS2Recomp ps2xRuntime/src/lib/ps2_runtime.cpp (.cpp only).
+# Task HC Report
+- Applied GS rounding optimization in `gs_cpu_backend.cpp` and added VU microcode image dump in `ps2_vu1_core.cpp`.
+- Files touched: PS2Recomp gs_cpu_backend.cpp, ps2_vu1_core.cpp (.cpp only).
 - Build status: BUILD OK via tools\build.bat.
-- PS2Recomp commit: 18b0f53 (branch task/HA).
+- PS2Recomp commit: f83932b (branch task/HC).
