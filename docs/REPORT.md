@@ -1,6 +1,5 @@
-# Task FZ Report
-- Fixed PROT3W (rotate low 3 words only) and PEXCW (swap middle words 1<>2) in `mmi_translation_helpers.cpp`.
-- Rebuilt ~910 recomp_source files (recomp_source is git-ignored).
-- Build duration: ~52 minutes.
+# Task FZ2 Report
+- Added draw gate probe (`fz2 gate`) at 0x268724 / 0x3B3C60 in `ps2_runtime.cpp`.
+- Files touched: PS2Recomp ps2_runtime.cpp (.cpp only).
 - Build status: BUILD OK via tools\build.bat.
-- PS2Recomp commit: e3de670 (branch task/FZ).
+- PS2Recomp commit: 29bfbb6 (branch task/FZ2).
