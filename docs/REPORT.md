@@ -1,5 +1,5 @@
-# Task GC Report
-- Applied VU0 MAC flag computation after vmaddw (`// FIX-VUMAC`) in `sub_003BAAC0_0x3baac0.cpp`.
-- Files touched: recomp_source/sub_003BAAC0_0x3baac0.cpp (git-ignored, rebuilt single file).
+# Task GE Report
+- Added per-second VU1 execution time probe (`ge vu1`) in `ps2_vu1_core.cpp`.
+- Files touched: PS2Recomp ps2_vu1_core.cpp (.cpp only).
 - Build status: BUILD OK via tools\build.bat.
-- Root commit: on branch task/GC.
+- PS2Recomp commit: 72693ea (branch task/GE).
