@@ -1,5 +1,5 @@
-# Task GZ Report
-- Fixed EE ABI stack argument reading (8-byte slots starting at sp+0) in `Support.h` Ps2VarArgCursor.
-- Files touched: PS2Recomp ps2xRuntime/src/lib/Kernel/Stubs/Helpers/Support.h (Kernel/Stubs only, no recomp_source rebuild).
+# Task HA Report
+- Added native replacements in `ps2_runtime.cpp` for hot guest fallback functions (0x3AB9F0, 0x49EAA8..0x49EAC4, 0x57F2A0).
+- Files touched: PS2Recomp ps2xRuntime/src/lib/ps2_runtime.cpp (.cpp only).
 - Build status: BUILD OK via tools\build.bat.
-- PS2Recomp commit: 310c96f (branch task/GZ).
+- PS2Recomp commit: 18b0f53 (branch task/HA).
