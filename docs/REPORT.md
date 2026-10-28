@@ -1,5 +1,4 @@
-# Task HS Report
-- Built PROBE-INV (in-flight write visibility check for vf/vi/acc readers).
-- Only ps2_vu1_core.cpp recompiled; no header or recomp_source rebuilds.
-- Build status: BUILD OK via tools\build.bat.
-- PS2Recomp commit: 23eaf86 (branch task/HS).
+# Task HT Report
+- Built PERF-HT (vf/vi/acc writes applied at issue; delayed for s_vfyRef).
+- Build status: BUILD OK via tools\build.bat (ps2_vu1_core.cpp only).
+- PS2Recomp commit: 6508b5e (branch task/HT).
