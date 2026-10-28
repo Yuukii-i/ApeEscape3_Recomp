@@ -1,5 +1,5 @@
-# Task FZ2b Report
-- Fixed draw gate probe match condition in `ps2_runtime.cpp` to compare with `*0x64942C`.
-- Files touched: PS2Recomp ps2_runtime.cpp (.cpp only).
+# Task FZ3 Report
+- Added node loop probe (`fz3 node`) in `recomp_source/sub_002805B8_0x2805b8.cpp`.
+- Files touched: recomp_source/sub_002805B8_0x2805b8.cpp (git-ignored, rebuilt single file).
 - Build status: BUILD OK via tools\build.bat.
-- PS2Recomp commit: 54f299e (branch task/FZ2).
+- Root commit: on branch task/FZ3.
