@@ -1,5 +1,5 @@
-# Task GR Report
-- Applied exact-preserving VU1 optimizations (bit-mask vi iteration, O(1) queue slot picking, zero-copy cached decode lookup) in `ps2_vu1_core.cpp`.
-- Files touched: PS2Recomp ps2_vu1_core.cpp (.cpp only).
+# Task GT Report
+- Added bad path probe (`gw badpath`) in `RPC.cpp` (CID1 EnumDir 0x0A).
+- Files touched: PS2Recomp ps2xRuntime/src/lib/Kernel/Syscalls/RPC.cpp (.cpp only).
 - Build status: BUILD OK via tools\build.bat.
-- PS2Recomp commit: dd89edf (branch task/GR).
+- PS2Recomp commit: 0819166 (branch task/GT).
