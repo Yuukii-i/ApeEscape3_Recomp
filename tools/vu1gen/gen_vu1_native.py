@@ -17,6 +17,14 @@ import sys
 OUT_DIR = 'PS2Recomp/ps2xRuntime/src/lib/vu/generated/'
 CHUNKS = 4
 
+# PERF-IM: unit parameters. VU1 main image by default; a logs/vuusage_u0_* dump generates the VU0 executors instead.
+UC = {'unit': 1, 'name': 'vu1', 'Name': 'Vu1', 'step': 'vuS', 'pclim': 0x4000, 'pcmask': 0x3FFF, 'slots': 2048, 'chunks': CHUNKS, 'hot': 'hot'}
+
+
+def configure(src):
+    if '_u0_' in os.path.basename(src):
+        UC.update(unit=0, name='vu0', Name='Vu0', step='vu0S', pclim=0x1000, pcmask=0x0FFF, slots=512, chunks=1, hot='hot0')
+
 
 def lane(c):
     return 1 << (3 - c)
@@ -49,7 +57,7 @@ def emit_pair(pc, p):
     L, U = p['L'], p['U']
     o = []
     A = o.append
-    A('int vuS_%04X(VU1Interpreter &vu, VuNativeCtx &c)' % pc)
+    A('int %s_%04X(VU1Interpreter &vu, VuNativeCtx &c)' % (UC['step'], pc))
     A('{')
     A('    const VuNativeOps &op = *c.ops;')
     A('    if (vu.m_cycle >= *c.nextReady) op.commit(vu); // PERF-IC: same early-out as commitReadyPipelines')
@@ -166,12 +174,12 @@ def emit_pair(pc, p):
     A('    vu.m_state.vf[0][0] = 0.0f; vu.m_state.vf[0][1] = 0.0f; vu.m_state.vf[0][2] = 0.0f; vu.m_state.vf[0][3] = 1.0f; vu.m_state.vi[0] = 0;')
 
     nxt = pc + 8
-    if nxt >= 0x4000:
+    if nxt >= UC['pclim']:
         nxt = 0
     A('    vu.m_state.pc = 0x%04Xu;' % nxt)
     A('    if (vu.m_state.branchPending)')
     A('    {')
-    A('        if (vu.m_state.branchDelay == 0u) { vu.m_state.pc = vu.m_state.branchTarget & 0x3FFFu; vu.m_state.branchPending = false; }')
+    A('        if (vu.m_state.branchDelay == 0u) { vu.m_state.pc = vu.m_state.branchTarget & 0x%04Xu; vu.m_state.branchPending = false; }' % UC['pcmask'])
     A('        else { --vu.m_state.branchDelay; }')
     A('    }')
 
@@ -249,6 +257,7 @@ def load_pairs(src):
 
 def main():
     src = sys.argv[1]
+    configure(src)
     h = re.search(r'([0-9a-f]{16})', src).group(1)
     pairs = load_pairs(src)
     native = []
@@ -258,29 +267,40 @@ def main():
             continue
         native.append(pc)
     os.makedirs(OUT_DIR, exist_ok=True)
-    per = (len(native) + CHUNKS - 1) // CHUNKS
+    chunks = UC['chunks']
+    per = (len(native) + chunks - 1) // chunks
     files = []
-    for k in range(CHUNKS):
+    for k in range(chunks):
         part = native[k * per:(k + 1) * per]
-        name = 'vu1_native_exec_%d.cpp' % k
+        name = '%s_native_exec_%d.cpp' % (UC['name'], k)
         files.append(name)
         with open(OUT_DIR + name, 'w', newline='\n') as f:
             f.write(FILE_HEAD % {'src': src})
             for pc in part:
                 f.write('\n'.join(emit_pair(pc, pairs[pc])))
                 f.write('\n')
-    with open(OUT_DIR + 'vu1_native_dispatch.cpp', 'w', newline='\n') as f:
+    with open(OUT_DIR + '%s_native_dispatch.cpp' % UC['name'], 'w', newline='\n') as f:
         f.write(FILE_HEAD % {'src': src})
-        f.write('const uint64_t kVu1NativeMainHash = 0x%sull;\n\n' % h)
+        f.write('const uint64_t k%sNativeMainHash = 0x%sull;\n\n' % (UC['Name'], h))
         for pc in native:
-            f.write('int vuS_%04X(VU1Interpreter &, VuNativeCtx &);\n' % pc)
+            f.write('int %s_%04X(VU1Interpreter &, VuNativeCtx &);\n' % (UC['step'], pc))
         f.write('\nnamespace\n{\nusing StepFn = int (*)(VU1Interpreter &, VuNativeCtx &);\n')
-        f.write('const StepFn kStep[2048] = {\n')
+        f.write('const StepFn kStep[%d] = {\n' % UC['slots'])
         nset = set(native)
-        for i in range(2048):
-            f.write('  %s,\n' % ('vuS_%04X' % (i * 8) if i * 8 in nset else 'nullptr'))
+        for i in range(UC['slots']):
+            f.write('  %s,\n' % ('%s_%04X' % (UC['step'], i * 8) if i * 8 in nset else 'nullptr'))
         f.write('};\n}\n\n')
-        f.write('''#include <cstdio>
+        f.write(RUN_TEMPLATE.replace('vu1NativeRun', UC['name'] + 'NativeRun').replace('0x4000u', '0x%04Xu' % UC['pclim'])
+                .replace('kVu1HotStart', 'k%sHotStart' % UC['Name']).replace('vu1HotLookup', UC['name'] + 'HotLookup')
+                .replace('[probe] hot blocks=', '[probe] %s blocks=' % UC['hot']))
+    files.append('%s_native_dispatch.cpp' % UC['name'])
+    print('image %s: %d native pairs, %d files' % (h, len(native), len(files)))
+    print('CMake sources:')
+    for n in files:
+        print('    src/lib/vu/generated/' + n)
+
+
+RUN_TEMPLATE = '''#include <cstdio>
 
 namespace
 {
@@ -338,12 +358,7 @@ int vu1NativeRun(VU1Interpreter &vu, VuNativeCtx &c)
     }
     return 1;
 }
-''')
-    files.append('vu1_native_dispatch.cpp')
-    print('image %s: %d native pairs, %d files' % (h, len(native), len(files)))
-    print('CMake sources:')
-    for n in files:
-        print('    src/lib/vu/generated/' + n)
+'''
 
 
 if __name__ == '__main__':
