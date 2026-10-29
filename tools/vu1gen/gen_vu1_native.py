@@ -52,7 +52,7 @@ def emit_pair(pc, p):
     A('int vuS_%04X(VU1Interpreter &vu, VuNativeCtx &c)' % pc)
     A('{')
     A('    const VuNativeOps &op = *c.ops;')
-    A('    op.commit(vu);')
+    A('    if (vu.m_cycle >= *c.nextReady) op.commit(vu); // PERF-IC: same early-out as commitReadyPipelines')
     A('    ++c.instrs;')
 
     # ---- readiness (calculatePairReadyCycle, partially evaluated) ----
@@ -96,49 +96,49 @@ def emit_pair(pc, p):
     written = 0
     if viw_mask:
         written = (viw_mask & -viw_mask).bit_length() - 1
-        A('    const int32_t oldVi = vu.m_state.vi[%d];' % written)
+        if L['dnb']:
+            A('    const int32_t oldVi = vu.m_state.vi[%d];' % written)
     has_up = U['wreg'] != 0
     has_low = L['wreg'] != 0 and p['supp'] != L['wreg']
     has_dlow = has_low and (not has_up or L['wreg'] != U['wreg'])
-    if has_up:
+    # PERF-IC: since PERF-HT vf/vi/acc writes are applied at issue, so the old-copy / restore / queue dance is a no-op except for the
+    # quirk where lower and upper write the same register (the interpreter requeues only the upper lanes of the final value).
+    same_reg_quirk = has_up and L['wreg'] != 0 and L['wreg'] == U['wreg']
+    if same_reg_quirk:
         A('    float oldUp[4]; std::memcpy(oldUp, vu.m_state.vf[%d], 16);' % U['wreg'])
-    if has_dlow:
-        A('    float oldLo[4]; std::memcpy(oldLo, vu.m_state.vf[%d], 16);' % L['wreg'])
-    if U['aw']:
-        A('    float oldAcc[4]; std::memcpy(oldAcc, vu.m_state.acc, 16);')
 
     # ---- execute ----
+    def upper_stmt(u):
+        o = u & 0x3F
+        e = o
+        if o >= 0x3C:
+            e = (u & 3) | ((u >> 4) & 0x7C)
+            if e in (0x2F, 0x30):
+                return '    vu.m_currentUpperInstruction = 0x%08xu; // NOP' % u
+        return '    op.execUpper(vu, 0x%08xu);' % u
+
     if p['i']:
-        A('    op.execUpper(vu, 0x%08xu);' % p['upper'])
+        A(upper_stmt(p['upper']))
         A('    { const uint32_t lb = 0x%08xu; float imm; std::memcpy(&imm, &lb, 4); vu.m_state.i = vuNormalizeOperand(imm); }' % p['lower'])
     elif p['shadow']:
         sh = p['shadow']
         A('    { float oldVf[4], upVf[4];')
         A('      std::memcpy(oldVf, vu.m_state.vf[%d], 16);' % sh)
-        A('      op.execUpper(vu, 0x%08xu);' % p['upper'])
+        A('  ' + upper_stmt(p['upper']))
         A('      std::memcpy(upVf, vu.m_state.vf[%d], 16);' % sh)
         A('      std::memcpy(vu.m_state.vf[%d], oldVf, 16);' % sh)
         A('      op.execLower(vu, 0x%08xu, c.vuData, c.dataSize, *c.gs, c.memory, 0x%08xu);' % (p['lower'], p['upper']))
         A('      std::memcpy(vu.m_state.vf[%d], upVf, 16); }' % sh)
     else:
-        A('    op.execUpper(vu, 0x%08xu);' % p['upper'])
+        A(upper_stmt(p['upper']))
         A('    op.execLower(vu, 0x%08xu, c.vuData, c.dataSize, *c.gs, c.memory, 0x%08xu);' % (p['lower'], p['upper']))
     A('    vu.m_viBranchBackupValid = false;')
 
-    # ---- queue the delayed writes ----
-    if has_up:
+    # ---- writes were applied at issue (PERF-HT); only the same-register quirk needs the requeue of the upper lanes ----
+    if same_reg_quirk:
         lat = U['vfl'] if U['vfl'] else U['lat']
         A('    { float nv[4]; std::memcpy(nv, vu.m_state.vf[%d], 16); std::memcpy(vu.m_state.vf[%d], oldUp, 16); op.qVf(vu, %d, %d, nv, %d); }'
           % (U['wreg'], U['wreg'], U['wreg'], U['wlanes'], lat))
-    if has_dlow:
-        lat = L['vfl'] if L['vfl'] else L['lat']
-        A('    { float nv[4]; std::memcpy(nv, vu.m_state.vf[%d], 16); std::memcpy(vu.m_state.vf[%d], oldLo, 16); op.qVf(vu, %d, %d, nv, %d); }'
-          % (L['wreg'], L['wreg'], L['wreg'], L['wlanes'], lat))
-    if U['aw']:
-        A('    { float na[4]; std::memcpy(na, vu.m_state.acc, 16); std::memcpy(vu.m_state.acc, oldAcc, 16); op.qAcc(vu, %d, na, 1u); }' % U['aw'])
-    if viw_mask:
-        lat = L['vil'] if L['vil'] else L['lat']
-        A('    { const int32_t nvi = vu.m_state.vi[%d]; vu.m_state.vi[%d] = oldVi; op.qVi(vu, %d, nvi, %d); }' % (written, written, written, lat))
 
     # ---- markPairWrites ----
     if has_low:
@@ -188,7 +188,9 @@ def emit_pair(pc, p):
     else:
         A('        else if (haltBranch) { vu.m_state.haltAfterDelaySlot = true; vu.m_pendingHaltD = dHalt; vu.m_pendingHaltT = tHalt; }')
     A('    }')
-    A('    op.advance1(vu);')
+    A('    ++vu.m_cycle; vu.m_state.cycles = vu.m_cycle; // PERF-IC: inline advanceOneCycle')
+    A('    if (vu.m_cycle >= *c.nextReady) op.commit(vu);')
+    A('    if (vu.m_xgkick.active) op.xgProgress(vu);')
     A('    return c.programEnded ? 1 : 0;')
     A('}')
     A('')
