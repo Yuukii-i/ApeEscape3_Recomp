@@ -1,4 +1,3 @@
-# Task IC Report
-- Built regenerated VU1 native pair executors (inline commit/advance, NOP upper elision, direct writes).
-- Build status: BUILD OK via tools\build.bat.
-- PS2Recomp commit: e0454ce (branch task/IC).
+# Task ID Report
+- Built PROBE-BLK v3; ps2_vu1_core.cpp only recompiled (BUILD OK via tools\build.bat).
+- PS2Recomp commit: d9d8289 (branch task/ID).
