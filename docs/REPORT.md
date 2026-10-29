@@ -1,6 +1,5 @@
-# Task IO Report
+# Task IP Report
 - Build result: BUILD OK via tools\build.bat (incremental; recomp_source untouched).
-- Build duration: ~1m 25s (10:02:17 to 10:03:42).
-- Root diff: tools/vu1gen/gen_vu1_hot.py (12+, 2-).
-- PS2Recomp diff: ps2_vu1_core.cpp (24+, 7-). No .h touched.
-- PS2Recomp commit: 9438f06 (branch task/IO).
+- Build duration: ~1m 10s (10:12:26 to 10:13:36).
+- PS2Recomp diff: vu0_hot_blocks.cpp, ps2_vu1_core.cpp (1313+, 48-). No .h touched.
+- PS2Recomp commit: b445d00 (branch task/IP).
