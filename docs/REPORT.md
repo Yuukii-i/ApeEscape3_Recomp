@@ -1,5 +1,5 @@
-# Task IP Report
+# Task IQ Report
 - Build result: BUILD OK via tools\build.bat (incremental; recomp_source untouched).
-- Build duration: ~1m 10s (10:12:26 to 10:13:36).
-- PS2Recomp diff: vu0_hot_blocks.cpp, ps2_vu1_core.cpp (1313+, 48-). No .h touched.
-- PS2Recomp commit: b445d00 (branch task/IP).
+- Build duration: ~1m 25s (11:24:52 to 11:26:17).
+- PS2Recomp diff: ps2_runtime.cpp (12+, 5-). No .h touched.
+- PS2Recomp commit: 552da50 (branch task/IQ).
