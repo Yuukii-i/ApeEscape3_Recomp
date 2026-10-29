@@ -1,5 +1,5 @@
-# Task IR Report
-- Build result: BUILD OK via tools\build.bat (incremental; recomp_source untouched).
-- Build duration: ~1m 23s (11:36:15 to 11:37:38).
-- PS2Recomp diff: ps2_runtime.cpp (3+, 2-). No .h touched.
-- PS2Recomp commit: dc4f2db (branch task/IR).
+# Task IS Report
+- Build result: BUILD OK via tools\build.bat (full recomp_source rebuild).
+- Build duration: ~44m 12s total (33m 32s + 10m 40s resumed).
+- Exe size: 139,464,192 -> 139,462,144 bytes (-2,048 bytes).
+- Diff: CMakeLists.txt (3+, 0-): added /arch:AVX2 /GS- /Gy /Gw /GF /Oi /Qspectre- to recomp_source Release.
