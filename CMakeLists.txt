@@ -52,6 +52,8 @@ if(MSVC)
     # PERF-IS: recomp_source never got the runtime's fast flags (EnableFastReleaseMode): only /O2 /Ob2. Add the safe subset
     # (NOT /GL: LTCG over 23k functions; NOT /fp:fast: guest FPU semantics). Experiment: guest code is IPC-healthy but instruction-bound.
     target_compile_options(recomp_source PRIVATE $<$<CONFIG:Release>:/arch:AVX2 /GS- /Gy /Gw /GF /Oi /Qspectre->)
+    # PERF-IT: +/Ob3 (inline anything profitable; watch C1002) and /favor:AMD64 (Zen scheduling). /fp:fast stays OFF: ps2_fadd & co. test results with ps2_fnormal (NaN/Inf), which /fp:fast may optimise away.
+    target_compile_options(recomp_source PRIVATE $<$<CONFIG:Release>:/Ob3 /favor:AMD64>)
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(recomp_source PRIVATE -msse4.1 "-Wa,-mbig-obj")
 endif()
