@@ -27,6 +27,7 @@ target_compile_options(recomp_source_clang PRIVATE "-imsvc${REPO}/build/ThirdPar
 target_compile_definitions(recomp_source_clang PRIVATE
     GRAPHICS_API_OPENGL_33 PLATFORM_DESKTOP PS2X_ENABLE_IOP_RPC_TRACE=1 PS2_RUNTIME_LOGS=1 WIN32 _WINDOWS NDEBUG)
 # Same flag set as the MSVC tree (Task IS) plus: no FMA contraction (guest FPU must round after every op), no warnings noise.
+target_compile_options(recomp_source_clang PRIVATE "/FI${CMAKE_CURRENT_SOURCE_DIR}/clang_abi_fix.h") # PERF-JC
 target_compile_options(recomp_source_clang PRIVATE /bigobj /arch:AVX2 /GS- /Gy /Gw /Oi /EHsc -Wno-everything -ffp-contract=off)
 # Variant experiments: -DRECOMP_CLANG_EXTRA_FLAGS="-O3;-march=znver3" (semicolon list) and -DRECOMP_CLANG_LIB_NAME=<name>
 set(RECOMP_CLANG_EXTRA_FLAGS "" CACHE STRING "Extra clang-cl flags (semicolon separated)")
