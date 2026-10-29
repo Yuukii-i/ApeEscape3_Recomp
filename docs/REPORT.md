@@ -1,5 +1,4 @@
-# Task IE Report
-- Built PERF-IE (hot VU1 blocks with static timing + native ops).
-- Fixed string literal newline in gen_vu1_native.py; CMake reconfigured with vu1_hot_blocks.cpp.
-- Build status: BUILD OK via tools\build.bat.
-- PS2Recomp commit: 034eead (branch task/IE).
+# Task IF Report
+- Built PERF-IF (AVX2 FMAC/MAX/MINI/FTOI, inline store queue, MAC-ring pruning).
+- Build status: BUILD OK via tools\build.bat (no rebuilds outside src/lib/vu).
+- PS2Recomp commit: 4dd7719 (branch task/IF).

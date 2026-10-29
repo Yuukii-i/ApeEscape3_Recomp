@@ -51,7 +51,27 @@ KIND_TABLE = {0x1C: (4, 1), 0x1E: (4, 2), 0x20: (0, 1), 0x21: (2, 1), 0x22: (0, 
               0x26: (1, 2), 0x27: (3, 2), 0x28: (0, 3), 0x29: (2, 3), 0x2A: (4, 3), 0x2C: (1, 3), 0x2D: (3, 3)}
 
 
-def upper_stmts(u):
+def fmac_info(u):
+    """(kind, src, bc, to_acc, dest) when the upper word is an FMAC-family op handled by vuhot::fmac, else None."""
+    op = u & 0x3F
+    dest = (u >> 21) & 0xF
+    to_acc = op >= 0x3C
+    e = op
+    if to_acc:
+        e = (u & 3) | ((u >> 4) & 0x7C)
+        if e in (0x2F, 0x30):
+            return None
+    if e <= 0x0F:
+        return (e >> 2, 0, e & 3, to_acc, dest)
+    if 0x18 <= e <= 0x1B:
+        return (4, 0, e & 3, to_acc, dest)
+    if e in KIND_TABLE:
+        k, sr = KIND_TABLE[e]
+        return (k, sr, 0, to_acc, dest)
+    return None
+
+
+def upper_stmts(u, keep_mac=True):
     """Native statements for an upper word; falls back to the generic executor."""
     op = u & 0x3F
     dest = (u >> 21) & 0xF
@@ -75,25 +95,25 @@ def upper_stmts(u):
     elif e in KIND_TABLE:
         kind, src = KIND_TABLE[e]
     if kind is not None:
-        return [pre, 'vuhot::fmac<%d, %d, %d, %s>(vu, 1u, %d, %d, %d, %d);' % (kind, src, bc, 'true' if to_acc else 'false', dest, fs, ft, fd)]
+        return [pre, 'vuhot::fmac<%d, %d, %d, %s, %d, %s>(vu, 1u, %d, %d, %d);' % (kind, src, bc, 'true' if to_acc else 'false', dest, 'true' if keep_mac else 'false', fs, ft, fd)]
     if not to_acc:
         # MAX / MINI (no flags)
         if 0x10 <= e <= 0x13:
-            return [pre, 'vuhot::maxmini<true, 0, %d>(st, %d, %d, %d, %d);' % (e & 3, dest, fs, ft, fd)]
+            return [pre, 'vuhot::maxmini<true, 0, %d, %d>(st, %d, %d, %d);' % (e & 3, dest, fs, ft, fd)]
         if 0x14 <= e <= 0x17:
-            return [pre, 'vuhot::maxmini<false, 0, %d>(st, %d, %d, %d, %d);' % (e & 3, dest, fs, ft, fd)]
+            return [pre, 'vuhot::maxmini<false, 0, %d, %d>(st, %d, %d, %d);' % (e & 3, dest, fs, ft, fd)]
         if e == 0x1D:
-            return [pre, 'vuhot::maxmini<true, 2, 0>(st, %d, %d, %d, %d);' % (dest, fs, ft, fd)]
+            return [pre, 'vuhot::maxmini<true, 2, 0, %d>(st, %d, %d, %d);' % (dest, fs, ft, fd)]
         if e == 0x1F:
-            return [pre, 'vuhot::maxmini<false, 2, 0>(st, %d, %d, %d, %d);' % (dest, fs, ft, fd)]
+            return [pre, 'vuhot::maxmini<false, 2, 0, %d>(st, %d, %d, %d);' % (dest, fs, ft, fd)]
         if e == 0x2B:
-            return [pre, 'vuhot::maxmini<true, 3, 0>(st, %d, %d, %d, %d);' % (dest, fs, ft, fd)]
+            return [pre, 'vuhot::maxmini<true, 3, 0, %d>(st, %d, %d, %d);' % (dest, fs, ft, fd)]
         if e == 0x2F:
-            return [pre, 'vuhot::maxmini<false, 3, 0>(st, %d, %d, %d, %d);' % (dest, fs, ft, fd)]
+            return [pre, 'vuhot::maxmini<false, 3, 0, %d>(st, %d, %d, %d);' % (dest, fs, ft, fd)]
     else:
         scale = {0x14: 1, 0x15: 16, 0x16: 4096, 0x17: 32768}.get(e)
         if scale:
-            return [pre, 'vuhot::ftoi<%d>(st, %d, %d, %d);' % (scale, dest, fs, ft)]
+            return [pre, 'vuhot::ftoi<%d, %d>(st, %d, %d);' % (scale, dest, fs, ft)]
     return ['op.execUpper(vu, 0x%08xu);' % u]
 
 
@@ -162,7 +182,7 @@ def lower_stmts(lo, upper, pc):
 
 
 # ---------------------------------------------------------------------------------------------------------------- pair body
-def pair_body(i, pc, p, n, is_last, after_branch, indent='    '):
+def pair_body(i, pc, p, n, is_last, after_branch, keep_mac, indent='    '):
     L, U = p['L'], p['U']
     o = []
     A = o.append
@@ -179,7 +199,7 @@ def pair_body(i, pc, p, n, is_last, after_branch, indent='    '):
     if same_reg_quirk:
         A(ind + 'float oldUp[4]; std::memcpy(oldUp, st.vf[%d], 16);' % U['wreg'])
 
-    ups = upper_stmts(p['upper'])
+    ups = upper_stmts(p['upper'], keep_mac)
     lows = None if p['i'] else lower_stmts(p['lower'], p['upper'], pc)
     if p['i']:
         for s_ in ups:
@@ -257,9 +277,16 @@ def emit_block(name, rec, pairs):
     A('    const VuNativeOps &op = *c.ops;')
     A('    VU1State &st = vu.m_state;')
     A('    const uint64_t S = vu.m_cycle;')
-    A('    auto qs = [&](uint32_t a, const uint32_t *w, uint8_t l) { op.qStore(vu, a, w, l); };')
+    A('    auto qs = [&](uint32_t a, const uint32_t *w, uint8_t l) { vuhot::storeFast(vu, c, a, w, l); };')
     A('    (void)qs; (void)op;')
     A('    c.instrs += %du;' % n)
+    # MAC ring pushes: no FM* reader inside the block => only the newest write that has landed at block exit (and later ones) can still be seen
+    readers = any((not pairs[pc0 + 8 * k]['i']) and ((pairs[pc0 + 8 * k]['lower'] >> 25) & 0x7F) in (0x18, 0x1A, 0x1B) for k in range(n))
+    e_exit = issue[-1] + 1
+    fm = [k for k in range(n) if fmac_info(pairs[pc0 + 8 * k]['upper']) is not None and fmac_info(pairs[pc0 + 8 * k]['upper'])[4] != 0]
+    landed = [k for k in fm if issue[k] + 4 <= e_exit]
+    first_keep = max(landed) if landed else None
+    keep = set(fm) if (readers or first_keep is None) else set(k for k in fm if k >= first_keep)
     prev_end = 0
     prev_branch = False
     for i in range(n):
@@ -273,7 +300,7 @@ def emit_block(name, rec, pairs):
         elif cb[i]:
             A('    op.commit(vu);')
         A('    { // pair %d @ %04X' % (i, pc))
-        for line in pair_body(i, pc, p, n, i == n - 1, prev_branch):
+        for line in pair_body(i, pc, p, n, i == n - 1, prev_branch, i in keep):
             A(line)
         A('    }')
         if ca[i] or p['L']['pipe'] == 7:
