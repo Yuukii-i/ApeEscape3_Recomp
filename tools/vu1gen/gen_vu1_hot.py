@@ -307,10 +307,16 @@ def emit_block(name, rec, pairs):
             A('    op.advance1(vu);')
         else:
             A('    ++vu.m_cycle; st.cycles = vu.m_cycle;')
+        if p['e']:
+            A('    st.ebit = true; // PERF-IP: E bit; the program ends after the next (delay-slot) pair')
         prev_end = issue[i] + 1
         prev_branch = p['L']['pipe'] == 6
     A('    c.nextHash = 0x%016xull; c.hashValid = true;' % rec['exitsig'])
-    A('    return 0;')
+    if n >= 2 and pairs[pc0 + 8 * (n - 2)]['e']:
+        A('    c.programEnded = true;')
+        A('    return 1;')
+    else:
+        A('    return 0;')
     A('}')
     A('')
     return o
@@ -359,7 +365,9 @@ def main():
         ok = True
         for i in range(r['n']):
             p = pairs.get(r['pc'] + 8 * i)
-            if p is None or p['e'] or p['d'] or p['t'] or p['L']['rsv'] or p['U']['rsv']:
+            if p is None or p['d'] or p['t'] or p['L']['rsv'] or p['U']['rsv']:
+                ok = False
+            elif p['e'] and i != r['n'] - 2:  # PERF-IP: an E bit is only allowed on the pair before the block's last (delay-slot) pair
                 ok = False
         if not ok:
             print('skip %04X (E/D/T bit or reserved op)' % r['pc'])
