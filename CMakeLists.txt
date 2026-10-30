@@ -34,6 +34,16 @@ file(GLOB_RECURSE RECOMP_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/recomp_source/*.cpp"
 )
 
+# PERF-IV: optionally link a prebuilt clang-cl build of recomp_source (tools/build_clang_recomp.bat) instead of compiling it here
+set(RECOMP_CLANG_LIB "" CACHE FILEPATH "Prebuilt clang-cl recomp_source static library (empty = build recomp_source with the main compiler)")
+if(RECOMP_CLANG_LIB AND EXISTS "${RECOMP_CLANG_LIB}")
+    message(STATUS "recomp_source: using prebuilt clang-cl library ${RECOMP_CLANG_LIB}")
+    add_library(recomp_source STATIC IMPORTED GLOBAL)
+    set_target_properties(recomp_source PROPERTIES
+        IMPORTED_LOCATION "${RECOMP_CLANG_LIB}"
+        INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/recomp_source;${CMAKE_CURRENT_SOURCE_DIR}/PS2Recomp/ps2xRuntime/include"
+        INTERFACE_LINK_LIBRARIES ps2xRuntime)
+else()
 # Compile recomp_source files into a static library
 add_library(recomp_source STATIC ${RECOMP_SOURCES})
 
@@ -49,6 +59,9 @@ target_link_libraries(recomp_source PUBLIC ps2xRuntime)
 # Compiler options for large generated codebases
 if(MSVC)
     target_compile_options(recomp_source PRIVATE /bigobj /FS)
+    # PERF-IS: recomp_source never got the runtime's fast flags (EnableFastReleaseMode): only /O2 /Ob2. Add the safe subset
+    # (NOT /GL: LTCG over 23k functions; NOT /fp:fast: guest FPU semantics). Experiment: guest code is IPC-healthy but instruction-bound.
+    target_compile_options(recomp_source PRIVATE $<$<CONFIG:Release>:/arch:AVX2 /GS- /Gy /Gw /GF /Oi /Qspectre->)
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(recomp_source PRIVATE -msse4.1 "-Wa,-mbig-obj")
 endif()
@@ -62,6 +75,8 @@ if(RECOMP_ENABLE_UNITY_BUILD)
         UNITY_BUILD_BATCH_SIZE "${RECOMP_UNITY_BUILD_BATCH_SIZE}"
     )
 endif()
+
+endif() # RECOMP_CLANG_LIB
 
 # Aliases for convenience
 add_library(recomp_game ALIAS recomp_source)

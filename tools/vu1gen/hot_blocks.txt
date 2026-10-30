@@ -1,0 +1,112 @@
+# image 86503d3905e35276; pc sig(hex)  [n cycles pairShare%]  from logs/probe_jb.log blkhot (VU1)
+20F8 11f866f1c074d242  # n=15 cycles=15 share=32.43% cum=32.4%
+16C0 4620a69b7ddcfd0f  # n=9 cycles=9 share=11.31% cum=43.7%
+0158 d5c96e298e5a79b6  # n=6 cycles=6 share=10.02% cum=53.7%
+1FE0 ed9ddb4fd6ac295f  # n=35 cycles=45 share=5.37% cum=59.1%
+0C88 000000001234abcd  # n=5 cycles=5 share=3.14% cum=62.3%
+2170 11f866f1c074d242  # n=19 cycles=29 share=2.89% cum=65.1%
+0008 000000001234abcd  # n=7 cycles=8 share=2.56% cum=67.7%
+1EF8 2500f9095d82efe9  # n=14 cycles=14 share=2.51% cum=70.2%
+20F8 56c3edca4422f591  # n=15 cycles=15 share=2.28% cum=72.5%
+24F8 7665281c31708c5c  # n=24 cycles=24 share=2.14% cum=74.6%
+0C80 cd057af54d65447f  # n=6 cycles=8 share=2.12% cum=76.8%
+0028 8aba1b92c58909d9  # n=3 cycles=5 share=1.91% cum=78.7%
+24F8 000000001234abcd  # n=24 cycles=24 share=1.78% cum=80.5%
+00A8 cd057af54d65447f  # n=28 cycles=33 share=1.55% cum=82.0%
+15E0 cd057af54d65447f  # n=37 cycles=45 share=1.14% cum=83.2%
+2E18 8655dbcc72d6d1ad  # n=5 cycles=5 share=1.04% cum=84.2%
+2DB8 98c2232933f1dd3b  # n=4 cycles=4 share=0.93% cum=85.1%
+0CB0 000000001234abcd  # n=2 cycles=2 share=0.70% cum=85.9%
+2DE0 000000001234abcd  # n=4 cycles=4 share=0.63% cum=86.5%
+2CB8 000000001234abcd  # n=18 cycles=18 share=0.53% cum=87.6%
+2440 b4f4b1b4da29db30  # n=19 cycles=19 share=0.48% cum=88.1%
+0070 cd057af54d65447f  # n=3 cycles=6 share=0.48% cum=88.5%
+24F0 8c57fdc659ceb8ca  # n=25 cycles=25 share=0.45% cum=89.0%
+2E98 21870965ff0b7b2f  # n=6 cycles=7 share=0.43% cum=89.4%
+2E40 8c2a0e5d3afdce3f  # n=2 cycles=2 share=0.38% cum=89.8%
+2DD8 000000001234abcd  # n=5 cycles=5 share=0.36% cum=90.2%
+1EE0 cd057af54d65447f  # n=2 cycles=2 share=0.35% cum=90.5%
+
+# PERF-KG: all remaining non-XGKICK-entry blocks recorded in logs/vublk2_u1_86503d3905e35276.txt (title run); generator skips unsafe ones itself
+0088 cd057af54d65447f  # n=1 extra
+0050 cd057af54d65447f  # n=2 extra
+0060 e2b01f30fecfb22b  # n=2 extra
+0000 cd057af54d65447f  # n=2 extra
+0040 000000001234abcd  # n=2 extra
+0010 b60833aad3c33ed1  # n=6 extra
+0000 8aba1b92c58909d9  # n=2 extra
+0188 d5c96e298e5a79b6  # n=2 extra
+0188 13eefc24f37234d9  # n=2 extra
+1F68 486828c814e27754  # n=2 extra
+24F0 40380d0740f5fe55  # n=25 extra
+24C8 c946c511275567c5  # n=2 extra
+24D8 8c57fdc659ceb8ca  # n=2 extra
+24E8 7665281c31708c5c  # n=2 extra
+28A0 e8e15a5c4d996754  # n=3 extra
+2DA8 000000001234abcd  # n=2 extra
+25B8 c946c511275567c5  # n=8 extra
+28B8 000000001234abcd  # n=2 extra
+28C8 000000001234abcd  # n=2 extra
+28D8 000000001234abcd  # n=2 extra
+28E8 000000001234abcd  # n=2 extra
+28F8 000000001234abcd  # n=2 extra
+2908 000000001234abcd  # n=22 extra
+29D8 000000001234abcd  # n=17 extra
+2A50 d41ee2f6b57fe0b5  # n=2 extra
+2E88 d41ee2f6b57fe0b5  # n=2 extra
+2A60 326ca533d68687be  # n=13 extra
+2AB8 d41ee2f6b57fe0b5  # n=2 extra
+2AC8 326ca533d68687be  # n=14 extra
+2B28 d41ee2f6b57fe0b5  # n=2 extra
+2B38 326ca533d68687be  # n=13 extra
+2E50 8c2a0e5d3afdce3f  # n=2 extra
+2EC8 212a5887dba05810  # n=2 extra
+2EF8 e3e200fd9bc84c85  # n=15 extra
+2E60 ccb59dece6b32591  # n=5 extra
+2B90 d41ee2f6b57fe0b5  # n=2 extra
+2E00 8655dbcc72d6d1ad  # n=2 extra
+2E10 093fa05c5bd880a3  # n=2 extra
+2BA0 326ca533d68687be  # n=14 extra
+2C00 d41ee2f6b57fe0b5  # n=2 extra
+2C10 326ca533d68687be  # n=13 extra
+2E78 093fa05c5bd880a3  # n=2 extra
+2C68 d41ee2f6b57fe0b5  # n=2 extra
+2ED8 e3e200fd9bc84c85  # n=4 extra
+2EF8 498f75e2d3e57238  # n=15 extra
+2C78 326ca533d68687be  # n=8 extra
+2CB8 7ba272039efac167  # n=18 extra
+2D48 000000001234abcd  # n=1 extra
+1C48 cd057af54d65447f  # n=13 extra
+1C90 2f980bed0e31daf4  # n=4 extra
+1C90 4ff258233afc63ab  # n=4 extra
+1CB0 4ff258233afc63ab  # n=2 extra
+0028 a4ebff2cd70bb7ef  # n=3 extra
+2ED8 498f75e2d3e57238  # n=4 extra
+2D50 21870965ff0b7b2f  # n=13 extra
+24F8 1172e6b5e82732fa  # n=24 extra
+1708 4620a69b7ddcfd0f  # n=2 extra
+0028 cbcb1990c40525ea  # n=3 extra
+1F78 b4f4b1b4da29db30  # n=2 extra
+2170 56c3edca4422f591  # n=19 extra
+1900 cd057af54d65447f  # n=2 extra
+1970 abac5bc79122dc22  # n=25 extra
+1A10 da85bd57c158f0ce  # n=5 extra
+1A38 da85bd57c158f0ce  # n=2 extra
+0028 43c6c7edd043412e  # n=3 extra
+1EF0 cd057af54d65447f  # n=15 extra
+1F88 486828c814e27754  # n=2 extra
+1F98 b4f4b1b4da29db30  # n=2 extra
+2210 ed9ddb4fd6ac295f  # n=35 extra
+2328 5c3b3d8fadf25b65  # n=15 extra
+2328 a9b7bf656c828574  # n=15 extra
+23A0 a9b7bf656c828574  # n=19 extra
+24D8 40380d0740f5fe55  # n=2 extra
+0B40 cd057af54d65447f  # n=29 extra
+0BC8 fb8ef27e9dfd2579  # n=12 extra
+0C28 fb8ef27e9dfd2579  # n=2 extra
+0028 a62156f3a4de9d7b  # n=3 extra
+3160 cd057af54d65447f  # n=16 extra
+31B0 ea6174d99d51dfdc  # n=6 extra
+31E0 ea6174d99d51dfdc  # n=17 extra
+3220 2505ebe450768d32  # n=9 extra
+3268 2505ebe450768d32  # n=2 extra

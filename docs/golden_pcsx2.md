@@ -186,3 +186,54 @@ Call: 319F14(a0=0x772310 [sceMpeg ctx], a1=dst 0x163A280, a2=0x300 (MB capacity)
 ctx 0x772180: [+0x48]=0x181B620 (= video buffer 0x181B600 + 0x20) -> {w0=18 (frames in group), w1=4 (sub-chunks), w2=0x1B800}; [+0x4C]=0x181B630 (first sub-chunk) with [+0x10]=0x100 (ready idx), [+0x14]=0x7F38 (size); [+0x50]=1; [+0x70]=0.
 F loop 0x24C544..0x24C714: iterates [+0x70] over w1=4 sub-chunks, [+0x4C] += ((size+0xF)>>4<<4)+0x20 per chunk. Real tick = 2 vblanks (9.84M EE cycles; EE 294.9 MHz, vblank 4.92M cycles); decode 0x408E90 runs once per tick; 0x31A240 gate a1>=[obj+0x1F8] with a1==[+0x1F8] each call (+2/tick).
 Chunk ring read per group: audio 16 KB (cmd1 flags=1) then video (cmd1 flags=0); ring chunk = 18 vblanks (88.6M cycles).
+
+## 28 SG2 at title (post-intro state, cond bp 0x439A28 a0==0x74B240 && t0>0x20; ra 0x3FC06C)
+ Steady state (silent/idle and during title): every vblank one call, N=2: {0x1A,1,0,0x2C800000} {0x1A,2,0,0x00002C80} (volumes only).
+ First call with N>2, ~1.5 s (428M cyc) after resume from post-intro pause: N=7 {0x1C,3,0,0} {0x1A,1,0,0x3FFF0000} {0x1A,2,0,0x00003FFF} {0x1B,3,0,0xBB80} {0x1B,3,0,0xBB80} {0x1A,1,0,0x2C800000} {0x1A,2,0,0x00002C80}
+ == identical to movie stream-start (section 10 call B). Title music = same 2-voice (mask 3) 48 kHz streamed ADPCM path. The 0x18 waveform transfers precede it (N=2 calls, not yet captured).
+ CORRECTION to section 17: op 0x18 a3 low 24 bits (0x177B00/0x177F00) is an IOP RAM address, NOT EE. EE 0x177B00 holds MIPS code (jr ra / addiu sp epilogues) both at title and movie. Audio bytes live in IOP RAM, filled by CID1 (CD stream) reads. IOP RAM not readable via the MCP (0x1C177B00, 0xBC177B00, 0x1F4177B00 all read zero).
+ Title music start sequence (post-intro state, deterministic cycle counts): call @2741.99M cyc N=2 {0x18,0x0002401B,0x58800100,0x00177B00} {0x18,0x0102401B,0x98800100,0x00177F00} (identical to movie call A); then N=7 stream-start @2756.75M cyc (see above). Intro teardown ring (stale, N=0): {0x1D,3} {0x19,0} {0x19,1}.
+ Packing decode of op 0x18 [INFERRED]: S[8]=IOP src 0x177B00; S[0xC]~0x10000 (total bytes); S[0x10]=0x1B5880 (low16 0x5880 = SPU2 dest addr, 0x9880 for voice 2); S[0x14]&0xFF00=0x4000 (chunk); S[0]=0/1 (core/voice).
+ PCSX2 MCP condition syntax: use [addr] for memory deref; *(u32*)/lw() are invalid and silently make the bp fire every time.
+
+## 29 VIF1 block-fill packet with CYCLE.CL=0 (title, pcsx2 EE 0xA80AD0..0xA80B28; 20 copies at 0xA7C368, 0xA80B08...)
+ words: 01005000 (STCYCL cl=0 wl=0x50) 30000000 (STROW) +4 words ROW=(3F800000 3F2F783B 3F793F47 3E812140) 20000000 (STMASK) 55555555 (all fields=row) 7C50003C (UNPACK V4-32 num=0x50 addr 0x3C) 7C500121 (UNPACK num=0x50 addr 0x121) 01000101 (STCYCL 1,1).
+ Both UNPACKs carry NO data: with CL=0 the VIF consumes 0 source qw and writes ROW into 80 qw each.
+
+## 30 VIF1 DMA kick + VU1 packet tables (character-select state, pcsx2 cycles ~243.5M)
+ sceDmaSend = guest 0x412FE0 (a0=channel 0x10009000 for VIF1, a1=tag address): sets TADR (+0x30) = phys(a1), QWC=0, CHCR |= 0x105. Caller ra 0x3B3AE4 (wrapper 0x3B3A90, called from 0x103940). cond bp `a0 == 0x10009000`.
+ First chain seen: head 0xBBAB00 = tags {0x10000002 (cnt qwc2) FLUSH DIRECT2} + GS reg packets (A+D) - small GS-register packets chained (title/UI).
+ VU1 "MSCAL 1" (word 0x14000001, program start byte 0x08) packet table in static RAM: 0x720DFC + n*0x30 (>=16 entries). Each entry holds the VU1 data header qw {0x190, 0x3FB, 0x3FA, 0} (same shape as the recomp title capped-run header) + UNPACK 0x64018002 words. => UI/2D batches go through program 0x08; 3D models use other start PCs (not yet found).
+ pcsx2 VU1 memory (0x11008000) is not readable through the MCP, so VU1 input/output cannot be compared directly; compare EE-side packet data (RDRAM) instead.
+
+## s31 per-model matrix block producer (PCSX2, paused at title)
+- VIF1 packet (static, RDRAM 0xA15580 / 0xA90900): REF tag `0a000030 <addr>` qwc=10 then VIFcode 0x6C0A8006 (UNPACK V4-32 num=10 dest=6+TOPS) => the 10-qw block is at RDRAM <addr> (e.g. 0x00B72DC0, 0x00B67CD0).
+- Write watchpoint on 0xB72DC0 (and 0xB67CD0) hit at PC 0x003BD6C0 = `sqc2 vf08,(a0)` inside matmul function 0x3BD680..0x3BD6D4 (guest file sub_003BD690_0x3bd690.cpp case 0x3bd690): lqc2 vf4-7 <- (a1) ; lqc2 vf8-11 <- (a2) ; `vcallms 0` (VU0 microprogram at 0) ; sqc2 vf8-11 -> (a0). ra=0x3BB51C. Seen: a0=0xB72DC0 a1=0xB72E60 a2=0xB72E00.
+- Sane example inputs: a1 (4x4) = diag(430.02, 401.33, -524185) rows {43D702FB,0,0,0},{0,43C8AAD2,0,0},{0,0,C8FFC3D3,0},{44FFF17E,44FFF180,48FFE3D1,3F800000} (viewport/projection). a2 = rotation/scale {3F83BB57,0,0,0},{B7867255,BFA2D70B,3E169268,3E16911F},{38E21B6B,BE41887F,BF7D39D6,BF7D37AF},{400BE8E6,4243DF0C,4352D70D,43530874}.
+- Output (vf8-11 before store, all finite): {43DD47BE,0,0,0},{439687B6,C3518172,420C4800,3E16911F},{C4FD27D9,C5035249,C36BF000,BF7D37AF},{48D605D6,48DF3E89,48181000,43559CD2}. Recomp bad instances show lanes x,y = +-FLT_MAX in this block.
+- Regs at hit: vf12={0,-1,0,0} vf13={0,0,0,1} vf14={3FD8979F,C15F8AF2,3ED8BCD6,3ED8BAFB} vf15={C3C28AB7,C28F6E72,C325BAFD,C3258663}. VU0 micro memory not readable via MCP.
+
+## s32 camera/view matrix object (PCSX2, paused at title)
+- matmul 0x3BD690 call from 0x3BB334 (ra=0x3BB340): a0=fp+0x1A0, a1=s0, a2=s7=0x00785B30 = persistent camera/view matrix (4x4, 64 B): rows {3F800000,0,0,0},{0,BF7D37AF,3E16911F,0},{0,BE16911F,BF7D37AF,0},{4008F1AF,4219B010,43559CD2,3F800000} (rotation about X + translation). Same data duplicated at 0x785B70 (copy) .
+- Write watchpoint on 0x785B30 hit at PC 0x2542B4 = `sq t3,0x40(t7)` in function 0x254280 (t7=0x785AF0 object): copies qw 0x80..0xB0 of the object over qw 0x40..0x70 (then calls 0x3BAF98 matrix builder -> a2 = t7+0x40). Backtrace: 0x254280 <- 0x15B750 <- 0x1037E8 <- 0x100114.
+
+## s33 camera matrix producer chain (PCSX2)
+- Write watchpoint 0x785B70 (camera matrix copy) hit at PC 0x4060C0 (`sq t0,(a0)`) inside 0x406068 = libvu0 sceVu0InversMatrix (rigid inverse: transpose 3x3, trans = -(R^T t)), called from lookAt-like builder 0x406558 (ra 0x4065E8) <- 0x359EFC <- 0x2540E4 (camera update) <- 0x233E4C <- 0x25B3B0. a0=0x785B70.
+- Builder 0x406558 calls: 0x406248 sceVu0UnitMatrix, 0x405F98 (vec op, recompiled), 0x405FE0 sceVu0Normalize (HLE in recomp), 0x4061A0 sceVu0TransMatrix, 0x406068 InversMatrix (HLE), 0x406020 TransposeMatrix (HLE), 0x405F50 MulMatrix (HLE). Many camera math fns are HLE stubs (Kernel/Stubs/VU.cpp).
+- REAL sceVu0Normalize (0x405FE0, VU0 macro): len=sqrt(x*x+y*y+z*z) (XYZ ONLY); Q=1/len (div by 0 -> +-FLT_MAX); out.xyz = src.xyz*Q; out.w = 0. Recomp HLE (VU.cpp:728) includes w in len and writes out.w = src.w*invLen => DIVERGES (w nonzero, len wrong when w != 0).
+- Camera constants (RDRAM 0x7213E8..): 42800000(64.0) 457BFF00(4031.9) 3D800000(.0625) 3F000000(.5) 3E800000(.25) 38D1B717(1e-4) 40000000 3F800000 BF800000.
+
+## s34 up-vector at camera update (0x2540E4)
+- Caller 0x169144..0x169168: up built via VU0 macro (vsub.xzw/vaddw.y/vsub/qmfc2). PCSX2 at 0x2540E4 entry: a3 words {0,BF800000,0,0}; vf0={0,0,0,3F800000}; s7 later = same; f22(roll)=0, f23=1.0.
+- PCSX2 at 0x254150: v0=a0=0x785B70, camera matrix rows sane.
+## s35 EE FPU (ex fpu run, ours): 1/0=7FFFFFFF (PS2: 7F7FFFFF), -1/0=FFFFFFFF (FF7FFFFF), 1e30*1e30=7FFFFFFF (7F7FFFFF), cvt.w.s(1e20)=80000000 (7FFFFFFF), cvt.w.s(NaN)=80000000 (7FFFFFFF). sqrt(-1)=1.0 OK.
+
+## s36 node-draw loop (title, PCSX2)
+- Loop sub_002805B8 0x280814..0x280958 over node vector (s4=34/batch); gate 0x268714 hit every ~6-8k cycles. Cull call 0x26C9B8 returns v0=1 in 4/4 sampled hits (pc 0x28087C). Draw fn 0x26831C ra=0x28092C a0=node a1=renderer 0xCEAD50.
+- Ours (log ga): all 34 nodes pass mask/flag (and=FFFF.., b30=1,b35=1) but gate reached only ~1.5x/frame.
+
+## EE busy share at the title menu (2026-10-29, pause-sampling, 25 samples)
+- 3/25 at 0x435FB0: vsync wait = busy-poll of INTC_STAT (0x1000F000) bit 2 in func 0x435F70 (called from 0x404198).
+- 8/25 in 0x3ABA20-0x3AEF78 (float compare loop at 0x3AC0F0-0x3AC150: lhu index, lwc1, c.le.s; a sort/sift), rest spread
+  (0x239D20, 0x23CC40, 0x2422D8, 0x244F14, 0x3B8098, 0x3C1F00, 0x441F68, 0x4FCC20).
+- => real EE is ~85-90% busy per frame at the menu (coarse; pause lands on block boundaries). Backtrace tool returned stale frames.
