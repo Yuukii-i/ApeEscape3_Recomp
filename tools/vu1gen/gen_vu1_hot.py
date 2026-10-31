@@ -279,6 +279,8 @@ def emit_block(name, rec, pairs):
     A('    const uint64_t S = vu.m_cycle;')
     A('    auto qs = [&](uint32_t a, const uint32_t *w, uint8_t l) { vuhot::storeFast(vu, c, a, w, l); };')
     A('    (void)qs; (void)op;')
+    if any(((pairs[pc0 + 8 * k]['lower'] >> 25) == 0x40 and (pairs[pc0 + 8 * k]['lower'] & 0x7FF) == 0x6FC) for k in range(n)):
+        A('    if (vu.m_xgkick.active) return -1; // PERF-XG: timing recorded without a running transfer')
     A('    c.instrs += %du;' % n)
     # MAC ring pushes: no FM* reader inside the block => only the newest write that has landed at block exit (and later ones) can still be seen
     readers = any((not pairs[pc0 + 8 * k]['i']) and ((pairs[pc0 + 8 * k]['lower'] >> 25) & 0x7F) in (0x18, 0x1A, 0x1B) for k in range(n))
@@ -296,7 +298,7 @@ def emit_block(name, rec, pairs):
         if d > 0 and cb[i]:
             A('    op.advanceTo(vu, S + %du);' % issue[i])
         elif d > 0:
-            A('    vu.m_cycle = S + %du; st.cycles = vu.m_cycle;' % issue[i])
+            A('    vuhot::setCycleXg(vu, op, S + %du); // PERF-XG' % issue[i])
         elif cb[i]:
             A('    op.commit(vu);')
         A('    { // pair %d @ %04X' % (i, pc))
@@ -306,7 +308,7 @@ def emit_block(name, rec, pairs):
         if ca[i] or p['L']['pipe'] == 7:
             A('    op.advance1(vu);')
         else:
-            A('    ++vu.m_cycle; st.cycles = vu.m_cycle;')
+            A('    ++vu.m_cycle; st.cycles = vu.m_cycle; if (vu.m_xgkick.active) op.xgProgress(vu); // PERF-XG')
         if p['e']:
             A('    st.ebit = true; // PERF-IP: E bit; the program ends after the next (delay-slot) pair')
         prev_end = issue[i] + 1

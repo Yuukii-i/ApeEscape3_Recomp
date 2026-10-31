@@ -13,8 +13,10 @@ cmake -B build -DCMAKE_BUILD_TYPE=Release -DPS2X_ENABLE_AGRESSIVE_LOGS=OFF
 if errorlevel 1 goto :error_config
 
 :build
-echo [build] Building incrementally...
-cmake --build build --config Release
+echo [build] Building incrementally (BELOW NORMAL priority, half the cores; set PS2X_BUILD_JOBS to change)...
+if not defined PS2X_BUILD_JOBS set /a PS2X_BUILD_JOBS=%NUMBER_OF_PROCESSORS%/2
+if %PS2X_BUILD_JOBS% lss 2 set PS2X_BUILD_JOBS=2
+start "" /b /belownormal /wait cmake --build build --config Release --parallel %PS2X_BUILD_JOBS%
 if errorlevel 1 goto :error_build
 
 echo [build] Done. Executable: build\PS2Recomp\ps2xRuntime\ps2EntryRunner.exe
