@@ -12,7 +12,11 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
 GEN = ROOT / "PS2Recomp/ps2xRuntime/src/lib/vu/generated"
 TAG = "PERF-ADV"
-blk_path = sys.argv[1] if len(sys.argv) > 1 else str(ROOT / "logs/vublk2_u1_86503d3905e35276.txt")
+UNIT = 0 if "--vu0" in sys.argv else 1  # --vu0: patch generated/vu0_hot_blocks.cpp (EE-thread VU0 microprograms) instead of the VU1 file
+ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
+PFX = "vu0H_" if UNIT == 0 else "vuH_"
+IMAGE = "d985722524327b89" if UNIT == 0 else "86503d3905e35276"
+blk_path = ARGS[0] if ARGS else str(ROOT / ("logs/vublk2_u%d_%s.txt" % (UNIT, IMAGE)))
 
 entry = {}
 cur = None
@@ -25,7 +29,7 @@ for ln in open(blk_path, encoding="utf-8", errors="replace"):
         entry[cur] = ln[len("  entry:"):].split()
         cur = None
 
-HDR = re.compile(r"^static int (vuH_\d+)\(.*// pc=([0-9A-F]+) entry=([0-9a-f]+) exit=([0-9a-f]+) n=(\d+)")
+HDR = re.compile(r"^static int (vu0?H_\d+)\(.*// pc=([0-9A-F]+) entry=([0-9a-f]+) exit=([0-9a-f]+) n=(\d+)")
 QS_OLD = "    auto qs = [&](uint32_t a, const uint32_t *w, uint8_t l) { vuhot::storeFast(vu, c, a, w, l); };"
 QS_NEW = ("    // PERF-ADV: a store lands at the end of its own pair, so write it at issue\n"
           "    auto qs = [&](uint32_t a, const uint32_t *w, uint8_t l)\n"
@@ -43,7 +47,7 @@ QLAND = ("    ++vu.m_cycle;\n"
          "        vu.m_fdiv = {};\n"
          "    }")
 GUARD = "    if (vu.m_xgkick.active) return -1; // %s: this block no longer steps a running XGKICK transfer" % TAG
-BAD = ("return -1", "st.ebit", "op.advanceTo", "op.execUpper", "op.qV", "op.qA", "op.commit", "op.qStore", "storeFast(vu, c, a, w, l); };\n    (void)qs; (void)op;\n    do {")
+BAD = ("return -1", "op.advanceTo", "op.execUpper", "op.qV", "op.qA", "op.commit", "op.qStore", "storeFast(vu, c, a, w, l); };\n    (void)qs; (void)op;\n    do {")
 
 
 def lower_ok(w):
@@ -98,7 +102,7 @@ def convert(name, pc0, sig, lines):
     return out, None
 
 
-p = GEN / "vu1_hot_blocks.cpp"
+p = GEN / ("vu%d_hot_blocks.cpp" % UNIT)
 t = p.read_text(encoding="utf-8", errors="surrogateescape")
 if TAG in t:
     print("already patched")
@@ -130,7 +134,7 @@ while i < len(lines):
     res.append(lines[i])
     i += 1
 out = "\n".join(res)
-out = out.replace("static int vuH_0(", "// " + TAG + ": advance1 removed from qualifying blocks (tools/vu1gen/patch_adv_hot.py)\nstatic int vuH_0(", 1)
+out = out.replace("static int %s0(" % PFX, "// " + TAG + ": advance1 removed from qualifying blocks (tools/vu1gen/patch_adv_hot.py)\nstatic int %s0(" % PFX, 1)
 p.write_text(out, encoding="utf-8", errors="surrogateescape")
 print("converted blocks:", nconv, "fused loops guarded:", nloop, "skipped:", len(skipped))
 why = {}

@@ -6,10 +6,15 @@ Exact re-statements of VU1Interpreter::execLower / execUpper for B, BAL, JR, JAL
 Run after patch_lean_hot.py / patch_loop_hot.py. Usage: python tools/vu1gen/patch_inline_hot.py"""
 import pathlib
 import re
+import sys
 
 GEN = pathlib.Path(__file__).resolve().parent.parent.parent / "PS2Recomp/ps2xRuntime/src/lib/vu/generated"
 TAG = "PERF-INL"
-PCMASK = 0x3FFF
+UNIT = 0 if "--vu0" in sys.argv else 1  # --vu0: patch generated/vu0_hot_blocks.cpp (EE-thread VU0 microprograms) instead of the VU1 file
+ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
+PFX = "vu0H_" if UNIT == 0 else "vuH_"
+IMAGE = "d985722524327b89" if UNIT == 0 else "86503d3905e35276"
+PCMASK = 0x0FFF if UNIT == 0 else 0x3FFF
 
 LOWER = re.compile(r"^(\s*)op\.execLower\(vu, 0x([0-9a-f]+)u, c\.vuData, c\.dataSize, \*c\.gs, c\.memory, 0x([0-9a-f]+)u\);\s*$")
 UPPER = re.compile(r"^(\s*)op\.execUpper\(vu, 0x([0-9a-f]+)u\);\s*$")
@@ -148,7 +153,7 @@ def process_pair(lines):
     return out, cnt
 
 
-p = GEN / "vu1_hot_blocks.cpp"
+p = GEN / ("vu%d_hot_blocks.cpp" % UNIT)
 t = p.read_text(encoding="utf-8", errors="surrogateescape")
 if TAG in t:
     print("already patched")
@@ -177,6 +182,6 @@ while i < len(lines):
     res.append(lines[i])
     i += 1
 out = "\n".join(res)
-out = out.replace("static int vuH_0(", "// " + TAG + ": inline lower/upper ops, dead stores dropped (tools/vu1gen/patch_inline_hot.py)\nstatic int vuH_0(", 1)
+out = out.replace("static int %s0(" % PFX, "// " + TAG + ": inline lower/upper ops, dead stores dropped (tools/vu1gen/patch_inline_hot.py)\nstatic int %s0(" % PFX, 1)
 p.write_text(out, encoding="utf-8", errors="surrogateescape")
 print("pairs", tot["pairs"], "lower ops inlined", tot["lower"], "clips inlined", tot["upper"], "currentUpper stores dropped", tot["cui"], "vf0 resets dropped", tot["reset"])

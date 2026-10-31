@@ -3,9 +3,14 @@ FCAND / FCOR / FMAND / FCGET (with the flgSyncReader step of the op.execLower wr
 VU1Interpreter::execLower. XGKICK and the E-unit ops stay generic (they start pipelines). Usage: python tools/vu1gen/patch_inline2_hot.py"""
 import pathlib
 import re
+import sys
 
 GEN = pathlib.Path(__file__).resolve().parent.parent.parent / "PS2Recomp/ps2xRuntime/src/lib/vu/generated"
 TAG = "PERF-INL2"
+UNIT = 0 if "--vu0" in sys.argv else 1  # --vu0: patch generated/vu0_hot_blocks.cpp (EE-thread VU0 microprograms) instead of the VU1 file
+ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
+PFX = "vu0H_" if UNIT == 0 else "vuH_"
+IMAGE = "d985722524327b89" if UNIT == 0 else "86503d3905e35276"
 LOWER = re.compile(r"^(\s*)op\.execLower\(vu, 0x([0-9a-f]+)u, c\.vuData, c\.dataSize, \*c\.gs, c\.memory, 0x([0-9a-f]+)u\);\s*$")
 
 
@@ -13,8 +18,8 @@ def inline_lower(w):
     op7 = (w >> 25) & 0x7F
     vis, vit = (w >> 11) & 0x1F, (w >> 16) & 0x1F
     imm24 = w & 0xFFFFFF
-    sync_clip = "st.clip = vuflags::flgVisible(vuflags::s_flgClip[1], vu.m_cycle);"
-    sync_mac = "st.mac = vuflags::flgVisible(vuflags::s_flgMac[1], vu.m_cycle);"
+    sync_clip = "st.clip = vuflags::flgVisible(vuflags::s_flgClip[%d], vu.m_cycle);" % UNIT
+    sync_mac = "st.mac = vuflags::flgVisible(vuflags::s_flgMac[%d], vu.m_cycle);" % UNIT
     if op7 == 0x12:
         return [sync_clip, "st.vi[1] = ((st.clip & 0x%06Xu) != 0u) ? 1 : 0;" % imm24]
     if op7 == 0x13:
@@ -49,7 +54,7 @@ def inline_lower(w):
     return None
 
 
-p = GEN / "vu1_hot_blocks.cpp"
+p = GEN / ("vu%d_hot_blocks.cpp" % UNIT)
 t = p.read_text(encoding="utf-8", errors="surrogateescape")
 if TAG in t:
     print("already patched")
