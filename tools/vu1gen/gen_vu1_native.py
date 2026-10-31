@@ -310,6 +310,8 @@ uint64_t s_hotBlocks = 0, s_hotPairs = 0, s_slowPairs = 0;
 // PERF-XG: slow-pair causes {0 no hot block starts at pc, 1 xgkick active (PS2X_VU1_XG_HOT off), 2 branch/ebit/halt/budget state,
 // 3 hash miss, 4 hot block declined, 5 slow pair executed while a transfer was active} and an optional TSC split (PS2X_VU1_TSC=1)
 uint64_t s_cause[6] = {};
+struct HotSlot { uint64_t h; VuHotFn fn; bool ok; };
+HotSlot s_hotSlot[sizeof(kVu1HotStart) / sizeof(kVu1HotStart[0])] = {}; // PERF-HC
 uint64_t s_tsc[4] = {}; // hot ticks, slow ticks, hot blocks timed, slow pairs timed
 const bool s_xgHot = []() { const char *e = std::getenv("PS2X_VU1_XG_HOT"); return e && e[0] == '1'; }();
 const bool s_tscOn = []() { const char *e = std::getenv("PS2X_VU1_TSC"); return e && e[0] == '1'; }();
@@ -334,7 +336,18 @@ int vu1NativeRun(VU1Interpreter &vu, VuNativeCtx &c)
                 c.nextHash = c.ops->blkHash(vu);
                 c.hashValid = true;
             }
-            const VuHotFn hf = vu1HotLookup(pc, c.nextHash);
+            // PERF-HC: direct-mapped (pc -> {entry hash, block}) cache in front of the switch lookup; misses (no block) are cached too
+            HotSlot &hs = s_hotSlot[pc >> 3];
+            VuHotFn hf;
+            if (hs.ok && hs.h == c.nextHash)
+                hf = hs.fn;
+            else
+            {
+                hf = vu1HotLookup(pc, c.nextHash);
+                hs.h = c.nextHash;
+                hs.fn = hf;
+                hs.ok = true;
+            }
             if (hf)
             {
                 const uint64_t i0 = c.instrs;
