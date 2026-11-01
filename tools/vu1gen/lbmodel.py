@@ -325,6 +325,9 @@ class Model:
     def stv(self, pc, addr, c, v, kind):
         pass
 
+    def ildw(self, pc, reg, v):
+        pass
+
     def pair(self, pc, pidx, vf, acc, q, I, vi, fdiv, t, mem):
         pass
 
@@ -497,6 +500,7 @@ class Model:
                     a = ((vi[fs] + imm) * 16) & (dsz - 1)
                     comp = 0 if dest & 8 else 1 if dest & 4 else 2 if dest & 2 else 3
                     v = struct.unpack_from("<I", mem, a + 4 * comp)[0] & 0xFFFF
+                    self.ildw(pc, ft, v)
                     if ft:
                         ialu_now[ft] = ("ld", v - 0x10000 if v & 0x8000 else v)
                 elif op == 0x05:  # ISW
