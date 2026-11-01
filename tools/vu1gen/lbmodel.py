@@ -2,6 +2,7 @@
 Runs the real instructions from the corpus code image with the interpreter's rules (RTZ fused FMAC, operand/result normalisation, DIV latency 7,
 branch delay slot, per-block issue cycles from vublk2) and compares memory diff, vf, vi, acc, q, pc and cycle with the recorded exit.
 Usage: python tools/vu1gen/lbmodel.py [logs/vu1region.bin] [max_records]"""
+import math
 import re
 import struct
 import sys
@@ -166,6 +167,36 @@ def divq(num, den):
     return enc(fn / fd, sgn(num) ^ sgn(den))
 
 
+def sqrt_di(val):
+    val = norm(val)
+    fval = struct.unpack("<f", struct.pack("<I", val))[0]
+    return 0x10 if fval < 0.0 else 0
+
+
+def sqrtq(val):
+    val = norm(val)
+    fval = struct.unpack("<f", struct.pack("<I", val))[0]
+    res = math.sqrt(abs(fval))
+    bits = struct.unpack("<I", struct.pack("<f", res))[0]
+    return norm(bits)
+
+
+def rsqrtq(num_b, rad_b):
+    num_b = norm(num_b)
+    rad_b = norm(rad_b)
+    num = struct.unpack("<f", struct.pack("<I", num_b))[0]
+    rad = struct.unpack("<f", struct.pack("<I", rad_b))[0]
+    den = math.sqrt(abs(rad))
+    status_di = 0x10 if rad < 0.0 else 0
+    if den != 0.0:
+        res = num / den
+        res_b = struct.unpack("<I", struct.pack("<f", res))[0]
+    else:
+        status_di = 0x10 if num == 0.0 else 0x20
+        res_b = 0xFF7FFFFF if (num_b >> 31) else 0x7F7FFFFF
+    return norm(res_b), status_di
+
+
 # ---------------------------------------------------------------- tables
 BCN = "xyzw"
 KIND_OF = {0: 0, 1: 1, 2: 2, 3: 3}  # ADD SUB MADD MSUB by group index (op>>2), MAX/MINI handled separately
@@ -195,7 +226,7 @@ def upper_decode(u):
         if 0x18 <= e <= 0x1B:
             return ("fmac", 4, "bc", b, True, dest, fs, ft, 0)
         tab = {0x1C: (4, "q"), 0x1E: (4, "i"), 0x20: (0, "q"), 0x21: (2, "q"), 0x22: (0, "i"), 0x23: (2, "i"), 0x24: (1, "q"), 0x25: (3, "q"),
-               0x26: (1, "i"), 0x27: (3, "i"), 0x28: (0, "v"), 0x29: (2, "v"), 0x2A: (4, "v"), 0x2C: (1, "v"), 0x2D: (3, "v")}
+               0x26: (1, "i"), 0x27: (3, "i"), 0x28: (0, "v"), 0x29: (2, "v"), 0x2A: (4, "v"), 0x2C: (1, "v"), 0x2D: (3, "v"), 0x2E: (4, "cross")}
         if e in tab:
             return ("fmac", tab[e][0], tab[e][1], 0, True, dest, fs, ft, 0)
         raise ValueError("upper special %02X" % e)
@@ -209,7 +240,7 @@ def upper_decode(u):
     tab = {0x1C: ("fmac", 4, "q"), 0x1D: ("mm", True, "i"), 0x1E: ("fmac", 4, "i"), 0x1F: ("mm", False, "i"), 0x20: ("fmac", 0, "q"), 0x21: ("fmac", 2, "q"),
            0x22: ("fmac", 0, "i"), 0x23: ("fmac", 2, "i"), 0x24: ("fmac", 1, "q"), 0x25: ("fmac", 3, "q"), 0x26: ("fmac", 1, "i"), 0x27: ("fmac", 3, "i"),
            0x28: ("fmac", 0, "v"), 0x29: ("fmac", 2, "v"), 0x2A: ("fmac", 4, "v"), 0x2B: ("mm", True, "v"), 0x2C: ("fmac", 1, "v"), 0x2D: ("fmac", 3, "v"),
-           0x2F: ("mm", False, "v")}
+           0x2E: ("fmac", 3, "cross"), 0x2F: ("mm", False, "v")}
     if op not in tab:
         raise ValueError("upper op %02X" % op)
     t = tab[op]
@@ -377,9 +408,14 @@ class Model:
         if rings is not None:  # probe v3: the real ring contents and working clip at entry (cycles are absolute)
             self.clipring = [(-100, rings["clip"]["base"])] + list(rings["clip"]["ent"])
             self.wclip = rings["wclip"]
+            if "mac" in rings:
+                self.macring = [(-100, rings["mac"]["base"])] + list(rings["mac"]["ent"])
+            else:
+                self.macring = [(-100, st["mac"])]
         else:
             self.clipring = [(-100, st["clip"])]
             self.wclip = st["clip"]
+            self.macring = [(-100, st["mac"])]
         self.top = st["top"]
         self.start(e)
         while True:
@@ -416,18 +452,34 @@ class Model:
                     for c in range(4):
                         if not dest & (8 >> c):
                             continue
-                        a = vf[fs][c]
-                        if src == "bc":
-                            b = vf[ft][bc]
-                        elif src == "q":
-                            b = q
-                        elif src == "i":
-                            b = I
+                        if src == "cross":
+                            if c == 3:
+                                a = vf[fs][3]
+                                b = vf[ft][3]
+                                r = 0
+                                ex, zn = Fraction(0), False
+                                if kind in (2, 3):
+                                    _, _, pex, pzn = fmac_ex(kind, int(a), int(b), int(acc[3]))
+                                else:
+                                    pex, pzn = Fraction(0), False
+                            else:
+                                a = vf[fs][(1, 2, 0)[c]]
+                                b = vf[ft][(2, 0, 1)[c]]
+                                r = fmac(kind, a, b, acc[c])
+                                ex, zn, pex, pzn = fmac_ex(kind, int(a), int(b), int(acc[c]))
                         else:
-                            b = vf[ft][c]
-                        r = fmac(kind, a, b, acc[c])
+                            a = vf[fs][c]
+                            if src == "bc":
+                                b = vf[ft][bc]
+                            elif src == "q":
+                                b = q
+                            elif src == "i":
+                                b = I
+                            else:
+                                b = vf[ft][c]
+                            r = fmac(kind, a, b, acc[c])
+                            ex, zn, pex, pzn = fmac_ex(kind, int(a), int(b), int(acc[c]))
                         (uacc if toacc else uw).append((0 if toacc else fd, c, r))
-                        ex, zn, pex, pzn = fmac_ex(kind, int(a), int(b), int(acc[c]))
                         lf = lane_flags(ex, zn)
                         cur |= lf
                         if kind in (2, 3):
@@ -438,6 +490,7 @@ class Model:
                         cur &= 0xF
                         self.status = (self.status & 0xFF0) | cur | ((cur | xf) << 6)
                         self.maclog.append((t, pc, mac))
+                        self.macring.append((t, mac))
                 elif ud[0] == "mm":
                     _, is_max, src, bc, dest, fs, ft, fd = ud
                     for c in range(4):
@@ -534,6 +587,39 @@ class Model:
                     if ft:
                         ialu_now[ft] = ("alu", (pc + 16) // 8)
                     new_branch = (pc + 8 + imm * 8) & 0x3FFF
+                elif op == 0x11:  # FCSET
+                    self.wclip = lo & 0xFFFFFF
+                    if self.clipring and self.clipring[-1][0] == t:
+                        self.clipring[-1] = (t, self.wclip)
+                    else:
+                        self.clipring.append((t, self.wclip))
+                elif op in (0x14, 0x16, 0x17):  # FSEQ FSAND FSOR
+                    imm12 = (((lo >> 21) & 1) << 11) | (lo & 0x7FF)
+                    st12 = self.status & 0xFFF
+                    if op == 0x14:
+                        res = 1 if st12 == imm12 else 0
+                    elif op == 0x16:
+                        res = st12 & imm12
+                    else:
+                        res = st12 | imm12
+                    if ft:
+                        ialu_now[ft] = ("ld", res)
+                elif op == 0x15:  # FSSET
+                    imm12 = (((lo >> 21) & 1) << 11) | (lo & 0x7FF)
+                    self.status = (self.status & 0x03F) | (imm12 & 0xFC0)
+                elif op in (0x18, 0x1A, 0x1B):  # FMEQ FMAND FMOR
+                    vis = self.macring[0][1]
+                    for (tc, vc) in self.macring:
+                        if tc + 4 <= t:
+                            vis = vc
+                    if op == 0x18:
+                        res = 1 if ((vis & 0xFFFF) == (vi[fs] & 0xFFFF)) else 0
+                    elif op == 0x1A:
+                        res = (vis & 0xFFFF) & (vi[fs] & 0xFFFF)
+                    else:
+                        res = (vis & 0xFFFF) | (vi[fs] & 0xFFFF)
+                    if ft:
+                        ialu_now[ft] = ("ld", res)
                 elif op == 0x1C:  # FCGET
                     vis = self.clipring[0][1]
                     for (tc, vc) in self.clipring:
@@ -573,12 +659,54 @@ class Model:
                                     lw.append((ft, c, self.ld(pc, c, a + 4 * c, struct.unpack_from("<I", mem, a + 4 * c)[0])))
                             if fs:
                                 ialu_now[fs] = ("ld", _s16(vi[fs] + 1))
+                        elif ee == 0x36:  # LQD
+                            new_vi = _s16(vi[fs] - 1) if fs else vi[fs]
+                            a = ((new_vi & 0xFFFF) * 16) & (dsz - 1)
+                            for c in range(4):
+                                if dest & (8 >> c):
+                                    lw.append((ft, c, self.ld(pc, c, a + 4 * c, struct.unpack_from("<I", mem, a + 4 * c)[0])))
+                            if fs:
+                                ialu_now[fs] = ("ld", new_vi)
+                        elif ee == 0x37:  # SQD
+                            new_vi = _s16(vi[ft] - 1) if ft else vi[ft]
+                            a = ((new_vi & 0xFFFF) * 16) & (dsz - 1)
+                            for c in range(4):
+                                if dest & (8 >> c):
+                                    stores.append((a, c, vf[fs][c], pc, "f"))
+                            if ft:
+                                ialu_now[ft] = ("ld", new_vi)
                         elif ee == 0x38:  # DIV
                             fsf, ftf = dest & 3, (dest >> 2) & 3
                             val = divq(vf[fs][fsf], vf[ft][ftf])
                             if fdiv is not None:
                                 self.w("div_overlap")
                             fdiv = (t + 7, val, div_di(vf[fs][fsf], vf[ft][ftf]))
+                        elif ee == 0x39:  # SQRT
+                            ftf = (dest >> 2) & 3
+                            if fdiv is not None:
+                                self.w("div_overlap")
+                            val = sqrtq(vf[ft][ftf])
+                            di = sqrt_di(vf[ft][ftf])
+                            fdiv = (t + 7, val, di)
+                        elif ee == 0x3A:  # RSQRT
+                            fsf, ftf = dest & 3, (dest >> 2) & 3
+                            if fdiv is not None:
+                                self.w("div_overlap")
+                            val, di = rsqrtq(vf[fs][fsf], vf[ft][ftf])
+                            fdiv = (t + 13, val, di)
+                        elif ee == 0x3E:  # ILWR
+                            a = ((vi[fs] & 0xFFFF) * 16) & (dsz - 1)
+                            comp = 0 if dest & 8 else 1 if dest & 4 else 2 if dest & 2 else 3
+                            v = struct.unpack_from("<I", mem, a + 4 * comp)[0] & 0xFFFF
+                            self.ildw(pc, ft, v)
+                            if ft:
+                                ialu_now[ft] = ("ld", v - 0x10000 if v & 0x8000 else v)
+                        elif ee == 0x3F:  # ISWR
+                            a = ((vi[fs] & 0xFFFF) * 16) & (dsz - 1)
+                            val = vi[ft] & 0xFFFF
+                            for c in range(4):
+                                if dest & (8 >> c):
+                                    stores.append((a, c, val, pc, "i"))
                         elif ee == 0x35:  # SQI
                             a = ((vi[ft] & 0xFFFF) * 16) & (dsz - 1)
                             for c in range(4):
