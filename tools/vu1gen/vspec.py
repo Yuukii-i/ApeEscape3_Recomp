@@ -38,6 +38,7 @@ class Spec:
     def __init__(self, e):
         st = e["st"]
         self.mem = bytearray(e["mem"])
+        self.mem0 = bytes(e["mem"])
         self.vi = list(st["vi"])
         self.vf = st["vf"]
         self.nq = len(self.mem) // 16
@@ -47,6 +48,9 @@ class Spec:
 
     def quad(self, qw):
         return [self.word(qw, c) for c in range(4)]
+
+    def mem_q(self, qw):
+        return struct.unpack_from("<4I", self.mem0, (qw & (self.nq - 1)) * 16)
 
     def put(self, qw, lane, v):
         struct.pack_into("<I", self.mem, ((qw & (self.nq - 1)) * 16) + 4 * lane, v & 0xFFFFFFFF)
@@ -255,6 +259,77 @@ def status_exit(sp, entry_status, vf31, vf12):
         sticky |= di << 6
     return (sticky & 0xFC0) | last_cur | dis[-1]
 
+
+def final_regs(sp, e):
+    """vf / ACC / Q / I at exit, from the loop timeline (vf29 -> vf28 chain, FTOI in place on vf8 / vf18, MOVE vf12 reads the pre-FTOI vf18)"""
+    k = sp.keep
+    Ps, As, Ss, Cs = k["Ps"], k["As"], k["Ss"], k["Cs"]
+    c1, c2, c5, c14, vf16, N = k["c1"], k["c2"], k["c5"], k["c14"], k["vf16"], k["N"]
+    ev = e["st"]["vf"]
+    vf = [list(ev[4 * r:4 * r + 4]) for r in range(32)]
+
+    def T(j):
+        P = Ps[j]
+        accs = [fmac(MUL, c1[c], P[c], 0) for c in range(4)]
+        return [fmac(MADD, c2[c], P[3], accs[c]) for c in range(4)]
+
+    def col(j):
+        return [fmac(MUL, Cs[j][c], vf16[c], 0) for c in range(4)]
+
+    def lit(j):
+        cl = col(j)
+        return [fmac(MADD, As[j][c], cl[c], fmac(MUL, c14[c], cl[c], 0)) for c in range(4)]
+
+    def clamp(x):
+        return maxmini(True, maxmini(False, x, F255), 0)
+
+    def V7(j):
+        return [Ss[j][0], Ss[j][1], Ss[j][2], F2048]
+
+    pth = sp.paths[N - 1][0]
+    xyzw, st3, rgba = None, None, None
+    # outputs of vertex N-1 (the stores of the last iteration)
+    P, A, S, C = Ps[N - 1], As[N - 1], Ss[N - 1], Cs[N - 1]
+    Tn1 = T(N - 1)
+    Q1 = divq(ONE, Tn1[3])
+    xyz = [ftoi(fmac(MUL, Tn1[c], Q1, 0), 16) for c in range(3)]
+    f3 = fmac(MADD, c5[3], Q1, fmac(MUL, ONE, c5[2], 0))
+    tw = maxmini(False, maxmini(True, f3, 0), F255)
+    adc = 1 if pth in ("A", "C") else 0
+    w = ftoi(fmac(ADD, tw, fmac(MUL, ONE, F2048, 0) if adc else fmac(SUB, ONE, ONE, 0), 0), 16)
+    litN1 = lit(N - 1)
+    TN = T(N)
+    QN = divq(ONE, TN[3])
+    vf[1] = list(sp.mem_q(1002))
+    vf[2] = list(sp.mem_q(1003))
+    vf[5][2:4] = [sp.mem_q(1016)[2], sp.mem_q(1016)[3]]
+    vf[14] = list(sp.mem_q(1014))
+    vf[27][2:4] = [sp.mem_q(1012)[2], sp.mem_q(1012)[3]]
+    vf[6] = TN
+    vf[7] = V7(N)
+    vf[8] = xyz + [w]
+    vf[9] = list(As[N])
+    vf[10] = list(Ps[N])
+    vf[12] = [clamp(x) for x in litN1]
+    v12n = list(ev[48:52]) if N == 1 else [clamp(x) for x in lit(N - 2)]
+    vf[11] = [fmac(ADD, v12n[c], 0, 0) for c in range(4)]
+    vf[13] = lit(N)
+    vf[15][3] = I2048w(pth)
+    vf[17][0:3] = [fmac(MUL, V7(N - 1)[c], Q1, 0) for c in range(3)]
+    vf[18] = [ftoi(clamp(x), 1) for x in litN1]
+    vf[28] = list(ev[116:120]) if N == 1 else list(Ps[N - 2])
+    vf[29] = list(Ps[N - 1])
+    v31n = list(ev[124:128]) if N == 1 else V7(N - 2)
+    vf[30] = [fmac(ADD, v31n[c], 0, 0) for c in range(4)]
+    vf[31] = V7(N - 1)
+    clN = col(N)
+    acc = [fmac(MUL, c14[c], clN[c], 0) for c in range(4)]
+    return vf, acc, QN, F255
+
+
+def I2048w(pth):
+    return F2048 if pth in ("A", "C") else 0
+
 def main():
     maxn = int(sys.argv[1]) if len(sys.argv) > 1 else 60
     n = ok = declined = 0
@@ -278,6 +353,24 @@ def main():
         if diff != x["diff"]:
             probs.append("mem(spec %d qw, rec %d qw, differing %s)" % (len(diff), len(x["diff"]), sorted((set(diff) ^ set(x["diff"])) | {k for k in diff if k in x["diff"] and diff[k] != x["diff"][k]})[:4]))
         xv = x["st"]["vi"]
+        vfs, accs, qs, iss = final_regs(sp, e)
+        xs = x["st"]
+        for r_ in range(1, 32):
+            if vfs[r_] != list(xs["vf"][4 * r_:4 * r_ + 4]):
+                probs.append("vf%d" % r_)
+        if accs != list(xs["acc"]):
+            probs.append("acc")
+        if qs != xs["q"]:
+            probs.append("q")
+        if iss != xs["i"]:
+            probs.append("i")
+        kk = sp.keep
+        Nn = kk["N"]
+        cb = lambda q: clip_bits(q)
+        v28 = list(e["st"]["vf"][116:120]) if Nn == 1 else kk["Ps"][Nn - 2]
+        wclip = (cb(kk["Ps"][Nn - 1]) << 18) | (cb(v28) << 12) | (cb(kk["Ps"][Nn - 1]) << 6) | cb(kk["Ps"][Nn])
+        if wclip != x["st"]["clip"]:
+            probs.append("clip %06X/%06X" % (wclip, x["st"]["clip"]))
         xst = x["st"]["status"]
         mine = status_exit(sp, e["st"]["status"], list(e["st"]["vf"][124:128]), list(e["st"]["vf"][48:52]))
         if mine != xst:
