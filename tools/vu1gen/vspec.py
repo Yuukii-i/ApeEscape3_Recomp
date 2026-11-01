@@ -149,6 +149,7 @@ class Spec:
             vi12 = words[it] & 0x7FFF
             vi7 = words[it]
             self.paths.append(taken if taken != 'C' else 'C%d' % hit)
+        self.keep = dict(Ps=Ps, As=As, Ss=Ss, Cs=Cs, c1=c1, c2=c2, c5=c5, c14=c14, vf16=vf16, N=N)
         # ---- epilogue
         vi6_ep = self.word(1023, 3) & 0xFFFF
         vi7_ep = self.word(1023, 2) & 0xFFFF
@@ -164,6 +165,95 @@ class Spec:
         self.out_vi = out
         return True
 
+
+
+def lane_fl(kind, lanes, A, B, ACC):
+    """OR of the lane flags (cur, extra) of one FMAC pair; A / B / ACC are callables lane -> word"""
+    cur = xf = 0
+    for c in lanes:
+        ex, zn, pex, pzn = L.fmac_ex(kind, A(c), B(c), ACC(c))
+        cur |= L.lane_flags(ex, zn)
+        if kind in (2, 3):
+            xf |= L.lane_flags(pex, pzn) & 0xF
+    return cur & 0xF, xf
+
+
+def status_exit(sp, entry_status, vf31, vf12):
+    """STATUS at exit: sticky = entry | OR((cur|extra)<<6) over every FMAC pair | OR(di<<6) over every divide landing; low bits = last FMAC (25B0 of the last
+    iteration); D/I (0x30) = the last divide (it lands before 25C8, after the last FMAC)."""
+    k = sp.keep
+    Ps, As, Ss, Cs = k["Ps"], k["As"], k["Ss"], k["Cs"]
+    c1, c2, c5, c14, vf16, N = k["c1"], k["c2"], k["c5"], k["c14"], k["vf16"], k["N"]
+    I2048 = F2048
+    sticky = entry_status & 0xFC0
+    last_cur = 0
+
+    def acc_(cur, xf):
+        nonlocal sticky, last_cur
+        sticky |= (cur | xf) << 6
+        last_cur = cur
+
+    def T(j):
+        P = Ps[j]
+        accs = [fmac(MUL, c1[c], P[c], 0) for c in range(4)]
+        return [fmac(MADD, c2[c], P[3], accs[c]) for c in range(4)], accs
+
+    def col(j):
+        return [fmac(MUL, Cs[j][c], vf16[c], 0) for c in range(4)]
+
+    def lit(j):
+        cl = col(j)
+        return [fmac(MADD, As[j][c], cl[c], fmac(MUL, c14[c], cl[c], 0)) for c in range(4)]
+
+    def clamp(x):
+        return maxmini(True, maxmini(False, x, F255), 0)
+
+    def V7(j):
+        return [Ss[j][0], Ss[j][1], Ss[j][2], I2048]
+
+    # prologue FMAC pairs
+    P0 = Ps[0]
+    acc_(*lane_fl(MUL, range(4), lambda c: c1[c], lambda c: P0[c], lambda c: 0))
+    acc_(*lane_fl(MADD, range(4), lambda c: c2[c], lambda c: P0[3], lambda c: fmac(MUL, c1[c], P0[c], 0)))
+    cl0 = col(0)
+    acc_(*lane_fl(MUL, range(4), lambda c: Cs[0][c], lambda c: vf16[c], lambda c: 0))
+    acc_(*lane_fl(MUL, [3], lambda c: ONE, lambda c: I2048, lambda c: 0))
+    acc_(*lane_fl(MUL, range(4), lambda c: c14[c], lambda c: cl0[c], lambda c: 0))
+    acc_(*lane_fl(MADD, range(4), lambda c: As[0][c], lambda c: cl0[c], lambda c: fmac(MUL, c14[c], cl0[c], 0)))
+    Tj = {0: T(0)[0]}
+    dis = [L.div_di(ONE, Tj[0][3]) & 0x30]
+    for it in range(1, N + 1):
+        j = it - 1
+        pth = sp.paths[j][0]
+        Pj = Ps[it]
+        Qj = L.divq(ONE, Tj[j][3])
+        if pth != "A":
+            acc_(*lane_fl(SUB, [3], lambda c: ONE, lambda c: ONE, lambda c: 0))               # 24D8 SUB.w vf15
+        f2 = fmac(MUL, ONE, c5[2], 0)
+        acc_(*lane_fl(MUL, [3], lambda c: ONE, lambda c: c5[2], lambda c: 0))                  # 24F8 MULAz.w
+        f3 = fmac(MADD, c5[3], Qj, f2)
+        acc_(*lane_fl(MADD, [3], lambda c: c5[3], lambda c: Qj, lambda c: f2))                 # 2500 MADDq.w
+        v31 = vf31 if it == 1 else V7(it - 2)
+        acc_(*lane_fl(ADD, range(4), lambda c: v31[c], lambda c: 0, lambda c: 0))              # 2508 ADDz
+        acc_(*lane_fl(MUL, range(3), lambda c: Tj[j][c], lambda c: Qj, lambda c: 0))           # 2510 MULq.xyz
+        acc_(*lane_fl(MUL, range(3), lambda c: V7(j)[c], lambda c: Qj, lambda c: 0))           # 2518 MULq.xyz
+        acc_(*lane_fl(MUL, range(4), lambda c: c1[c], lambda c: Pj[c], lambda c: 0))           # 2550 MULA
+        tw = maxmini(False, maxmini(True, f3, 0), F255)
+        vf15w = I2048 if pth in ("A", "C") else 0
+        acc_(*lane_fl(ADD, [3], lambda c: tw, lambda c: vf15w, lambda c: 0))                   # 2560 ADD.w
+        Tn, accn = T(it)
+        Tj[it] = Tn
+        acc_(*lane_fl(MADD, range(4), lambda c: c2[c], lambda c: Pj[3], lambda c: accn[c]))   # 2568 MADDw
+        v12 = vf12 if it == 1 else [clamp(x) for x in lit(it - 2)]
+        acc_(*lane_fl(ADD, range(4), lambda c: v12[c], lambda c: 0, lambda c: 0))              # 2570 ADDx
+        cln = col(it)
+        acc_(*lane_fl(MUL, range(4), lambda c: Cs[it][c], lambda c: vf16[c], lambda c: 0))     # 2588 MUL
+        acc_(*lane_fl(MUL, range(4), lambda c: c14[c], lambda c: cln[c], lambda c: 0))         # 25A8 MULA
+        acc_(*lane_fl(MADD, range(4), lambda c: As[it][c], lambda c: cln[c], lambda c: fmac(MUL, c14[c], cln[c], 0)))  # 25B0 MADD
+        dis.append(L.div_di(ONE, Tn[3]) & 0x30)                                               # 2590 DIV (vertex it)
+    for di in dis:
+        sticky |= di << 6
+    return (sticky & 0xFC0) | last_cur | dis[-1]
 
 def main():
     maxn = int(sys.argv[1]) if len(sys.argv) > 1 else 60
@@ -188,6 +278,10 @@ def main():
         if diff != x["diff"]:
             probs.append("mem(spec %d qw, rec %d qw, differing %s)" % (len(diff), len(x["diff"]), sorted((set(diff) ^ set(x["diff"])) | {k for k in diff if k in x["diff"] and diff[k] != x["diff"][k]})[:4]))
         xv = x["st"]["vi"]
+        xst = x["st"]["status"]
+        mine = status_exit(sp, e["st"]["status"], list(e["st"]["vf"][124:128]), list(e["st"]["vf"][48:52]))
+        if mine != xst:
+            probs.append("status %03X/%03X" % (mine, xst))
         for i in range(1, 16):
             if sp.out_vi[i] is not None and sp.out_vi[i] != xv[i]:
                 probs.append("vi%d %d/%d" % (i, sp.out_vi[i], xv[i]))
