@@ -23,3 +23,14 @@ Main image 86503d3905e35276 = command interpreter in threaded code. Dispatcher 0
 ## Open
 - Model lacks FMAND/FSAND (0AF0-0BC8 family, 'lower op 1A'), OPMULA/OPMSUB, SQRT/RSQRT.
 - Handlers entered while an XGKICK is active run on the slow path (~60-75 ms/s) and must be covered by the full HLE.
+
+## Per-vertex routine closed form (derived 2026-10-31 with tools/vu1gen/vprov.py, 60 records, entry 2440)
+Per vertex (software-pipelined: the stores at iteration k belong to the vertex loaded at k-1). Inputs: idx = vi7 & 0x7FFF where vi7 = index word (ILW.x vi7, 1(vi4)); P = quad 636+idx, A = quad 716+idx, constants vf1/vf2 (1002/1003), vf5.zw (1016), vf14 (1014), vf16 (scale, live from the caller), ST stream S (LQI via vi2), colour stream C (LQI via vi3). Copy at 2670 reads the S vector from quad 796+idx instead of the stream.
+- W = vf2.w*P.w + (vf1.w*P.w)  (MULA then MADD, exact FMAC order); Q = 1/W (DIV vf0.w / W)
+- XYZ out (SQ at 25A0 and 25B0, lanes 0..2): ftoi4( (vf2.c*P.w + vf1.c*P.c) * Q )
+- Out w lane: ftoi4( clamp(vf5.w*Q + vf5.z*1.0, 0, 255) + adc ), adc = 2048.0 if the index word has the skip bit (vi7 sign) else 0.0 (this gives the ADC bit 0x8000 in the GS word)
+- ST out (SQ.xyz at 2538): S.c * Q
+- RGBA out (SQ at 2598): ftoi0( clamp( A.c*col + vf14.c*col , 0, 255) ), col = C.c * vf16.c
+- All the min/max chains seen (min,max,min,max / min,min,max / min,max) are the same clamp.
+- Control: IBLTZ vi7 skips the clip call, IBLEZ vi8 skips it, else BAL to the 28xx clip subroutines (kernel declines those iterations). Loop end IBNE vi5. Prologue 2440-24C0, epilogue 25B8-2818 (XTOP, ISW vi6/vi7 at 1023, XGKICK vi7).
+Next: Python check of this per-vertex function against the model's stores (all lanes, all classes), then the full-routine spec (prologue and epilogue states, flags, clip ring pushes), then C++.
