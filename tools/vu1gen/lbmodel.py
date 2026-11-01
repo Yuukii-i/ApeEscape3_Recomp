@@ -182,6 +182,10 @@ def upper_decode(u):
         e = (u & 3) | ((u >> 4) & 0x7C)
         if e == 0x2F:
             return None
+        if e == 0x1F:
+            return ("clip", fs, ft)
+        if e == 0x1D:
+            return ("abs", dest, fs, ft)
         grp, b = e >> 2, e & 3
         if 0x10 <= e <= 0x17:
             k = e - 0x10
@@ -223,11 +227,19 @@ def simm11(x):
 def load_blocks():
     blk = {}
     cur = None
-    for ln in open(BLK_FILE, encoding="utf-8", errors="replace"):
+    import glob
+    for fn in [BLK_FILE] + sorted(glob.glob("logs/vublk2_u1_86503d3905e35276_*.txt")):
+      for ln in open(fn, encoding="utf-8", errors="replace"):
         m = re.match(r"B pc=([0-9A-F]+) sig=([0-9a-f]+) exitsig=([0-9a-f]+) n=(\d+)", ln)
         if m:
             cur = (int(m.group(1), 16), m.group(2))
+            if cur in blk:  # the first file wins (the current dump carries cyc=)
+                cur = None
+                continue
             blk[cur] = dict(exit=m.group(3), n=int(m.group(4)))
+            mc = re.search(r"cyc=(\d+)", ln)
+            if mc:
+                blk[cur]["cycles"] = int(mc.group(1))
             continue
         if cur is not None and ln.startswith("  issue:"):
             blk[cur]["issue"] = [int(x) for x in ln.split()[1:]]
@@ -272,7 +284,7 @@ def read_pending(r):
 def st_decode(b):
     return dict(vf=list(struct.unpack_from("<128I", b, 0)), vi=list(struct.unpack_from("<16i", b, 512)), acc=list(struct.unpack_from("<4I", b, 576)),
                 q=struct.unpack_from("<I", b, 592)[0], p=struct.unpack_from("<I", b, 596)[0], i=struct.unpack_from("<I", b, 600)[0], pc=struct.unpack_from("<I", b, 608)[0],
-                mac=struct.unpack_from("<I", b, 612)[0], clip=struct.unpack_from("<I", b, 616)[0], status=struct.unpack_from("<I", b, 620)[0])
+                mac=struct.unpack_from("<I", b, 612)[0], clip=struct.unpack_from("<I", b, 616)[0], status=struct.unpack_from("<I", b, 620)[0], top=struct.unpack_from("<I", b, 640)[0])
 
 
 def records(path):
@@ -320,7 +332,7 @@ class Model:
         self.it = 0
         self.cur_pc = 0
 
-    def run(self, e):
+    def run(self, e, pc=0x1FE0, sig="ed9ddb4fd6ac295f", region=None, rings=None):
         st = e["st"]
         vf = [list(st["vf"][4 * r:4 * r + 4]) for r in range(32)]
         vf[0] = [0, 0, 0, 0x3F800000]
@@ -350,14 +362,22 @@ class Model:
             fdiv = (cycle0 + pend["fdiv"][1], pend["fdiv"][2], pend["fdiv"][3])
         self.status = st["status"]
         self.maclog = []
-        sig = "ed9ddb4fd6ac295f"
-        pc = 0x1FE0
+        region = region or REGION
         S = cycle0
         bk = None
         pidx = 0
         branch = None
         prev_ialu = {}
         trace_pairs = 0
+        self.path = []
+        self.dbg = []
+        if rings is not None:  # probe v3: the real ring contents and working clip at entry (cycles are absolute)
+            self.clipring = [(-100, rings["clip"]["base"])] + list(rings["clip"]["ent"])
+            self.wclip = rings["wclip"]
+        else:
+            self.clipring = [(-100, st["clip"])]
+            self.wclip = st["clip"]
+        self.top = st["top"]
         self.start(e)
         while True:
             if bk is None:
@@ -365,6 +385,7 @@ class Model:
                 if bk is None or "issue" not in bk or "cycles" not in bk:
                     raise RuntimeError("no block meta for pc=%04X sig=%s" % (pc, sig))
                 pidx = 0
+                self.path.append(pc)
             t = S + bk["issue"][pidx]
             if fdiv is not None and fdiv[0] <= t:  # Q landing before the pair issues
                 q = fdiv[1]
@@ -421,6 +442,25 @@ class Model:
                             continue
                         b = vf[ft][bc] if src == "bc" else (I if src == "i" else vf[ft][c])
                         uw.append((fd, c, maxmini(is_max, vf[fs][c], b)))
+                elif ud[0] == "clip":
+                    _, cfs, cft = ud
+                    wbits = vf[cft][3]
+                    limit = (wbits & 0x7FFFFFFF) if (wbits & 0x7F800000) else 0x007FFFFF
+                    fl = 0
+                    for k in range(3):
+                        v_ = vf[cfs][k]
+                        for sgn_, mask_ in ((0, 0), (1, 0x80000000)):
+                            o_ = (v_ ^ mask_) & 0xFFFFFFFF
+                            o_ = o_ - (1 << 32) if o_ & 0x80000000 else o_
+                            if o_ > limit:
+                                fl |= 1 << (2 * k + sgn_)
+                    self.wclip = ((self.wclip << 6) | fl) & 0xFFFFFF
+                    self.clipring.append((t, self.wclip))
+                elif ud[0] == "abs":
+                    _, adest, afs, aft = ud
+                    for c in range(4):
+                        if adest & (8 >> c):
+                            uw.append((aft, c, vf[afs][c] & 0x7FFFFFFF))
                 elif ud[0] == "cvt":
                     _, name, sh, dest, fs, ft = ud
                     for c in range(4):
@@ -479,6 +519,33 @@ class Model:
                     cond = (rv(ft) & 0xFFFF) == (rv(fs) & 0xFFFF)
                     if (op == 0x29) ^ cond:
                         new_branch = (pc + 8 + imm * 8) & 0x3FFF
+                elif op in (0x2C, 0x2D, 0x2E, 0x2F):  # IBLTZ IBGTZ IBLEZ IBGEZ
+                    sv = prev_ialu[fs][2] if (fs in prev_ialu and prev_ialu[fs][0] == "alu") else vi[fs]
+                    sv &= 0xFFFF
+                    sv = sv - 0x10000 if sv & 0x8000 else sv
+                    cond = {0x2C: sv < 0, 0x2D: sv > 0, 0x2E: sv <= 0, 0x2F: sv >= 0}[op]
+                    if cond:
+                        new_branch = (pc + 8 + imm * 8) & 0x3FFF
+                elif op == 0x21:  # BAL
+                    if ft:
+                        ialu_now[ft] = ("alu", (pc + 16) // 8)
+                    new_branch = (pc + 8 + imm * 8) & 0x3FFF
+                elif op == 0x1C:  # FCGET
+                    vis = self.clipring[0][1]
+                    for (tc, vc) in self.clipring:
+                        if tc + 4 <= t:
+                            vis = vc
+                    if ft:
+                        ialu_now[ft] = ("ld", vis & 0xFFF)
+                elif op in (0x12, 0x13, 0x10):  # FCAND FCOR FCEQ
+                    vis = self.clipring[0][1]
+                    for (tc, vc) in self.clipring:
+                        if tc + 4 <= t:
+                            vis = vc
+                    i24 = lo & 0xFFFFFF
+                    res = {0x12: (vis & i24) != 0, 0x13: (vis | i24) == 0xFFFFFF, 0x10: (vis & 0xFFFFFF) == i24}[op]
+                    ialu_now[1] = ("ld", 1 if res else 0)  # the interpreter writes vi1 directly: a branch right after sees the new value
+                    self.dbg.append((pc, t - cycle0, hex(vis), hex(i24), res))
                 elif op == 0x24:  # JR
                     new_branch = (vi[fs] * 8) & 0x3FFF
                 elif op == 0x20:
@@ -508,6 +575,25 @@ class Model:
                             if fdiv is not None:
                                 self.w("div_overlap")
                             fdiv = (t + 7, val, div_di(vf[fs][fsf], vf[ft][ftf]))
+                        elif ee == 0x35:  # SQI
+                            a = ((vi[ft] & 0xFFFF) * 16) & (dsz - 1)
+                            for c in range(4):
+                                if dest & (8 >> c):
+                                    stores.append((a, c, vf[fs][c], pc, "f"))
+                            if ft:
+                                ialu_now[ft] = ("ld", _s16(vi[ft] + 1))
+                        elif ee == 0x3D:  # MFIR
+                            for c in range(4):
+                                if dest & (8 >> c):
+                                    lw.append((ft, c, _s16(vi[fs]) & 0xFFFFFFFF))
+                        elif ee == 0x3C:  # MTIR
+                            if ft:
+                                ialu_now[ft] = ("alu", _s16(vf[fs][(lo >> 21) & 3] & 0xFFFF))
+                        elif ee == 0x68:  # XTOP
+                            if ft:
+                                ialu_now[ft] = ("alu", self.top & 0x3FF)
+                        elif ee == 0x3B:  # WAITQ
+                            pass
                         elif ee == 0x6C:  # XGKICK
                             pass
                         else:
@@ -518,6 +604,13 @@ class Model:
                             ialu_now[fd] = ("alu", _s16(a + b))
                         elif o6 == 0x31 and fd:
                             ialu_now[fd] = ("alu", _s16(a - b))
+                        elif o6 == 0x34 and fd:
+                            ialu_now[fd] = ("alu", _s16((a & b) & 0xFFFF))
+                        elif o6 == 0x35 and fd:
+                            ialu_now[fd] = ("alu", _s16((a | b) & 0xFFFF))
+                        elif o6 == 0x32:
+                            if ft:
+                                ialu_now[ft] = ("alu", _s16(a + (fd - 32 if fd & 16 else fd)))
                         else:
                             raise ValueError("lower sub %02X at %04X" % (o6, pc))
                 else:
@@ -566,9 +659,9 @@ class Model:
                 bk = None
             pc = pc_next
             trace_pairs += 1
-            if branch is None and not (REGION[0] <= pc < REGION[1]):
+            if branch is None and not (region[0] <= pc < region[1]):
                 break
-            if trace_pairs > 4000:
+            if trace_pairs > 60000:
                 raise RuntimeError("runaway")
         return dict(vf=vf, vi=vi, acc=acc, q=q, I=I, mem=mem, pc=pc, cycle=S, fdiv=fdiv, status=self.status, maclog=self.maclog)
 

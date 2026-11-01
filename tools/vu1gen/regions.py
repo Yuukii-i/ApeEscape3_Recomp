@@ -36,6 +36,14 @@ def records(path):
             nt = r.u("I")
             rec["trace"] = list(struct.unpack_from("<%dH" % nt, p, r.o))
             r.o += 2 * nt
+        rec["rings"] = None
+        if r.o < len(p):  # probe v3: flag rings (oldest first) and the working clip at entry
+            assert r.u("I") == 0x33565247, "bad v3 marker"
+            rings = []
+            for _ in range(2):
+                cnt, base = r.u("I"), r.u("I")
+                rings.append(dict(base=base, ent=[(r.u("Q"), r.u("I")) for _ in range(cnt)]))
+            rec["rings"] = dict(clip=rings[0], mac=rings[1], wclip=r.u("I"))
         assert r.o == len(p), "record parse mismatch"
         rec["e"], rec["x"] = e, x
         yield rec
