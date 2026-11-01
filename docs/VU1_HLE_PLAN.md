@@ -34,3 +34,7 @@ Per vertex (software-pipelined: the stores at iteration k belong to the vertex l
 - All the min/max chains seen (min,max,min,max / min,min,max / min,max) are the same clamp.
 - Control: IBLTZ vi7 skips the clip call, IBLEZ vi8 skips it, else BAL to the 28xx clip subroutines (kernel declines those iterations). Loop end IBNE vi5. Prologue 2440-24C0, epilogue 25B8-2818 (XTOP, ISW vi6/vi7 at 1023, XGKICK vi7).
 Next: Python check of this per-vertex function against the model's stores (all lanes, all classes), then the full-routine spec (prologue and epilogue states, flags, clip ring pushes), then C++.
+
+## Exit state is closed form (2026-10-31, tools/vu1gen/vexit.py)
+76 records of entry 2440 without a clip subroutine: every vf lane (31 regs x 4), ACC (4) and Q has exactly ONE canonical expression relative to the last iteration. So the full exit state is a fixed function of the last vertices and the entry state (same situation as lbFull for the skinned routine).
+Plan: generate the kernel's FP code from the canonical trees (emit C++ per register/store from the hash-consed nodes) instead of transcribing pairs; hand-write only the integer/control part (vi2..vi13 pointers, vi8/vi9/vi10 clip window, trip count, BAL decline), the cycle formula (a + b*n, from records) and the flag/ring/status effects (clip ring pushes, STATUS, MAC ring). Then check: model -> kernel spec (Python) -> replay/verifier/exit-hash in C++.
