@@ -148,7 +148,7 @@ class Spec:
             vi4 = s16(vi4 + 1)
             vi12 = words[it] & 0x7FFF
             vi7 = words[it]
-            self.paths.append(taken)
+            self.paths.append(taken if taken != 'C' else 'C%d' % hit)
         # ---- epilogue
         vi6_ep = self.word(1023, 3) & 0xFFFF
         vi7_ep = self.word(1023, 2) & 0xFFFF
@@ -196,7 +196,7 @@ def main():
                 bad[p_.split()[0].split("(")[0]] += 1
             if shown < 4:
                 shown += 1
-                print("rec", n, "N", e["st"]["vi"][5], "paths", "".join(sp.paths), probs[:5])
+                print("rec", n, "N", e["st"]["vi"][5], "paths", ",".join(sp.paths), probs[:5])
         else:
             ok += 1
         if n >= maxn:
