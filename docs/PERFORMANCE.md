@@ -161,6 +161,13 @@ Per thread, ms per frame (unnamed threads; the mapping to jobs is a guess from s
 - Not known: whether both runs were in exactly the same shop spot, and PCSX2's blending accuracy level. PCSX2's hardware renderer does not reproduce every GS behaviour bit for bit (its blending accuracy setting trades accuracy for speed [W12]), while ours aims at exact framebuffer semantics, so some of the GS gap may be accuracy we chose to pay for. The measured CPU gap on the GS thread (about 14 ms per frame) is larger than that alone would explain, because most of our GS cost is CPU-side packet parsing, vertex assembly and texture uploads, not drawing.
 - The user defines "locked" as matching the frames PCSX2 produces (60 in the shop) or close to it, with total cost near PCSX2's.
 
+### 3.9 What PCSX2 does differently (user-supplied summaries plus my reading; NOT verified against the PCSX2 source)
+
+- **VU flags:** a Google summary says microVU computes flags lazily (only when a later instruction reads them) and drops flag work that is overwritten before it is read. Its numbers ("80-90% of flag overhead") and example games are unsourced and I would not rely on them. The user ran PCSX2 with no hacks, so PCSX2 still handles flags correctly at 7 ms per frame for VU1. Our own earlier ablation put all flag math at no more than about 20% of hot-block time (about 4-5% of the worker), so lazy flags alone cannot explain a 3x gap.
+- **Blending:** the user reports PCSX2's default blending accuracy is Basic, which uses the GPU's fixed-function blending and skips shader-based read-modify-write. Ours always does exact read-modify-write in shaders on a 4 MB VRAM storage buffer (interlock), so we pay the accurate-mode cost on every draw. This is a GPU cost, but it also shapes the CPU side (page tracking, uploads).
+- **Where the work sits:** as far as I know PCSX2 parses and unpacks the VIF stream on its EE thread and only runs VU1 microprograms on the MTVU thread. Compared like for like, our EE plus the worker's parse/unpack work is about 22-23 ms against PCSX2's EE thread at about 11 ms (about 2x, not the 1.2-1.6x of section 3.8), and our VU1 execution (about 16-17 ms) against its MTVU thread at about 7 ms (about 2.4x).
+- **Accuracy target:** all our VU1 and GS work so far has been exact against our own interpreter or CPU rasteriser. PCSX2 is the project's oracle and is itself approximate in places (clamp modes, basic blending). Deciding how exact we must be, relative to PCSX2 and not to our interpreter, changes how much of the cost is avoidable.
+
 ### 3.7 What the current environment is
 
 These are the switches for the normal test run, in PowerShell syntax:
