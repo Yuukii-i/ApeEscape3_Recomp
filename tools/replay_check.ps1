@@ -6,7 +6,7 @@
 param([string]$Tag = "rz", [string]$Corpus = "", [string]$Image = "")
 
 $exe = ".\build\PS2Recomp\ps2xRuntime\ps2EntryRunner.exe"
-$vars = @("PS2X_VU1_REPLAY", "PS2X_VU1_REPLAY_REPS", "PS2X_VU1_KERNEL", "PS2X_VU1_TSC", "PS2X_VU_BLK_CHECK", "PS2X_VU1_VERIFY", "PS2X_VU1_XG_HOT", "PS2X_VU1_FUSE", "PS2X_VU1_CORPUS", "PS2X_VU1_REPLAY_IMAGE")
+$vars = @("PS2X_VU1_REPLAY", "PS2X_VU1_REPLAY_REPS", "PS2X_VU1_KERNEL", "PS2X_VU1_TSC", "PS2X_VU_BLK_CHECK", "PS2X_VU1_VERIFY", "PS2X_VU1_XG_HOT", "PS2X_VU1_FUSE", "PS2X_VU1_CORPUS", "PS2X_VU1_REPLAY_IMAGE", "PS2X_VU1_XGDRAIN")
 
 function Run-One($n, $label, $envs) {
     foreach ($v in $vars) { Remove-Item "Env:$v" -ErrorAction SilentlyContinue }
@@ -30,4 +30,5 @@ Run-One 2 "timing profile, kernels on, 3 reps" @{ PS2X_VU1_REPLAY = "1"; PS2X_VU
 Run-One 3 "verifier vs interpreter" @{ PS2X_VU1_REPLAY = "1"; PS2X_VU1_REPLAY_REPS = "1"; PS2X_VU1_KERNEL = "1"; PS2X_VU1_VERIFY = "3"; PS2X_VU_BLK_CHECK = "1" }
 Run-One 4 "wall time, kernels on, no TSC counters, 5 reps" @{ PS2X_VU1_REPLAY = "1"; PS2X_VU1_REPLAY_REPS = "5"; PS2X_VU1_KERNEL = "1" }
 Run-One 5 "wall time, kernels off (hot blocks only), no TSC counters, 5 reps" @{ PS2X_VU1_REPLAY = "1"; PS2X_VU1_REPLAY_REPS = "5"; PS2X_VU1_KERNEL = "0" }
+Run-One 6 "wall time, kernels on, per-cycle XGKICK drain (PS2X_VU1_XGDRAIN=0), 5 reps" @{ PS2X_VU1_REPLAY = "1"; PS2X_VU1_REPLAY_REPS = "5"; PS2X_VU1_KERNEL = "1"; PS2X_VU1_XGDRAIN = "0" }
 Write-Host "done: paste me the lines above (or just say ready)."
