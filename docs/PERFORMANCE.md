@@ -157,7 +157,8 @@ Per thread, ms per frame (unnamed threads; the mapping to jobs is a guess from s
 - We cost about 3.4x PCSX2 per frame; at 60 FPS we would need about 5 cores against its 1.5.
 - Present plus main loop is about 22 ms per frame (a quarter of our cost) that PCSX2 does not have.
 - VU1 and GS are about 3x PCSX2 each (about 29 ms per frame together). EE is within about 1.2-1.6x.
-- Unknown: PCSX2's renderer and settings (multi-threaded VU1 on?), and whether both runs were in the same spot.
+- PCSX2 settings (reported by the user): native PS2 resolution, MTVU (multi-threaded VU1) on, EE cycle rate 100%, EE cycle skipping at default (off), thread pinning on, Direct3D 12 renderer, 4:3, no enhancements or hacks. So the comparison is like for like: same resolution, a GPU renderer, threaded VU1 [W11].
+- Not known: whether both runs were in exactly the same shop spot, and PCSX2's blending accuracy level. PCSX2's hardware renderer does not reproduce every GS behaviour bit for bit (its blending accuracy setting trades accuracy for speed [W12]), while ours aims at exact framebuffer semantics, so some of the GS gap may be accuracy we chose to pay for. The measured CPU gap on the GS thread (about 14 ms per frame) is larger than that alone would explain, because most of our GS cost is CPU-side packet parsing, vertex assembly and texture uploads, not drawing.
 - The user defines "locked" as matching the frames PCSX2 produces (60 in the shop) or close to it, with total cost near PCSX2's.
 
 ### 3.7 What the current environment is
@@ -433,3 +434,5 @@ Decide between A and B only after a locked 60 exists and the timing question is 
 - **[W8]** Vulkan `VK_EXT_fragment_shader_interlock`: <https://docs.vulkan.org/refpages/latest/refpages/source/VK_EXT_fragment_shader_interlock.html>
 - **[W9]** PCSX2, "Threading VU1", for comparison with our worker design and its limits ("This syncing is slow and if emulation needs to do it a lot it eliminates the speedup from threading"): <https://pcsx2.net/blog/2011/threading-vu1>
 - **[W10]** VIF command reference (FLUSH, MSCALF and double-buffering behaviour), used for the PERF-VP2 design: <https://israpps.github.io/ps2tek/PS2/VIF/Commands.html>
+- **[W11]** Community PCSX2 settings guides (MTVU, thread pinning, EE cycle rate and skipping; unofficial, mostly 2012-2019): <https://forums.pcsx2.net/archive/index.php/thread-32750.html>
+- **[W12]** PCSX2 GSdx wiki page, blending accuracy setting: <https://wiki.pcsx2.net/GSDX>
