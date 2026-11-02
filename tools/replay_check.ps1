@@ -18,7 +18,7 @@ function Run-One($n, $label, $envs) {
     & $exe SCUS_975.01 2>&1 | Out-File -Encoding utf8 $log
     Copy-Item logs\vu1replay.txt "logs\vu1replay_$Tag$n.txt" -Force
     $rep = Get-Content logs\vu1replay.txt
-    $rep | Select-String -Pattern "^replayed=|^run_ms|^kernels|^slow-pair causes|^miss pcs|^noStart pcs|^declined pcs|^xg kernel" | ForEach-Object { Write-Host "   $($_.Line.Substring(0, [Math]::Min(230, $_.Line.Length)))" }
+    $rep | Select-String -Pattern "^replayed=|^run_ms|^kernels|^slow-pair causes|^state split|^miss pcs|^noStart pcs|^declined pcs|^xg kernel" | ForEach-Object { Write-Host "   $($_.Line.Substring(0, [Math]::Min(230, $_.Line.Length)))" }
     $mm = (Select-String -Path $log -Pattern "exit-hash MISMATCH" -SimpleMatch).Count
     $gv = Select-String -Path $log -Pattern "gv summary" | Select-Object -Last 1
     Write-Host "   exit-hash MISMATCH lines: $mm"
