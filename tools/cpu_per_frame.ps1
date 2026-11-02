@@ -4,7 +4,8 @@
 #   powershell -File tools\cpu_per_frame.ps1 -Name pcsx2-qt -Fps 60
 # -Fps is the frame rate the process shows during the run (our [fps] line, PCSX2's on-screen counter). Output: CPU ms per second and per frame, per thread.
 param([Parameter(Mandatory = $true)][string]$Name, [double]$Fps = 0, [int]$Seconds = 20)
-$p = Get-Process -Name $Name -ErrorAction Stop | Select-Object -First 1
+# several processes can share a name (launcher shims): take the one that has used the most CPU
+$p = Get-Process -Name $Name -ErrorAction Stop | Sort-Object CPU -Descending | Select-Object -First 1
 function Snap($proc) {
     $proc.Refresh()
     $h = @{}
