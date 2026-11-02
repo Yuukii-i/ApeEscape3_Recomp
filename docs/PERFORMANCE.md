@@ -22,6 +22,15 @@ How much to trust the numbers:
 
 Bracketed references such as [L1] and [W1] point to section 10. Entries such as P369 are in [docs/HYPOTHESES.md](HYPOTHESES.md).
 
+## 1b. Agreed plan (user decision, 2026-11-02)
+
+1. **Locked 60 FPS with headroom.** Not "reaches 60 here": the cost of running the game must be lower than emulating it on PCSX2, otherwise the recomp has no point. Slower PCs and the phone port are the reason. Metrics (proposed, not yet agreed): 99% of frames finish in 14 ms or less in the shop and in a level, measured on a scripted route; total CPU-ms per frame (all threads, `tools/cpu_per_frame.ps1`) below PCSX2's on the same scene.
+2. **Blend real geometry** between two real 60 Hz states (section 7, route B) to go above 60. Frame generation from images is ruled out.
+3. **If blending adds too much input lag or looks bad:** push the game's own tick rate to 144 by changing its logic (route A).
+4. Between 1 and 2: fix the existing crashes and visual glitches (open list in HYPOTHESES.md, plus the shop flicker P362).
+
+Open: the PCSX2 CPU-per-frame number for the shop (needs PCSX2 sitting in the same scene) and the exact definition of "locked".
+
 ## 2. How a frame moves through the program
 
 | Thread | Job |
