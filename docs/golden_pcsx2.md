@@ -231,3 +231,9 @@ Chunk ring read per group: audio 16 KB (cmd1 flags=1) then video (cmd1 flags=0);
 ## s36 node-draw loop (title, PCSX2)
 - Loop sub_002805B8 0x280814..0x280958 over node vector (s4=34/batch); gate 0x268714 hit every ~6-8k cycles. Cull call 0x26C9B8 returns v0=1 in 4/4 sampled hits (pc 0x28087C). Draw fn 0x26831C ra=0x28092C a0=node a1=renderer 0xCEAD50.
 - Ours (log ga): all 34 nodes pass mask/flag (and=FFFF.., b30=1,b35=1) but gate reached only ~1.5x/frame.
+
+## EE busy share at the title menu (2026-10-29, pause-sampling, 25 samples)
+- 3/25 at 0x435FB0: vsync wait = busy-poll of INTC_STAT (0x1000F000) bit 2 in func 0x435F70 (called from 0x404198).
+- 8/25 in 0x3ABA20-0x3AEF78 (float compare loop at 0x3AC0F0-0x3AC150: lhu index, lwc1, c.le.s; a sort/sift), rest spread
+  (0x239D20, 0x23CC40, 0x2422D8, 0x244F14, 0x3B8098, 0x3C1F00, 0x441F68, 0x4FCC20).
+- => real EE is ~85-90% busy per frame at the menu (coarse; pause lands on block boundaries). Backtrace tool returned stale frames.
