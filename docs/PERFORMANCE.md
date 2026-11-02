@@ -161,6 +161,23 @@ Per thread, ms per frame (unnamed threads; the mapping to jobs is a guess from s
 - Not known: whether both runs were in exactly the same shop spot, and PCSX2's blending accuracy level. PCSX2's hardware renderer does not reproduce every GS behaviour bit for bit (its blending accuracy setting trades accuracy for speed [W12]), while ours aims at exact framebuffer semantics, so some of the GS gap may be accuracy we chose to pay for. The measured CPU gap on the GS thread (about 14 ms per frame) is larger than that alone would explain, because most of our GS cost is CPU-side packet parsing, vertex assembly and texture uploads, not drawing.
 - The user defines "locked" as matching the frames PCSX2 produces (60 in the shop) or close to it, with total cost near PCSX2's.
 
+#### 3.8b Named-thread budget [MEASURED 2026-11-02, `logs/mb1.log` and the script output, shop, 40 FPS, PERF-MB build]
+
+| Thread | ms per frame | Cores | PCSX2 equivalent (ms per frame at 60 FPS) |
+|---|---|---|---|
+| Vif1Worker | 21.7 | 0.87 | VU1 thread 7.0, plus part of its EE thread (VIF parse/unpack) |
+| GsWorker | 20.3 | 0.81 | GS thread 6.9 |
+| GameThread (EE) | 14.7 | 0.59 | EE thread 11.1 (includes VIF parse/unpack) |
+| PresentLatch | 10.3 | 0.41 | none |
+| MainLoop | 1.6 | 0.06 | none (was 8-9 ms per frame before the polling change) |
+| other | 0.7 | 0.03 | 0.2 |
+| **Total** | **69.3** | **2.77** | **25** |
+
+- Total CPU per frame fell from 83-87 to 69 ms. Nearly all of the 14-18 ms drop is the MainLoop polling change.
+- EE is 14.7 ms, not the 17-18 ms my earlier guess gave. Including the worker's parse/unpack (about 5-6 ms), our EE-side work is about 20 ms against PCSX2's 11.
+- Delivered frame times with the `[ft]` meter: p50 24-26 ms, p95 28-35 ms, p99 29-56 ms, max up to 64 ms; zero frames at or under 16.7 ms; 0-15% of frames over 33.4 ms in each 5 s window. The target is p99 at or under 14 ms.
+- The 40 FPS here is about 3 FPS below the previous session's 43; whether the polling change costs frame rate is not established (a PS2X_IDLE_POLL_MS=1 A/B run is needed).
+
 ### 3.9 What PCSX2 does differently (user-supplied summaries plus my reading; NOT verified against the PCSX2 source)
 
 - **VU flags:** a Google summary says microVU computes flags lazily (only when a later instruction reads them) and drops flag work that is overwritten before it is read. Its numbers ("80-90% of flag overhead") and example games are unsourced and I would not rely on them. The user ran PCSX2 with no hacks, so PCSX2 still handles flags correctly at 7 ms per frame for VU1. Our own earlier ablation put all flag math at no more than about 20% of hot-block time (about 4-5% of the worker), so lazy flags alone cannot explain a 3x gap.
