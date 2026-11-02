@@ -136,6 +136,30 @@ So **we are not beating the original chip at VU1 work, and may be up to about 1.
 
 This is the core of the problem. The VU1 path keeps most of the console's behaviour: timing state, flag state, and a packet round trip for each program.
 
+### 3.8 CPU cost per frame, ours vs PCSX2 [MEASURED 2026-11-02, `tools/cpu_per_frame.ps1`, 20 s windows, shop]
+
+| | CPU-ms per frame | Cores busy | FPS shown |
+|---|---|---|---|
+| PCSX2 (`pcsx2-qt`) | 24.8, 25.1 | 1.49, 1.51 | 60 |
+| Ours (`ps2EntryRunner`) | 82.8, 86.7 | 3.56, 3.56 | 43, 41 |
+
+Per thread, ms per frame (unnamed threads; the mapping to jobs is a guess from section 3.1):
+
+| Ours | Likely job | PCSX2 |
+|---|---|---|
+| 21.8, 21.8 | VIF1 worker | 7.0, 6.9 |
+| 21.1, 20.0 | GS | 6.9, 6.8 |
+| 18.3, 17.4 | EE | 11.1, 10.7 |
+| 13.8, 12.9 | present | none |
+| 9.1, 8.2 | main loop (input polling) | none |
+| 2.0, 1.7 | other | 0.2, 0.4 |
+
+- We cost about 3.4x PCSX2 per frame; at 60 FPS we would need about 5 cores against its 1.5.
+- Present plus main loop is about 22 ms per frame (a quarter of our cost) that PCSX2 does not have.
+- VU1 and GS are about 3x PCSX2 each (about 29 ms per frame together). EE is within about 1.2-1.6x.
+- Unknown: PCSX2's renderer and settings (multi-threaded VU1 on?), and whether both runs were in the same spot.
+- The user defines "locked" as matching the frames PCSX2 produces (60 in the shop) or close to it, with total cost near PCSX2's.
+
 ### 3.7 What the current environment is
 
 These are the switches for the normal test run, in PowerShell syntax:
