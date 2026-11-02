@@ -536,3 +536,5 @@ P359 [CONFIRMED log:qo,qp,qq] Full skinned-vertex routine kernel (1FE0 -> JR, pr
 P360 [CONFIRMED log:ua1] PERF-UV SIMD UNPACK is exact live: PS2X_UNPACK_VERIFY=1 gives mism=0 (fast=78.6M, generic=6.3M) plus 0/400k offline mismatches.
 P361 [CONFIRMED log:ub1,ub0] PERF-AP async present + PERF-UV: user reports considerable gain; last-sample FPS 55 (ub1, async) vs 51 (ub0, sync), vsyncTick 6179 vs 5369. Single sample, noisy.
 P362 [OPEN user] Small texture flicker in the shop zone with PS2X_PRESENT_ASYNC=1 (not seen in a level). Suspect: display pages copied to snap_ before an in-flight draw/upload to those pages finishes, or the one-present-late frame mixing pages. User chose to defer the fix.
+P363 [REFUTED log:xp2] PERF-XP thread-local packet buffer stash helps: with it the shop stretch ran 3-8 FPS (xp1, xp2) vs 40-60 in ub1/ub0 under identical env. Reverted (3bbb298). Cause not found; do not retry without a profile.
+P364 [CONFIRMED log:xp1] PS2X_VU1_TSC=1 phase line (ge vu1e) prints all zeros in the live game and ge vu1c runs=0 even in ub1: those counters do not report live; use the sampler for setup cost instead.
