@@ -102,3 +102,7 @@ These are closed, so they will not be reopened during this plan:
 - **Reusing VU1 output for repeated input:** only about 3.6% of VU1 cycles in the sampled data.
 - **Clang or PGO for guest code:** tested, no gain (C290).
 - **More probe trimming in the per-run path:** the last round made no measurable difference (P381).
+
+## Results log
+
+- **Step 1 (thread pinning): refuted, closed 2026-11-04.** Affinity mask 0x5555 gave the same frame times (shop p50 20.0-20.1 ms both, p99 24-25 ms unpinned vs 25.7 ms pinned) and the same CPU cost (49.1 vs 49.9 ms per frame). No runtime change. P382.
