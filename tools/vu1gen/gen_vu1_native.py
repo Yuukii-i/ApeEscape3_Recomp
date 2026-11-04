@@ -3,7 +3,7 @@
 
 Input : logs/vuusage_u1_<hash>.txt (dumped by the interpreter, PROBE-GC/HC): per-pair scheduler usage tables.
 Output: PS2Recomp/ps2xRuntime/src/lib/vu/generated/vu1_native_exec_<k>.cpp   (plain functions, literal constants)
-        PS2Recomp/ps2xRuntime/src/lib/vu/generated/vu1_native_dispatch.cpp  (pc -> function table + vu1NativeRun)
+        PS2Recomp/ps2xRuntime/src/lib/vu/generated/vu1_native_dispatch.generated.cpp.txt  (reference only; the real vu1_native_dispatch.cpp is hand-maintained)
 
 Every function is the production path of one interpreter loop iteration (no probes) with the pair's decode values
 partially evaluated: it uses the interpreter's real scheduler state (ready arrays, pipelines) through direct data access
@@ -279,7 +279,8 @@ def main():
             for pc in part:
                 f.write('\n'.join(emit_pair(pc, pairs[pc])))
                 f.write('\n')
-    with open(OUT_DIR + '%s_native_dispatch.cpp' % UC['name'], 'w', newline='\n') as f:
+    # the committed vu1_native_dispatch.cpp is hand-maintained (Level B kernels live in vu1_native_hand.inc): never overwrite it
+    with open(OUT_DIR + '%s_native_dispatch.generated.cpp.txt' % UC['name'], 'w', newline='\n') as f:
         f.write(FILE_HEAD % {'src': src})
         f.write('const uint64_t k%sNativeMainHash = 0x%sull;\n\n' % (UC['Name'], h))
         for pc in native:
