@@ -106,3 +106,4 @@ These are closed, so they will not be reopened during this plan:
 ## Results log
 
 - **Step 1 (thread pinning): refuted, closed 2026-11-04.** Affinity mask 0x5555 gave the same frame times (shop p50 20.0-20.1 ms both, p99 24-25 ms unpinned vs 25.7 ms pinned) and the same CPU cost (49.1 vs 49.9 ms per frame). No runtime change. P382.
+- **Step 2 (PGO build of the runtime): kept, 2026-11-04.** Vif1Worker 17.4 -> 15.4 ms per frame (-11.7%, two normal runs agree within 2%), GsWorker unchanged, steady shop frame p50 20.1 -> 18.2 ms. Measured with the GPU present accidentally off in the PGO run, so the real gain is probably larger. P383. Use the GEN -> train -> USE cycle for acceptance builds (steps 6 and 10); day-to-day builds stay normal. Workflow in memory (project-pgo-build-workflow).
