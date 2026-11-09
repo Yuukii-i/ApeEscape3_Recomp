@@ -13,6 +13,9 @@ cmake -B build -DCMAKE_BUILD_TYPE=Release -DPS2X_ENABLE_AGRESSIVE_LOGS=OFF
 if errorlevel 1 goto :error_config
 
 :build
+cmake -B build -DPS2X_DEV_BUILD=OFF >nul
+if errorlevel 1 goto :error_config
+
 echo [build] Building incrementally (BELOW NORMAL priority, half the cores; set PS2X_BUILD_JOBS to change)...
 if not defined PS2X_BUILD_JOBS set /a PS2X_BUILD_JOBS=%NUMBER_OF_PROCESSORS%/2
 if %PS2X_BUILD_JOBS% lss 2 set PS2X_BUILD_JOBS=2

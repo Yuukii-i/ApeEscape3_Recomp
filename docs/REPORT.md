@@ -1,20 +1,10 @@
-# Task KU Report — `sqrt.s` Operand Fix (`C315`)
+# Task LC Report: Bench Marker + A/B Script
 
-## Build Summary
-- **Build status**: **OK** (`exit=0`)
-- **Executable paths**:
-  - `C:\ApeEscape3_Recomp\build\PS2Recomp\ps2xRuntime\ps2EntryRunner.exe` (`139,642,368` bytes, `2026-10-30 03:02:37`)
-  - `C:\ApeEscape3_Recomp\build\PS2Recomp\ps2xRuntime\ps2EntryRunner_msvc.exe` (`139,642,368` bytes, `2026-10-30 03:02:37`)
-- **Number of files compiled**:
-  - **103 modified `recomp_source/*.cpp` files** (136 `// C315` sites) across **77 Unity translation units** (`490.9s` with `cl.exe /MP8`)
-  - Cleanly re-archived `build\recomp_source.lib` (`502,459,880` bytes) from all 730 Unity `.obj` files (`6.9s`)
-  - Linked `ps2EntryRunner.exe` via `tools\build.bat` (`70.7s`, total `568.5s`)
-- **Git commits on branch `task/KU`**:
-  - `PS2Recomp` (`task/KU`): `40fd9a4` (`Task KU: sqrt.s operand fix (C315)` — `ps2xRecomp/src/lib/fpu_translator.cpp`)
-  - Root repo (`task/KU`): `5883565` (`Task KU: sqrt.s operand fix (C315)` — `tools/fix_sqrt_s.py` + `PS2Recomp`)
-
-## User Run Command (`ku`)
-```powershell
-$env:PS2X_GS_ASYNC="1"; $env:PS2X_VIF1_ASYNC="1"; $env:PS2X_GS_VULKAN="1"
-.\build\PS2Recomp\ps2xRuntime\ps2EntryRunner_msvc.exe *> ku.log
-```
+- `Pad.cpp`: Replaced all `std::fprintf(stderr, ...)` in record/replay code with `::ps2xSafeLog(...)` followed by `std::fflush(stderr)`.
+- `Pad.cpp`: Added `[bench] START poll=N` marker via `::ps2xSafeLog` + `fflush` when replay first reaches the end of records.
+- `tools/ab.ps1`: Implemented PowerShell 7 A/B benchmarking runner supporting `-ExeA`, `-ExeB`, `-EnvA`, `-EnvB`, `-Pad`, `-Seconds`, `-Rounds`, `-Tag`, `-Fps`.
+- Clean slate environment: captures and clears existing `PS2X_*` vars, applies standard async/vulkan/pad settings, applies side envs, and restores on exit.
+- Process lifecycle: launches exe in repo root with output redirected to `logs/ab_<Tag>_<side><round>.out/.err`, polls for `[bench] START` (max 300s).
+- Settle and CPU snapshot: waits 3s after marker, records per-thread CPU time over `-Seconds` using Win32 `GetThreadDescription` (same as `cpu_per_frame.ps1`), forces process exit.
+- Metrics parsing & aggregation: extracts post-START `[ft]` p50/p99 medians, maps named threads (GameThread, Vif1Worker, GsWorker, PresentLatch, MainLoop, other, TOTAL).
+- Output: prints compact comparison table with side means, diffs (ms & %), and noise `|A1-A2|` (p50, vif, gs), saves to `logs/ab_<Tag>.txt`, and outputs copy-friendly one-line summary.
