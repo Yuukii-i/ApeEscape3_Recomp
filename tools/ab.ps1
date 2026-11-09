@@ -143,7 +143,7 @@ function Run-Side {
                 p50 = 0.0; p99 = 0.0;
                 GameThread = 0.0; Vif1Worker = 0.0; GsWorker = 0.0;
                 PresentLatch = 0.0; MainLoop = 0.0; other = 0.0; TOTAL = 0.0;
-                'TOTALms/s' = 0.0
+                'TOTALms/s' = 0.0; fps = 0.0; 'vu1/f' = 0.0
             }
         }
 
@@ -157,7 +157,7 @@ function Run-Side {
                 p50 = 0.0; p99 = 0.0;
                 GameThread = 0.0; Vif1Worker = 0.0; GsWorker = 0.0;
                 PresentLatch = 0.0; MainLoop = 0.0; other = 0.0; TOTAL = 0.0;
-                'TOTALms/s' = 0.0
+                'TOTALms/s' = 0.0; fps = 0.0; 'vu1/f' = 0.0
             }
         }
 
@@ -178,6 +178,42 @@ function Run-Side {
 
         # Aggregate thread CPU ms/frame
         $effectiveFps = if ($Fps -gt 0) { $Fps } else { 60.0 }
+        # effectiveFps = median of '[fps] FPS: N (GS frames/sec)' lines after [bench] START (fallback: -Fps)
+        if (Test-Path $errPath) {
+            try {
+                $fl = [System.IO.File]::ReadAllLines($errPath)
+                $fs0 = -1
+                for ($i = 0; $i -lt $fl.Count; $i++) { if ($fl[$i] -match "\[bench\] START") { $fs0 = $i; break } }
+                $fpsList = [System.Collections.Generic.List[double]]::new()
+                if ($fs0 -ge 0) {
+                    for ($i = $fs0 + 1; $i -lt $fl.Count; $i++) {
+                        if ($fl[$i] -match "\[fps\] FPS:\s*([0-9.]+)") {
+                            $fpsList.Add([double]::Parse($Matches[1], [System.Globalization.CultureInfo]::InvariantCulture))
+                        }
+                    }
+                }
+                if ($fpsList.Count -gt 0) {
+                    $mf = Get-Median $fpsList.ToArray()
+                    if ($mf -gt 0) { $effectiveFps = $mf }
+                }
+            } catch {}
+        }
+        # vu1 calls per frame: last 5 '[probe] ge vu1 calls=N' lines of the .out
+        $vu1PerFrame = 0.0
+        if (Test-Path $outPath) {
+            try {
+                $vl = [System.Collections.Generic.List[double]]::new()
+                foreach ($ol in [System.IO.File]::ReadAllLines($outPath)) {
+                    if ($ol -match "\[probe\] ge vu1 calls=" -and $ol -match "calls=(\d+)") {
+                        $vl.Add([double]::Parse($Matches[1], [System.Globalization.CultureInfo]::InvariantCulture))
+                    }
+                }
+                if ($vl.Count -gt 0) {
+                    $last = [double[]]@($vl.ToArray() | Select-Object -Last 5)
+                    $vu1PerFrame = (Get-Median $last) / $effectiveFps
+                }
+            } catch {}
+        }
         $knownThreads = @('GameThread', 'Vif1Worker', 'GsWorker', 'PresentLatch', 'MainLoop')
         $threadCpu = @{
             'GameThread'   = 0.0
@@ -247,6 +283,7 @@ function Run-Side {
             other = $threadCpu['other'];
             TOTAL = $threadCpu['TOTAL'];
             'TOTALms/s' = ($threadCpu['TOTAL'] * $effectiveFps);
+            fps = $effectiveFps; 'vu1/f' = $vu1PerFrame;
         }
     } finally {
         # Restore environment
@@ -279,7 +316,7 @@ function Mean-Val($items, [string]$prop) {
 $aRuns = $results | Where-Object { $_.Side -eq "A" }
 $bRuns = $results | Where-Object { $_.Side -eq "B" }
 
-$metrics = @('p50', 'p99', 'GameThread', 'Vif1Worker', 'GsWorker', 'PresentLatch', 'MainLoop', 'other', 'TOTAL', 'TOTALms/s')
+$metrics = @('p50', 'p99', 'GameThread', 'Vif1Worker', 'GsWorker', 'PresentLatch', 'MainLoop', 'other', 'TOTAL', 'TOTALms/s', 'fps', 'vu1/f')
 
 $meanA = @{}
 $meanB = @{}
@@ -307,27 +344,27 @@ $noiseGs  = if ($hasNoise) { [math]::Abs($a1.GsWorker - $a2.GsWorker) } else { 0
 
 # Format Table
 $tbl = [System.Collections.Generic.List[string]]::new()
-$tbl.Add(("{0,-5} {1,-5} {2,8} {3,8} {4,11} {5,11} {6,11} {7,13} {8,10} {9,9} {10,9} {11,10}" -f "Side", "Round", "p50", "p99", "GameThread", "Vif1Worker", "GsWorker", "PresentLatch", "MainLoop", "other", "TOTAL", "TOTALms/s"))
-$tbl.Add("-" * 120)
+$tbl.Add(("{0,-5} {1,-5} {2,8} {3,8} {4,11} {5,11} {6,11} {7,13} {8,10} {9,9} {10,9} {11,10} {12,7} {13,9}" -f "Side", "Round", "p50", "p99", "GameThread", "Vif1Worker", "GsWorker", "PresentLatch", "MainLoop", "other", "TOTAL", "TOTALms/s", "fps", "vu1/f"))
+$tbl.Add("-" * 138)
 
 foreach ($row in $results) {
     if ($row.Status -ne "OK") {
         $tbl.Add(("{0,-5} {1,-5} {2,8}" -f $row.Side, $row.Round, "FAILED"))
     } else {
-        $tbl.Add(("{0,-5} {1,-5} {2,8:F2} {3,8:F2} {4,11:F2} {5,11:F2} {6,11:F2} {7,13:F2} {8,10:F2} {9,9:F2} {10,9:F2} {11,10:F2}" -f `
-            $row.Side, $row.Round, $row.p50, $row.p99, $row.GameThread, $row.Vif1Worker, $row.GsWorker, $row.PresentLatch, $row.MainLoop, $row.other, $row.TOTAL, $row.'TOTALms/s'))
+        $tbl.Add(("{0,-5} {1,-5} {2,8:F2} {3,8:F2} {4,11:F2} {5,11:F2} {6,11:F2} {7,13:F2} {8,10:F2} {9,9:F2} {10,9:F2} {11,10:F2} {12,7:F1} {13,9:F1}" -f `
+            $row.Side, $row.Round, $row.p50, $row.p99, $row.GameThread, $row.Vif1Worker, $row.GsWorker, $row.PresentLatch, $row.MainLoop, $row.other, $row.TOTAL, $row.'TOTALms/s', $row.fps, $row.'vu1/f'))
     }
 }
 
-$tbl.Add("-" * 120)
-$tbl.Add(("{0,-11} {1,8:F2} {2,8:F2} {3,11:F2} {4,11:F2} {5,11:F2} {6,13:F2} {7,10:F2} {8,9:F2} {9,9:F2} {10,10:F2}" -f `
-    "Mean A", $meanA['p50'], $meanA['p99'], $meanA['GameThread'], $meanA['Vif1Worker'], $meanA['GsWorker'], $meanA['PresentLatch'], $meanA['MainLoop'], $meanA['other'], $meanA['TOTAL'], $meanA['TOTALms/s']))
-$tbl.Add(("{0,-11} {1,8:F2} {2,8:F2} {3,11:F2} {4,11:F2} {5,11:F2} {6,13:F2} {7,10:F2} {8,9:F2} {9,9:F2} {10,10:F2}" -f `
-    "Mean B", $meanB['p50'], $meanB['p99'], $meanB['GameThread'], $meanB['Vif1Worker'], $meanB['GsWorker'], $meanB['PresentLatch'], $meanB['MainLoop'], $meanB['other'], $meanB['TOTAL'], $meanB['TOTALms/s']))
-$tbl.Add(("{0,-11} {1,8:F2} {2,8:F2} {3,11:F2} {4,11:F2} {5,11:F2} {6,13:F2} {7,10:F2} {8,9:F2} {9,9:F2} {10,10:F2}" -f `
-    "Diff(B-A)", $diffMs['p50'], $diffMs['p99'], $diffMs['GameThread'], $diffMs['Vif1Worker'], $diffMs['GsWorker'], $diffMs['PresentLatch'], $diffMs['MainLoop'], $diffMs['other'], $diffMs['TOTAL'], $diffMs['TOTALms/s']))
-$tbl.Add(("{0,-11} {1,7:F1}% {2,7:F1}% {3,10:F1}% {4,10:F1}% {5,10:F1}% {6,12:F1}% {7,9:F1}% {8,8:F1}% {9,8:F1}% {10,9:F1}%" -f `
-    "Diff(%)", $diffPct['p50'], $diffPct['p99'], $diffPct['GameThread'], $diffPct['Vif1Worker'], $diffPct['GsWorker'], $diffPct['PresentLatch'], $diffPct['MainLoop'], $diffPct['other'], $diffPct['TOTAL'], $diffPct['TOTALms/s']))
+$tbl.Add("-" * 138)
+$tbl.Add(("{0,-11} {1,8:F2} {2,8:F2} {3,11:F2} {4,11:F2} {5,11:F2} {6,13:F2} {7,10:F2} {8,9:F2} {9,9:F2} {10,10:F2} {11,7:F1} {12,9:F1}" -f `
+    "Mean A", $meanA['p50'], $meanA['p99'], $meanA['GameThread'], $meanA['Vif1Worker'], $meanA['GsWorker'], $meanA['PresentLatch'], $meanA['MainLoop'], $meanA['other'], $meanA['TOTAL'], $meanA['TOTALms/s'], $meanA['fps'], $meanA['vu1/f']))
+$tbl.Add(("{0,-11} {1,8:F2} {2,8:F2} {3,11:F2} {4,11:F2} {5,11:F2} {6,13:F2} {7,10:F2} {8,9:F2} {9,9:F2} {10,10:F2} {11,7:F1} {12,9:F1}" -f `
+    "Mean B", $meanB['p50'], $meanB['p99'], $meanB['GameThread'], $meanB['Vif1Worker'], $meanB['GsWorker'], $meanB['PresentLatch'], $meanB['MainLoop'], $meanB['other'], $meanB['TOTAL'], $meanB['TOTALms/s'], $meanB['fps'], $meanB['vu1/f']))
+$tbl.Add(("{0,-11} {1,8:F2} {2,8:F2} {3,11:F2} {4,11:F2} {5,11:F2} {6,13:F2} {7,10:F2} {8,9:F2} {9,9:F2} {10,10:F2} {11,7:F1} {12,9:F1}" -f `
+    "Diff(B-A)", $diffMs['p50'], $diffMs['p99'], $diffMs['GameThread'], $diffMs['Vif1Worker'], $diffMs['GsWorker'], $diffMs['PresentLatch'], $diffMs['MainLoop'], $diffMs['other'], $diffMs['TOTAL'], $diffMs['TOTALms/s'], $diffMs['fps'], $diffMs['vu1/f']))
+$tbl.Add(("{0,-11} {1,7:F1}% {2,7:F1}% {3,10:F1}% {4,10:F1}% {5,10:F1}% {6,12:F1}% {7,9:F1}% {8,8:F1}% {9,8:F1}% {10,9:F1}% {11,6:F1}% {12,8:F1}%" -f `
+    "Diff(%)", $diffPct['p50'], $diffPct['p99'], $diffPct['GameThread'], $diffPct['Vif1Worker'], $diffPct['GsWorker'], $diffPct['PresentLatch'], $diffPct['MainLoop'], $diffPct['other'], $diffPct['TOTAL'], $diffPct['TOTALms/s'], $diffPct['fps'], $diffPct['vu1/f']))
 
 if ($hasNoise) {
     $tbl.Add(("{0,-11} {1,8:F2} {2,8} {3,11} {4,11:F2} {5,11:F2} {6,13} {7,10} {8,9} {9,9} {10,10}" -f `
@@ -335,9 +372,15 @@ if ($hasNoise) {
 }
 
 $tbl.Add("")
-$summaryLine = ("AB {0} p50 A={1:F2} B={2:F2} | vif A={3:F2} B={4:F2} | gs A={5:F2} B={6:F2}" -f `
-    $Tag, $meanA['p50'], $meanB['p50'], $meanA['Vif1Worker'], $meanB['Vif1Worker'], $meanA['GsWorker'], $meanB['GsWorker'])
+$summaryLine = ("AB {0} p50 A={1:F2} B={2:F2} | vif A={3:F2} B={4:F2} | gs A={5:F2} B={6:F2} | fps A={7:F1} B={8:F1}" -f `
+    $Tag, $meanA['p50'], $meanB['p50'], $meanA['Vif1Worker'], $meanB['Vif1Worker'], $meanA['GsWorker'], $meanB['GsWorker'], $meanA['fps'], $meanB['fps'])
 $tbl.Add($summaryLine)
+
+# Work-per-frame validity check
+$vA = $meanA['vu1/f']; $vB = $meanB['vu1/f']
+if ($vA -gt 0 -and ([math]::Abs($vA - $vB) / $vA) -gt 0.15) {
+    $tbl.Add(("WARNING: A and B do different work per frame (vu1/frame A={0:F1} B={1:F1}): CPU and frame-time comparison is NOT valid" -f $vA, $vB))
+}
 
 # Print table
 $tbl | ForEach-Object { Write-Host $_ }
