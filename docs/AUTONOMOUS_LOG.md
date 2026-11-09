@@ -70,3 +70,9 @@ What this tells us: EE CPU savings (-1.1 ms with lean + batch) do NOT change the
 
 ## 15. gpuDraw per-run hoisting `PS2X_GPUDRAW_RUN` (Task LT): verified exact, NO speed gain, reverted
 Verify: 3.5M prims compared (state words, flags, rows, verdict), 0 mismatches. A/B gd2 (2 rounds): GsWorker 13.97 -> 14.31, Vif 16.69 -> 16.84, fps 50.8 -> 51.2: nothing (noise ~0.5). The ~45 per-prim state stores were not the cost; the profile's gpuDraw self time is geometry/page-set/vertex work. Edits reverted (git checkout). GPU waits: [vk] stats show only 137 syncs per 3840 presents (present 41, transfer 96), but ~1.8 queue submits per frame each wait on a fence (flush() = submit + vkWaitForFences, line ~1608): that is the 10.8% ZwWaitForMultipleObjects on the GsWorker (wall time, not CPU). Fixing it needs ring double-buffering (resetRings reuses prims_/clut/staging): bigger redesign, not attempted unattended.
+
+## 16. Scheduling hints `PS2X_SCHED=1` (Task LU): no measurable effect, stays OFF
+Process ABOVE_NORMAL + power-throttling opt-out + timeBeginPeriod(1), and ABOVE_NORMAL + throttling opt-out on GameThread/Vif1Worker/GsWorker. A/B sc1 (2 rounds, dev): frame p50 19.95 -> 19.52, Vif1Worker 17.09 -> 16.88, GsWorker 13.87 -> 13.96, fps 50.0 -> 50.5, [ft2] p99 24.8-25.9 vs 23.7-25.8 (noise). The tail is not OS scheduling. (Note: this session's machine state ran ~50 fps in dev vs ~53 earlier; compare only within one A/B.)
+
+## Session end state (user returned)
+See the final report in the conversation. Kept and default ON: lean dispatch, batched GS pop, upload swizzle fast path. Opt-in: PS2X_ACCT_BATCH, PS2X_SYNCPATH_*, PS2X_SCHED, PS2X_UPLOAD_VERIFY, PS2X_FT2, PS2X_UPLOAD_STAT, PS2X_SYNCPATH_LOG. Refuted and reverted: LEAN per-run trims, SIMD unpack, probe-gate hoisting, gpuDraw hoisting.
