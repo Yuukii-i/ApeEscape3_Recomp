@@ -76,3 +76,11 @@ Process ABOVE_NORMAL + power-throttling opt-out + timeBeginPeriod(1), and ABOVE_
 
 ## Session end state (user returned)
 See the final report in the conversation. Kept and default ON: lean dispatch, batched GS pop, upload swizzle fast path. Opt-in: PS2X_ACCT_BATCH, PS2X_SYNCPATH_*, PS2X_SCHED, PS2X_UPLOAD_VERIFY, PS2X_FT2, PS2X_UPLOAD_STAT, PS2X_SYNCPATH_LOG. Refuted and reverted: LEAN per-run trims, SIMD unpack, probe-gate hoisting, gpuDraw hoisting.
+
+## 17. GS lean vertexKick (Task LW): KEPT, default ON; UNPACK cache (Task LX): REFUTED and removed; hoisted statics kept
+- PS2X_GIFSTAT showed one dominant GIF shape: PACKED triangle strips (PRIM 0x7C), NLOOP=20, regs FOG,ST,RGBAQ,XYZ2 (80 qwords per tag): 184k tags/s (~3.7M vertices/s, ~68k vertices and ~61k triangles per frame), 1086 ns per tag = 200 of the 368 ms/s spent in GIF tag handling. PS2X_GS_LEAN: drops the per-triangle probe timers/bookkeeping in vertexKick and decodes that shape in a dedicated loop. Verified 160k tags against the generic path (0 mismatches). A/B gl2 (2 rounds): GsWorker 14.30 -> 13.11 ms/frame (-1.2, -8.3%), both rounds consistent. Default ON now.
+- UNPACK setup cache: verification found 39k mismatches in 131k checks and the hit rate was only 9% (UNPACK parameters really vary per call), slower in the A/B: removed. The existing UNPACK fast path was already an SSE masked loop (vifUnpackLoop), so the earlier SIMD attempt (LF) had nothing to win. The function-local static -> namespace static hoists (vifStatOn etc., line 817 was 2.6% self time of the Vif1Worker) are kept.
+- Session-to-session machine variance: the SAME all-defaults dev build ran 54.5 fps in one session and 51.5 in another. Compare only inside one ab.ps1 run.
+
+## 18. All defaults + PGO (full cycle GEN 95 s, 2 min training at the shop, USE 87 s), dev vs PGO A/B (pgo3)
+fps 55.0 -> 60.0 (locked), frame p50 18.00 -> 16.70, p99 22.10 -> 18.65 (17.8 / 19.5), GameThread 11.20 -> 9.88, Vif1Worker 15.36 -> 13.77, GsWorker 12.86 -> 11.38, total 42.55 -> 38.63 CPU-ms/frame. Part A status in boost mode, shop: median locked, p99 18.65 (target 17.5), threads: Vif1Worker 13.8 (target 12), GsWorker 11.4 (ok), GameThread 9.9 (ok). Silent mode untested (stretch 1.27-1.40x would put the Vif1Worker at 17.5-19.3 ms: fails).
