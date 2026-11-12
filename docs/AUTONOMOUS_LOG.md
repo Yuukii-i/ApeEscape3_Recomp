@@ -91,3 +91,14 @@ Vif1Worker profile of the PGO exe (sp3, inclusive): vu1NativeRun 48.3% (lbFull 1
 
 ## 20. Final PGO measurement (pgo5, same exe on both sides, 3 rounds each)
 fps 59.7-59.8, p50 16.70, p99 20.5-21.3 (single runs 19.8-21.6; the earlier pgo3 had 17.8 and 19.5, so p99 varies by 2 ms between sessions), Vif1Worker 13.62-13.70, GsWorker 11.48-11.65, GameThread 10.26-10.33, total 38.96-39.27 CPU-ms/frame. LB2 default ON verified: replay MISMATCHED=0 (29,999 runs), shop screenshot correct with all defaults. See docs/STATUS_2026-11-10.md for the summary and the remaining options.
+
+## 21. Vulkan ring capacities (Tasks MA/MB, 2026-11-12): mid-frame GPU waits removed
+Diagnosis: GsWorker 10.7% of wall time in vkWaitForFences inside flush(); the present path was already async, the waits came from the prim ring overflowing (24576 prims; shop draws 35-61k/frame). MA added `flushwhy[prims/clut/staging/other]` to the [vk] line and env PS2X_VK_MAXPRIMS / PS2X_VK_MAXCLUT.
+A/B mp1 (dev exe, 2 rounds, slow machine state ~49.5 fps both sides): default flushwhy=2071/0/0/0, sync_ms 4845, barriers 2310; with 131072/8192: flushwhy=0/0/0/0, sync_ms 86, barriers 802. fps/p50 unchanged (19.85 vs 19.75 ms, noise 0.3): the Vif1Worker (17.2 ms) limits, fence waits are not CPU time. GsWorker CPU -0.3 ms (noise level). Screenshot shot_mp1_1.png correct.
+Kept: MB makes 131072/8192 the default (old sizes via env PS2X_VK_MAXPRIMS=24576 PS2X_VK_MAXCLUT=2048). Cost: +2x(32+6) MB host-visible memory. Gain: ~1.5 ms of GsWorker wall time per frame freed (headroom once the Vif1Worker drops).
+
+## 22. Prim record staging (Tasks MC/MD, 2026-11-12): GsWorker -24%
+Cause: prims_ is HOST_VISIBLE|COHERENT without CACHED (write-combined); gpuDraw did a 320-byte memset plus ~70 scattered out-of-order 4-byte stores per prim straight into it. MC builds the record in an aligned stack buffer and memcpys it once at commit (same bytes).
+A/B mc1 (dev exe, 3 rounds): GsWorker 14.41 -> 10.89 CPU-ms/frame (-3.5 ms, every round), Vif1Worker 17.43 -> 17.01, total 47.6 -> 43.5. fps/p50 unchanged (Vif1Worker limits). Pictures shot_mc1_1 / shot_md1_1 correct.
+Kept: MD makes it default ON (PS2X_VK_PRIMSTAGE=0 disables). Other mapped buffers checked: only bulk sequential memcpys or CACHED memory, nothing else to fix.
+Next: item 3, direct geometry on the Vif1Worker (now the only worker above 12 ms).
