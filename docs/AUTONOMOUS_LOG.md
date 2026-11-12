@@ -117,3 +117,9 @@ Design: processVIF1Data (one call ~ one frame) turns VIF codes into an ordered S
 Claude fixes: seq_cst on ring/flag atomics (Dekker lost-wakeup on the sleep path), and DIRECT image chunks queued as owned packets instead of a drain each (probe PS2X_VIF1_PIPE_STAT=1: 200 drains/frame -> 1).
 A/B mg5 (SILENT, 3 rounds): fps 39.3 -> 43.0, p50 25.08 -> 22.73, p99 31.5 -> 29.7; Vif1Worker (now parser) 22.2 -> 11.5 CPU-ms, Vu1Exec ~20.6 (in "other"; ~15% of it spinning). Pictures shot_mg2 / mg5 correct. Default ON.
 Now limiting: Vu1Exec (VU1 programs + XGKICK + DIRECT + record apply) ~21 ms/frame silent.
+
+## 26. Where the silent-mode frame goes now (dev + PGO, 2026-11-12)
+PGO retrained with the pipeline (tools\pgo_cycle.ps1: GEN 137 s, 90 s shop training, normal close, USE 125 s). A/B pgo6 (silent): PGO cuts CPU/frame on every thread (EE 16.2 -> 14.6, parser 11.3 -> 8.2, Gs 12.2 -> 10.9, Vu1Exec 20.4 -> 18.6, total -12%) but fps 43.0 -> 41.8 with +4.4% VU work per frame in B (not a clean comparison).
+[wait] line: the EE waits in the VIF1 fence 28% (dev) / 36% (PGO) of the time; the worker is idle 14% / 27%. Frame = EE work + exposed wait for the VIF job at the game's syncs (VIF1_STAT/GIF_STAT polls from guest 0x2843D4 and sceGsSyncPath; both are real semantics, see section 9). So EE time and VIF job latency are both on the critical path.
+Vu1Exec profile: native VU1 kernels ~58% (lbFull 19, lbVertex8R 11), per-run interpreter overhead ~19%, GIF submit ~8%, record apply ~3%, ring wait ~12%. EE profile (70% busy): VU0 microprograms 17% ([jm] probe: ~4400 calls/frame, ~670 ns each, 1/3 fixed overhead), sceDmaSend chain gather 14% (payload copy ~1.8 ms/frame silent).
+Next: Task MH defers the RDRAM payload copy from the EE to the Vif1Worker (parser has ~9 ms slack).
