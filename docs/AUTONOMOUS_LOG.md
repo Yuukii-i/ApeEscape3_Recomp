@@ -215,3 +215,8 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - Live: picture correct (logs\shot_f2_1.png), [vfunc] taken 92%.
 - A/B f2b (3 rounds, silent, AC power; the first run f2 was on battery and agreed): fps 42.0 -> 38.8, p50 23.33 -> 25.40: slower than the exact native kernels, because the skinned path uses the scalar lbVertex instead of the 8-wide lbVertex8R kernel and the rigid path is scalar.
 - Next: vectorise the functional vertex math (8 vertices per step like lbVertex8/8R with exact per-group fallback), then per-call overhead, then 15E0/1C48/clipping.
+
+## 41. PERF-F2Z: zero-operand lanes skip the exact slow path in fmacV (Sonnet)
+- Profile of the functional engine (logs\shot_f2prof.err): fmacV's per-lane double re-classification dominated because lanes with an exactly-zero operand always fail the exponent window. Zero-operand lanes now use the IEEE result (identical: signed zero / ac + 0), signbit via raw bits.
+- Replay: mem=0 gif=0, taken 7597, run_ms 23.41 -> 18.58.
+- A/B f2z (3 rounds, silent, AC): fps 42.2 -> 43.7, p50 23.17 -> 22.42 with PS2X_VU1_FUNC=1. First net win of the functional engine.
