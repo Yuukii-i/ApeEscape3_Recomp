@@ -30,6 +30,17 @@ unhandled path -> today's exact path (fallback is per MSCAL, decided before runn
 5. GIF emission straight into the coalescing buffer (no m_xgkick.packet copy), one submit per program.
 6. A/B per step (silent, shop + one gameplay level), screenshots, replay MISMATCHED(mem/gif)=0 on the shop corpus + a new gameplay corpus.
 
+## Long-term goal this design must serve (user, 2026-11-12)
+Final project objective: modern lighting at "PS3 level" (simple shadows, light shafts, bloom, depth of field; no ray/path tracing).
+So the decompiled handlers must not be a black box that only reproduces GIF bytes. Keep the semantic layer visible:
+- per handler: inputs as named data (object matrices, bone matrices, light/colour constants, vertex streams), outputs as
+  world/view-space positions + normals + UV + colour BEFORE projection/packing, then a separate "pack to GIF" step;
+- a hook where a modern renderer can take the geometry (per object/draw: transform, vertices, material = TEX0/ALPHA state) instead of
+  the packed GS primitives.
+What needs what: bloom, DoF and god rays are post-processes on the Vulkan GS output + its depth buffer (possible before the
+decompile is finished); real shadows need the decompiled geometry path (re-render from the light, or shadow maps) plus the light
+direction from the VU constants. Order stays: speed first (exact functional output), semantic hooks designed in from step 3 on.
+
 ## Risks
 - Hidden readers of VU1 state outside VU1 (EE reads of VU1 memory via VIF/MFIR paths, XITOP/XTOP) -> check before step 4.
 - Float exactness: VU float semantics (no denormals/inf, clamp) must be reproduced in the C++ (existing helpers in vu1_hot_ops.h).
