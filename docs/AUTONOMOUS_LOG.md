@@ -142,3 +142,6 @@ Capture: PS2X_VU1_CAPTURE=1 EVERY=1 MAX=8000 DELAY_SEC=160 CORPUS=logs\vu1corpus
 - Structure per object: writer -> 1-2 small header programs (30/55 cycles) -> ~9 vertex batches (545 cycles, 1296 GIF bytes, swap toggle); median object 4,237 VU cycles.
 - Predictability (python over the capture): header word 1 of the input batch at TOP predicts "swaps toggle" with 100% accuracy (28 distinct values); the full first qword predicts "palette writer" 100%. "same as previous" is only 79.6%.
 Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per-thread VU memory copies (VIF writes to both), forward toggle + palette (161 qwords) in program order, predict the toggle from the header type table, serialize after predicted palette writers, verify after each run and re-run on a surprise. Fallback to sequential for unknown header types / other code images.
+
+- Scramble mask 8 (MAC/STATUS/CLIP incl. clip history) and mask 15 (everything) on the shop corpus: outdiff 0 of 8000 both. Plan written: docs/VU1_DUAL_PLAN.md; Task DA (thread-safety audit for two VU1 instances) sent to Gemini.
+
