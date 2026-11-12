@@ -172,3 +172,10 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - DC2 entry-memory compare: EVERY X1 program starts from a different memory: constants 994-1000/1010-1016 (matrices/constants written by the small header programs) and old output-buffer qwords 149-177 / 394-446. So section 29's 'only W crosses programs' does NOT hold live: header programs pass constants to the following vertex batches.
 - PROBE-DC3 (PS2X_VU1_DUAL_VERIFY_SYNC=1: X1 starts from X0's exact 16 KB entry memory): gifMismatch 0-1 per ~95k programs, wMismatch 0. => the second VU1 instance is correct; only the memory forwarding is wrong.
 - Next: Task DB3: forward each program's full write set (diff vs its entry snapshot) instead of the fixed W, speculate only when the predecessor is a 'kick-only' writer (writes only 1023 + its own XGKICK source range), verify and rerun otherwise.
+
+## 34. Task DB3 (Gemini) + PROBE-DB3H / PERF-DB3P (Sonnet subagent): exact dual executor works, but is SLOWER - PARKED (default off)
+- DB3: each program publishes its full write set (diff vs a 16 KB entry snapshot); the other thread applies it (skipping qwords VIF wrote since); speculation only after 'kick-only' predecessors (writes only 1023 + own XGKICK range), verify + rerun.
+- PS2X_VU1_DUAL=1 shop: picture CORRECT (logs\shot_db3_2.png, logs\shot_db3p_1.png) but 19-21 fps vs ~41 single.
+- Non-kick writes (PROBE-DB3H): 31% of programs; hottest qword 1018 (43.6k programs/window) and the table 636-650 (~23-28k). Majority predictor (PERF-DB3P, kick-only if >=75% of observations): spec 31k of 140k X1 runs, reruns ~500, waits_exact ~224k: nearly every program still waits for its predecessor.
+- Cost: each thread ~1856 ms busy per window vs 1632 for the single executor in DB1, drain wait 1427 vs 573 ms: snapshot/diff/apply + per-program GS flush + turn waits outweigh the parallel part.
+- Conclusion: program-level parallelism is blocked by real program-to-program dependencies (1018 + table + constants) and per-program sync cost. Parked behind PS2X_VU1_DUAL (default off). The VU1 time has to come down per program (decompiled/HLE kernels, per-call overhead), not by splitting.
