@@ -192,3 +192,8 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - PROBE-TL (PS2X_TL=1, ps2_memory.cpp) shop steady window: 1 VIF job per frame, queue wait 0.02 ms, job duration 20.3 ms (max 31), the EE kicks it 12.0 ms before it starts waiting and waits 8.4 ms. Frame ~25 ms = EE pre-kick work (~4.6 ms) + job duration (20.3 ms).
 - => The frame is (EE time until the kick) + (VU1 job latency). Job latency = the Vu1Exec work of the frame. 60 fps needs job <= ~12 ms (and EE total 16.6 ms -> lower too, it is right at the limit). CPU savings off this chain (GS, parser, EE after the kick) cannot raise fps.
 - Priorities: (1) VU1 per-program cost (decompiled kernels), (2) EE pre-kick work, (3) EE total.
+
+## 37. VU1 program map, live (PROBE-PC, PS2X_VU1_PCPROF=1, Sonnet subagent; shop, silent, 5 s window, logs\shot_pcp.err)
+- Native-run time ~497 ms/s (~12 ms/frame of the ~20 ms job; the rest = per-call overhead, record apply, submit). 0 slow pairs.
+- By unit start pc: skinning 1FE0 753.6 ms (1.05 us/call) + tails 1EE0/1EF8/1F68/1F78 ~95 => ~34%; dispatcher pcs 0000/0008/0028/0050/0070/0088/0090/00A8/0188 ~544 ms (~22%, 0028 alone 3.3M entries/5 s, i.e. per-block dispatch overhead); vertex/clip machine 2440 + 24F0/24F8/25B8/2C78/2CB8/2D50/2DB8/2DD8/2DE0/2E18/2E40/2E88/2E98/2EF8 ~540 ms (~22%); matrix loop 0158 234.8 ms (~9.5%); copy 0C80 81.8 ms; 16C0 53.6; 1C90 19.5.
+- Decompile order (VU1_DECOMPILE_PLAN): replay harness in functional mode first, then dispatcher + skinning (together ~56%), then the clip machine, then 0158.
