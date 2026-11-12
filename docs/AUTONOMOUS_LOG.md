@@ -208,3 +208,10 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - Replay harness PS2X_VU1_REPLAY_FUNC=1 (mismatch = mem/gif only), shop corpus: taken 2494 / fallback 5506 (1EE0 5175, startPC!=8 184, 15E0 74, 1C48 64, 0B40 6, 3160 3), mem=0 gif=0.
 - Live (logs\shot_f1_2.png): picture correct, ~36% of programs functional. A/B f1 (2 rounds): fps 45.0 vs 44.8 (neutral: covered handlers are cheap ones). A first-command skip memo lost good programs -> behind PS2X_VU1_FUNC_MEMO (off).
 - Next: Task F2 = functional 1EE0 (skinned 1FE0 path from lbFull, rigid 2440 path from lbVert), docs\NEXT_TASK_F2.md.
+
+## 40. Task F2: functional 1EE0 (Sonnet subagent) - EXACT, 92% of programs functional, but SLOWER (scalar port)
+- vu1_func.inc: handler1EE0 (prologue closed form, vi12 kept as live state), skinned 1FE0 path ported 1:1 from the SCALAR lbVertex chain + lbFull commit layout, rigid 2440 path ported from lbVert (paths A/B/C, trivial-reject masks, 1022.x write, epilogue with 1023 swap + XGKICK). Falls back: 1EF0 entry, real clipping, N out of range, DIV by 0, aliasing guards.
+- Replay (shop corpus): taken 7597 / fallback 402 (startPC!=8 184, 15E0 74, 1EE0 71, 1C48 64), mem=0 gif=0.
+- Live: picture correct (logs\shot_f2_1.png), [vfunc] taken 92%.
+- A/B f2b (3 rounds, silent, AC power; the first run f2 was on battery and agreed): fps 42.0 -> 38.8, p50 23.33 -> 25.40: slower than the exact native kernels, because the skinned path uses the scalar lbVertex instead of the 8-wide lbVertex8R kernel and the rigid path is scalar.
+- Next: vectorise the functional vertex math (8 vertices per step like lbVertex8/8R with exact per-group fallback), then per-call overhead, then 15E0/1C48/clipping.
