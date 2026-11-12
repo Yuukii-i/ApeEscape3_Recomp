@@ -234,3 +234,5 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - Exactness (replay PS2X_VU1_REPLAY_FUNC=1, mem/gif): shop corpus 7597/8000 taken, early-run capture (vu1corpus.bin, 20 s) 6598/8000, snow corpus 4895/5956, all mem=0 gif=0.
 - Default build without env (logs\shot_fdef_1.png): picture correct, 51 fps in the shop (silent). Live fallbacks: 15E0, 1C48, 1EE0 (real clipping), 0B40, 3160, 0AF0, 1900, 1EF0; no non-0008 starts live.
 - Roles from now: coding by Gemini 4 Hydrogen (Medium) via antigravity, Sonnet for quick fixes, Haiku for reading.
+
+## 45. Critical path after functional VU1 (PROBE-TL, silent, default build): frame ~19.5 ms, VIF job 15.2 ms (was 20.3), EE fence wait 2.9 ms (was 8.4), EE work ~16.6 ms/frame => the EE is now the main limiter. Vu1Exec 20.6% idle; its top items: handler00A8 8.7%, GIF submit ~11%, fmacV ~6%. Next: VU0 microprogram inventory (Task V0A, Gemini 4 Hydrogen Medium) to decompile the hot VU0 programs the same way.
