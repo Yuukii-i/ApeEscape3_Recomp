@@ -243,3 +243,8 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - Check mode PS2X_VU0_FAST_CHECK=1 (fast on a copy vs normal path, every architectural field incl. MAC/STATUS/CLIP/pc/tpc/vpu_stat): 12.95M calls, 92% fast, 0 mismatches.
 - A/B v0b (3 rounds, silent, AC): p50 19.00 -> 18.63 (-1.9%), fps 51.3 -> 51.7; EE busy column unchanged within noise (saved time partly becomes wait). Exact; candidate for default ON after one more scene check.
 - Hydrogen notes: both tasks (V0A probe, V0B fast path) compiled first time and were correct; ~2.5 and ~4 min per job.
+
+## 48. Task F3 (Gemini 4 Hydrogen Medium, ~5 min): functional 15E0 (two-sided light), 1C48/1C90/1CB0 (affine), 0B40/0BC8/0C28 (bitfield packer incl. FMAND timing), 3160/3268 (perspective, DIV Q), 0AF0 (clear), 1900 (transform), 1EF0 entry (2210/2670 variants); exact helpers ADD/SUB/MSUB/DIV/MAX/MINI. VU0 fast path default ON (Sonnet).
+- Replay mem/gif: shop 7733/8000 taken, early-run 7403/8000, snow 5481/5956, all mem=0 gif=0. Remaining fallbacks: startPC != 0008 (corpora only) and 1EE0 real clipping.
+- Live (logs\shot_f3_1.png): picture correct, 55 fps on screen, functional 98.4% (fallbacks 1EE0 clipping 1.6%).
+- A/B f3all (3 rounds, silent, AC): all exact (PS2X_VU1_FUNC=0 PS2X_VU0_FAST=0) vs new defaults: fps 38.0 -> 51.3 (+35%), p50 25.93 -> 19.38.
