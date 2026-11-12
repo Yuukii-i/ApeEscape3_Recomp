@@ -123,3 +123,10 @@ PGO retrained with the pipeline (tools\pgo_cycle.ps1: GEN 137 s, 90 s shop train
 [wait] line: the EE waits in the VIF1 fence 28% (dev) / 36% (PGO) of the time; the worker is idle 14% / 27%. Frame = EE work + exposed wait for the VIF job at the game's syncs (VIF1_STAT/GIF_STAT polls from guest 0x2843D4 and sceGsSyncPath; both are real semantics, see section 9). So EE time and VIF job latency are both on the critical path.
 Vu1Exec profile: native VU1 kernels ~58% (lbFull 19, lbVertex8R 11), per-run interpreter overhead ~19%, GIF submit ~8%, record apply ~3%, ring wait ~12%. EE profile (70% busy): VU0 microprograms 17% ([jm] probe: ~4400 calls/frame, ~670 ns each, 1/3 fixed overhead), sceDmaSend chain gather 14% (payload copy ~1.8 ms/frame silent).
 Next: Task MH defers the RDRAM payload copy from the EE to the Vif1Worker (parser has ~9 ms slack).
+
+## 27. Pipeline tuning and two refuted ideas (silent)
+- Parser profile: vpPushRec was ~35% of parser CPU (a seq_cst store + head reload per record; the record volume is ~10x the UNPACK count). Relaxed tail + cached head: parser ~9.8 CPU-ms (was 11.5). Kept.
+- Smaller rings (16K/64K records, 8K events): constant "full" waits, parser CPU up to 17 ms, no fps gain. Reverted to 64K/256K.
+- Task MH (defer the VIF1 DMA RDRAM copy from the EE to the worker, PS2X_VIF1_DEFER): REFUTED, A/B mh3 fps 42.7 -> 40.8, p50 +1.1 ms, EE CPU unchanged. As predicted by the timing chain (frame ~ EE pre-kick work + job latency), the copy just moved inside the job. Code reverted (not committed).
+- Spin count (PS2X_VPIPE_SPIN 4000 vs 200): no difference (A/B sp1). Default 4000.
+- VU1 phase timers with the pipeline (silent, per frame): VU1 run ~17 ms = kernels ~8.4 + hot blocks ~6.3 + epilogue ~1.7 + prologue ~0.6. Vu1Exec total ~20 incl. record apply / DIRECT / events. VU1 compute alone exceeds the silent budget: next is the register-independence experiment (Task MI) to see if MSCAL programs can run on two threads.
