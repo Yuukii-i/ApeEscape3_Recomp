@@ -166,3 +166,9 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - Shop corpus replay with kernels: 8000 calls, MISMATCHED=0, 2.23 us/call (no GS submit).
 - PS2X_VU1_FAST=1: INVALID (vu1/frame 6377 -> 333, rendering broken), not a lever.
 - DB2 with PS2X_GIF_COALESCE=0: still no 3D => not the coalescing. Next: Task DC verify mode (X0 does all work, X1 recomputes odd programs and compares GIF + W).
+
+## 33. Dual executor root cause found (Tasks DC/DC2 verify mode by Gemini + PROBE-DC3 by Claude)
+- PS2X_VU1_DUAL_VERIFY=1: X0 does all real work (picture correct, logs\shot_dc_1.png), X1 recomputes odd programs on the shadow copy with exact W from slot(k-1) and compares. Result: GIF differs in ~42% of programs, W in ~3%.
+- DC2 entry-memory compare: EVERY X1 program starts from a different memory: constants 994-1000/1010-1016 (matrices/constants written by the small header programs) and old output-buffer qwords 149-177 / 394-446. So section 29's 'only W crosses programs' does NOT hold live: header programs pass constants to the following vertex batches.
+- PROBE-DC3 (PS2X_VU1_DUAL_VERIFY_SYNC=1: X1 starts from X0's exact 16 KB entry memory): gifMismatch 0-1 per ~95k programs, wMismatch 0. => the second VU1 instance is correct; only the memory forwarding is wrong.
+- Next: Task DB3: forward each program's full write set (diff vs its entry snapshot) instead of the fixed W, speculate only when the predecessor is a 'kick-only' writer (writes only 1023 + its own XGKICK source range), verify and rerun otherwise.
