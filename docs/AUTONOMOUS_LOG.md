@@ -197,3 +197,8 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - Native-run time ~497 ms/s (~12 ms/frame of the ~20 ms job; the rest = per-call overhead, record apply, submit). 0 slow pairs.
 - By unit start pc: skinning 1FE0 753.6 ms (1.05 us/call) + tails 1EE0/1EF8/1F68/1F78 ~95 => ~34%; dispatcher pcs 0000/0008/0028/0050/0070/0088/0090/00A8/0188 ~544 ms (~22%, 0028 alone 3.3M entries/5 s, i.e. per-block dispatch overhead); vertex/clip machine 2440 + 24F0/24F8/25B8/2C78/2CB8/2D50/2DB8/2DD8/2DE0/2E18/2E40/2E88/2E98/2EF8 ~540 ms (~22%); matrix loop 0158 234.8 ms (~9.5%); copy 0C80 81.8 ms; 16C0 53.6; 1C90 19.5.
 - Decompile order (VU1_DECOMPILE_PLAN): replay harness in functional mode first, then dispatcher + skinning (together ~56%), then the clip machine, then 0158.
+
+## 38. VU1 handler inventory (PROBE-HI, Sonnet; shop, 5 s window, logs\shot_hi.err) + full image disassembly (docs\vu1_image_86503d39.txt)
+- Handlers (inclusive): 1EE0 1761 ms/770k (~70% of VU1 native time: skinned-mesh pipeline = 1FE0 skin + 2440 vertex/clip + 2900+ clipping), 00A8 281 ms/129k (matrix setup + 0158 loop), 0C80 84 ms/1.1M (copy), 15E0 59 ms/14k, 0088 45/241k, 0050 43/241k, 0070 38/750k, 1C48 22/13k, 0B40 7.7/1.1k, 3160 0.7/449.
+- Programs per signature (handler set): {70,C80,1EE0} 63%, {50,88,C80} 11%, {A8,C80} 11%, {50,88} 9%, {C80} 1.8%, {C80,1EE0} 1.7%, {15E0} 1.2%, {70,C80,1C48,1EE0} 1.0%, {70,B40,C80,1C48,1EE0} 0.1%, {C80,1EE0,3160} 0.04%.
+- => Functional engine scope: dispatcher + 0050/0070/0088/0C80/00A8 + 1EE0 covers ~96% of programs and ~95% of time; then 15E0, 1C48, 0B40, 3160 for ~100%.
