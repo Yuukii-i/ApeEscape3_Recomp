@@ -238,3 +238,8 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 ## 45. Critical path after functional VU1 (PROBE-TL, silent, default build): frame ~19.5 ms, VIF job 15.2 ms (was 20.3), EE fence wait 2.9 ms (was 8.4), EE work ~16.6 ms/frame => the EE is now the main limiter. Vu1Exec 20.6% idle; its top items: handler00A8 8.7%, GIF submit ~11%, fmacV ~6%. Next: VU0 microprogram inventory (Task V0A, Gemini 4 Hydrogen Medium) to decompile the hot VU0 programs the same way.
 
 ## 46. VU0 inventory (Task V0A by Gemini 4 Hydrogen Medium, PROBE-V0A PS2X_VU0_PCPROF=1; shop, 5 s): ~1.07M VU0 calls, ~745 ms (~3 ms/frame, ~18% of EE work). Image d985722524327b89 (docs\vu0_image_d9857225.txt). Top: 0x088 258 ms/460k (~560 ns), 0xCD0 253 ms/440k (~580 ns), 0x000 80/66k, 0x0F0 67/43k, 0x4B0 45/35k, 0x348 40/33k. 0x088 and 0xCD0 are 12-pair straight-line FMAC programs (scale + two 4x4 matrix multiplies): ~95% of their cost is per-call overhead of the generic execute path. Next: Task V0B fast path for straight-line VU0 programs with an exact check mode.
+
+## 47. Task V0B (Gemini 4 Hydrogen Medium, ~4 min): fast path for straight-line VU0 FMAC programs (vu/vu0_fast.inc, hook in PS2Runtime::executeVU0Microprogram), PS2X_VU0_FAST=1 default off
+- Check mode PS2X_VU0_FAST_CHECK=1 (fast on a copy vs normal path, every architectural field incl. MAC/STATUS/CLIP/pc/tpc/vpu_stat): 12.95M calls, 92% fast, 0 mismatches.
+- A/B v0b (3 rounds, silent, AC): p50 19.00 -> 18.63 (-1.9%), fps 51.3 -> 51.7; EE busy column unchanged within noise (saved time partly becomes wait). Exact; candidate for default ON after one more scene check.
+- Hydrogen notes: both tasks (V0A probe, V0B fast path) compiled first time and were correct; ~2.5 and ~4 min per job.
