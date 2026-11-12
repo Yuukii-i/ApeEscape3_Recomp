@@ -186,3 +186,9 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - Single hottest hot block: vuH_14 (pc 0158, 6-pair 4x4 matrix MUL/MADD loop with LQ/LQI/SQI) 4.9%.
 - Per-call overhead live: prologue 20 + epilogue 61 + submit 40 ms/s at ~107k calls/s = ~1.1 us per call (~15% of busy).
 - Every single item is <= 5% of the thread except skinning; 60 fps needs ~-8 ms of VU1 latency per frame => whole-program decompiled kernels remain the only lever of that size.
+
+## 36. PGO retrain (pgo7) and the frame's critical path (PROBE-TL, Sonnet subagent)
+- pgo7 (silent, 3 rounds, dev vs PGO exe): CPU/frame -10.6% (EE 14.97->13.59, Vif1 9.27->7.31, Gs 11.59->10.55) but fps 44.0 -> 43.0 (noise). [wait]: EE fence wait per frame 7.4 (dev) -> 9.1 ms (PGO): the job ends at the same time.
+- PROBE-TL (PS2X_TL=1, ps2_memory.cpp) shop steady window: 1 VIF job per frame, queue wait 0.02 ms, job duration 20.3 ms (max 31), the EE kicks it 12.0 ms before it starts waiting and waits 8.4 ms. Frame ~25 ms = EE pre-kick work (~4.6 ms) + job duration (20.3 ms).
+- => The frame is (EE time until the kick) + (VU1 job latency). Job latency = the Vu1Exec work of the frame. 60 fps needs job <= ~12 ms (and EE total 16.6 ms -> lower too, it is right at the limit). CPU savings off this chain (GS, parser, EE after the kick) cannot raise fps.
+- Priorities: (1) VU1 per-program cost (decompiled kernels), (2) EE pre-kick work, (3) EE total.
