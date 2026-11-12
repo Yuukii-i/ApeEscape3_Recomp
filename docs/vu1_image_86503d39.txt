@@ -1,0 +1,1665 @@
+== CODE chunk, payload 16392 bytes, header 7e13000000000000
+0000: 400002ff 8000033c  NOP                                | MOVE.- vf0, vf0
+0008: 000002ff 100f0005  NOP                                | IADDIU vi15, vi0, 5
+0010: 000002ff 800c06bc  NOP                                | XTOP vi12
+0018: 000002ff 09016000  NOP                                | ILW.x vi1, 0(vi12)
+0020: 000002ff 800d6032  NOP                                | IADDI vi13, vi12, 0
+0028: 000002ff 100d6801  NOP                                | IADDIU vi13, vi13, 1
+0030: 000002ff 48000800  NOP                                | JR vi1
+0038: 000002ff 08826fff  NOP                                | ILW.y vi2, -1(vi13)
+0040: 000002ff 400007f9  NOP                                | B -7
+0048: 000002ff 100f0000  NOP                                | IADDIU vi15, vi0, 0
+0050: 000002ff 100103ff  NOP                                | IADDIU vi1, vi0, 1023
+0058: 000002ff 80000efc  NOP                                | XGKICK vi1
+0060: 000002ff 48007800  NOP                                | JR vi15
+0068: 000002ff 09016800  NOP                                | ILW.x vi1, 0(vi13)
+0070: 000002ff 800c10b1  NOP                                | ISUB vi2, vi2, vi12
+0078: 000002ff 40000021  NOP                                | B 33
+0080: 000002ff 800c1370  NOP                                | IADD vi13, vi2, vi12
+0088: 000002ff 80006efc  NOP                                | XGKICK vi13
+0090: 000002ff 80026b70  NOP                                | IADD vi13, vi13, vi2
+0098: 000002ff 48007800  NOP                                | JR vi15
+00A0: 000002ff 09016800  NOP                                | ILW.x vi1, 0(vi13)
+00A8: 01e007ec 01e303d4  SUB.xyzw vf31, vf0, vf0            | LQ.xyzw vf3, 980(vi0)
+00B0: 000002ff 01e103e6  NOP                                | LQ.xyzw vf1, 998(vi0)
+00B8: 000002ff 01e503e7  NOP                                | LQ.xyzw vf5, 999(vi0)
+00C0: 000002ff 01e703e8  NOP                                | LQ.xyzw vf7, 1000(vi0)
+00C8: 000002ff 01e403d5  NOP                                | LQ.xyzw vf4, 981(vi0)
+00D0: 01e309bc 01e603e9  MULAx.xyzw ACC, vf1, vf3           | LQ.xyzw vf6, 1001(vi0)
+00D8: 01e328bd 090303f3  MADDAy.xyzw ACC, vf5, vf3          | ILW.x vi3, 1011(vi0)
+00E0: 01e338ca 082203f3  MADDz.xyzw vf3, vf7, vf3           | ILW.w vi2, 1011(vi0)
+00E8: 01e409bc 01e203d3  MULAx.xyzw ACC, vf1, vf4           | LQ.xyzw vf2, 979(vi0)
+00F0: 01e428bd 10051a7c  MADDAy.xyzw ACC, vf5, vf4          | IADDIU vi5, vi3, 636
+00F8: 01e438be 100119dc  MADDAz.xyzw ACC, vf7, vf4          | IADDIU vi1, vi3, 476
+0100: 01e4310b 01e803d2  MADDw.xyzw vf4, vf6, vf4           | LQ.xyzw vf8, 978(vi0)
+0108: 01e209bc 8000033c  MULAx.xyzw ACC, vf1, vf2           | MOVE.- vf0, vf0
+0110: 01e228bd 8000033c  MADDAy.xyzw ACC, vf5, vf2          | MOVE.- vf0, vf0
+0118: 01e2388a 8000033c  MADDz.xyzw vf2, vf7, vf2           | MOVE.- vf0, vf0
+0120: 01e809bc 81f90b7c  MULAx.xyzw ACC, vf1, vf8           | LQI.xyzw vf25, (vi1++)
+0128: 01e828bd 8000033c  MADDAy.xyzw ACC, vf5, vf8          | MOVE.- vf0, vf0
+0130: 01e8384a 8000033c  MADDz.xyzw vf1, vf7, vf8           | MOVE.- vf0, vf0
+0138: 01f909bc 81e50b7c  MULAx.xyzw ACC, vf1, vf25          | LQI.xyzw vf5, (vi1++)
+0140: 01f910bd 8000033c  MADDAy.xyzw ACC, vf2, vf25         | MOVE.- vf0, vf0
+0148: 01f918be 800229b0  MADDAz.xyzw ACC, vf3, vf25         | IADD vi6, vi5, vi2
+0150: 01f9218b 10071acc  MADDw.xyzw vf6, vf4, vf25          | IADDIU vi7, vi3, 716
+0158: 01e509bc 81e7fb7d  MULAx.xyzw ACC, vf1, vf5           | SQI.xyzw vf31, (vi7++)
+0160: 01e510bd 01850800  MADDAy.xyzw ACC, vf2, vf5          | LQ.xy vf5, 0(vi1)
+0168: 01e518be 81e5337d  MADDAz.xyzw ACC, vf3, vf5          | SQI.xyzw vf6, (vi5++)
+0170: 01e5218b 80650b7c  MADDw.xyzw vf6, vf4, vf5           | LQI.zw vf5, (vi1++)
+0178: 000002ff 52062ffb  NOP                                | IBNE vi6, vi5, -5
+0180: 000002ff 8000033c  NOP                                | MOVE.- vf0, vf0
+0188: 000002ff 48007800  NOP                                | JR vi15
+0190: 000002ff 09016800  NOP                                | ILW.x vi1, 0(vi13)
+0198: 00d94089 803103fd  MADDy.yz vf2, vf8, vf25            | MFIR.w vf17, vi0
+01A0: 00d949bc 10063010  MULAx.yz ACC, vf9, vf25            | IADDIU vi6, vi6, 16
+01A8: 00d95109 811233fd  MADDy.yz vf4, vf10, vf25           | MFIR.x vf18, vi6
+01B0: 01f80868 8000033c  ADD.xyzw vf1, vf1, vf24            | MOVE.- vf0, vf0
+01B8: 01f810a8 8000033c  ADD.xyzw vf2, vf2, vf24            | MOVE.- vf0, vf0
+01C0: 01f818e8 8000033c  ADD.xyzw vf3, vf3, vf24            | MOVE.- vf0, vf0
+01C8: 000002ff 01e603db  NOP                                | LQ.xyzw vf6, 987(vi0)
+01D0: 000002ff 01e96800  NOP                                | LQ.xyzw vf9, 0(vi13)
+01D8: 000002ff 01ec6801  NOP                                | LQ.xyzw vf12, 1(vi13)
+01E0: 000002ff 01eb6802  NOP                                | LQ.xyzw vf11, 2(vi13)
+01E8: 01e649bc 01e403da  MULAx.xyzw ACC, vf9, vf6           | LQ.xyzw vf4, 986(vi0)
+01F0: 01e660bd 090103f3  MADDAy.xyzw ACC, vf12, vf6         | ILW.x vi1, 1011(vi0)
+01F8: 01e6598a 01e703dc  MADDz.xyzw vf6, vf11, vf6          | LQ.xyzw vf7, 988(vi0)
+0200: 01e449bc 8000033c  MULAx.xyzw ACC, vf9, vf4           | MOVE.- vf0, vf0
+0208: 01e460bd 10020acc  MADDAy.xyzw ACC, vf12, vf4         | IADDIU vi2, vi1, 716
+0210: 01e4594a 10010a2c  MADDz.xyzw vf5, vf11, vf4          | IADDIU vi1, vi1, 556
+0218: 01e749bc 81ea0b7c  MULAx.xyzw ACC, vf9, vf7           | LQI.xyzw vf10, (vi1++)
+0220: 01e760bd 8000033c  MADDAy.xyzw ACC, vf12, vf7         | MOVE.- vf0, vf0
+0228: 01e759ca 81ec0b7c  MADDz.xyzw vf7, vf11, vf7          | LQI.xyzw vf12, (vi1++)
+0230: 01ea29bc 8000033c  MULAx.xyzw ACC, vf5, vf10          | MOVE.- vf0, vf0
+0238: 01ea30bd 81ed137c  MADDAy.xyzw ACC, vf6, vf10         | LQI.xyzw vf13, (vi2++)
+0240: 01ea3a8a 082303f3  MADDz.xyzw vf10, vf7, vf10         | ILW.w vi3, 1011(vi0)
+0248: 01ec29bc 01e16803  MULAx.xyzw ACC, vf5, vf12          | LQ.xyzw vf1, 3(vi13)
+0250: 01e05290 01e26804  MAXx.xyzw vf10, vf10, vf0          | LQ.xyzw vf2, 4(vi13)
+0258: 01ec30bd 01e36805  MADDAy.xyzw ACC, vf6, vf12         | LQ.xyzw vf3, 5(vi13)
+0260: 01ec3b0a 800218f0  MADDz.xyzw vf12, vf7, vf12         | IADD vi3, vi3, vi2
+0268: 01ea09bc 100d6807  MULAx.xyzw ACC, vf1, vf10          | IADDIU vi13, vi13, 7
+0270: 01ea10bd 81eb0b7c  MADDAy.xyzw ACC, vf2, vf10         | LQI.xyzw vf11, (vi1++)
+0278: 01ea18be 01e46fff  MADDAz.xyzw ACC, vf3, vf10         | LQ.xyzw vf4, -1(vi13)
+0280: 01ea228b 8000033c  MADDw.xyzw vf10, vf4, vf10         | MOVE.- vf0, vf0
+0288: 01e06250 8000033c  MAXx.xyzw vf9, vf12, vf0           | MOVE.- vf0, vf0
+0290: 01eb29bc 8000033c  MULAx.xyzw ACC, vf5, vf11          | MOVE.- vf0, vf0
+0298: 01eb30bd 8000033c  MADDAy.xyzw ACC, vf6, vf11         | MOVE.- vf0, vf0
+02A0: 01eb3b0a 8000033c  MADDz.xyzw vf12, vf7, vf11         | MOVE.- vf0, vf0
+02A8: 01ea6ba8 81eb0b7c  ADD.xyzw vf14, vf13, vf10          | LQI.xyzw vf11, (vi1++)
+02B0: 01e909bc 81ed137c  MULAx.xyzw ACC, vf1, vf9           | LQI.xyzw vf13, (vi2++)
+02B8: 01e910bd 8000033c  MADDAy.xyzw ACC, vf2, vf9          | MOVE.- vf0, vf0
+02C0: 01e918be 520317f8  MADDAz.xyzw ACC, vf3, vf9          | IBNE vi3, vi2, -8
+02C8: 01e9228b 03e277fe  MADDw.xyzw vf10, vf4, vf9          | SQ.xyzw vf14, -2(vi2)
+02D0: 000002ff 48007800  NOP                                | JR vi15
+02D8: 000002ff 09016800  NOP                                | ILW.x vi1, 0(vi13)
+02E0: 00c6313c 8000033c  ITOF0.yz ACC, vf6, vf6             | MOVE.- vf0, vf0
+02E8: 00c009fe 810f33fd  MULAi.yz ACC, vf1, vf0             | MFIR.x vf15, vi6
+02F0: 00c019e3 808f3bfd  MADDi.yz vf7, vf3, vf0             | MFIR.y vf15, vi7
+02F8: 00c011fe 804f03fd  MULAi.yz ACC, vf2, vf0             | MFIR.z vf15, vi0
+0300: 00c02223 802f03fd  MADDi.yz vf8, vf4, vf0             | MFIR.w vf15, vi0
+0308: 00c019fe 10063010  MULAi.yz ACC, vf3, vf0             | IADDIU vi6, vi6, 16
+0310: 00c02a63 811033fd  MADDi.yz vf9, vf5, vf0             | MFIR.x vf16, vi6
+0318: 00c021fe 80903bfd  MULAi.yz ACC, vf4, vf0             | MFIR.y vf16, vi7
+0320: 00c032a3 805003fd  MADDi.yz vf10, vf6, vf0            | MFIR.z vf16, vi0
+0328: 00d909bc 803003fd  MULAx.yz ACC, vf1, vf25            | MFIR.w vf16, vi0
+0330: 000002ff 01e96800  NOP                                | LQ.xyzw vf9, 0(vi13)
+0338: 000002ff 01e603db  NOP                                | LQ.xyzw vf6, 987(vi0)
+0340: 000002ff 01ea6801  NOP                                | LQ.xyzw vf10, 1(vi13)
+0348: 000002ff 01eb6802  NOP                                | LQ.xyzw vf11, 2(vi13)
+0350: 000002ff 01e103da  NOP                                | LQ.xyzw vf1, 986(vi0)
+0358: 01e649bc 090103f3  MULAx.xyzw ACC, vf9, vf6           | ILW.x vi1, 1011(vi0)
+0360: 01e650bd 01e703dc  MADDAy.xyzw ACC, vf10, vf6         | LQ.xyzw vf7, 988(vi0)
+0368: 01e6598a 8000033c  MADDz.xyzw vf6, vf11, vf6          | MOVE.- vf0, vf0
+0370: 01e149bc 8000033c  MULAx.xyzw ACC, vf9, vf1           | MOVE.- vf0, vf0
+0378: 01e150bd 10020acc  MADDAy.xyzw ACC, vf10, vf1         | IADDIU vi2, vi1, 716
+0380: 01e1594a 01ec0a2c  MADDz.xyzw vf5, vf11, vf1          | LQ.xyzw vf12, 556(vi1)
+0388: 01e749bc 10010a2c  MULAx.xyzw ACC, vf9, vf7           | IADDIU vi1, vi1, 556
+0390: 01e750bd 10010801  MADDAy.xyzw ACC, vf10, vf7         | IADDIU vi1, vi1, 1
+0398: 01e759ca 01ed0800  MADDz.xyzw vf7, vf11, vf7          | LQ.xyzw vf13, 0(vi1)
+03A0: 01ec29bc 8000033c  MULAx.xyzw ACC, vf5, vf12          | MOVE.- vf0, vf0
+03A8: 01ec30bd 8000033c  MADDAy.xyzw ACC, vf6, vf12         | MOVE.- vf0, vf0
+03B0: 01ec3b0a 8000033c  MADDz.xyzw vf12, vf7, vf12         | MOVE.- vf0, vf0
+03B8: 01ed29bc 8000033c  MULAx.xyzw ACC, vf5, vf13          | MOVE.- vf0, vf0
+03C0: 01ec62aa 8000033c  MUL.xyzw vf10, vf12, vf12          | MOVE.- vf0, vf0
+03C8: 01ed30bd 01e903f7  MADDAy.xyzw ACC, vf6, vf13         | LQ.xyzw vf9, 1015(vi0)
+03D0: 01ed3b0a 81f0633c  MADDz.xyzw vf12, vf7, vf13         | MOVE.xyzw vf16, vf12
+03D8: 01ea53aa 81f1533c  MUL.xyzw vf14, vf10, vf10          | MOVE.xyzw vf17, vf10
+03E0: 01ec62aa 8000033c  MUL.xyzw vf10, vf12, vf12          | MOVE.- vf0, vf0
+03E8: 01e981bc 81f2733c  MULAx.xyzw ACC, vf16, vf9          | MOVE.xyzw vf18, vf14
+03F0: 01ee736a 10010801  MUL.xyzw vf13, vf14, vf14          | IADDIU vi1, vi1, 1
+03F8: 01e988bd 01f10800  MADDAy.xyzw ACC, vf17, vf9         | LQ.xyzw vf17, 0(vi1)
+0400: 01ea53aa 8000033c  MUL.xyzw vf14, vf10, vf10          | MOVE.- vf0, vf0
+0408: 01e990be 8000033c  MADDAz.xyzw ACC, vf18, vf9         | MOVE.- vf0, vf0
+0410: 01e96b4b 8000033c  MADDw.xyzw vf13, vf13, vf9         | MOVE.- vf0, vf0
+0418: 01f129bc 8000033c  MULAx.xyzw ACC, vf5, vf17          | MOVE.- vf0, vf0
+0420: 01f130bd 81f0633c  MADDAy.xyzw ACC, vf6, vf17         | MOVE.xyzw vf16, vf12
+0428: 01f13b0a 81f1533c  MADDz.xyzw vf12, vf7, vf17         | MOVE.xyzw vf17, vf10
+0430: 01ee74aa 81ef733c  MUL.xyzw vf18, vf14, vf14          | MOVE.xyzw vf15, vf14
+0438: 01e981bc 8000033c  MULAx.xyzw ACC, vf16, vf9          | MOVE.- vf0, vf0
+0440: 01e988bd 10010801  MADDAy.xyzw ACC, vf17, vf9         | IADDIU vi1, vi1, 1
+0448: 01e06b50 01f10800  MAXx.xyzw vf13, vf13, vf0          | LQ.xyzw vf17, 0(vi1)
+0450: 01e978be 8000033c  MADDAz.xyzw ACC, vf15, vf9         | MOVE.- vf0, vf0
+0458: 01e9940b 082303f3  MADDw.xyzw vf16, vf18, vf9         | ILW.w vi3, 1011(vi0)
+0460: 01ec62aa 01e16803  MUL.xyzw vf10, vf12, vf12          | LQ.xyzw vf1, 3(vi13)
+0468: 01f129bc 81f26b3c  MULAx.xyzw ACC, vf5, vf17          | MOVE.xyzw vf18, vf13
+0470: 01f130bd 01e26804  MADDAy.xyzw ACC, vf6, vf17         | LQ.xyzw vf2, 4(vi13)
+0478: 01f13b0a 81ed633c  MADDz.xyzw vf12, vf7, vf17         | MOVE.xyzw vf13, vf12
+0480: 01f209bc 01e36805  MULAx.xyzw ACC, vf1, vf18          | LQ.xyzw vf3, 5(vi13)
+0488: 01f210bd 01e46806  MADDAy.xyzw ACC, vf2, vf18         | LQ.xyzw vf4, 6(vi13)
+0490: 01ea53aa 800310f0  MUL.xyzw vf14, vf10, vf10          | IADD vi3, vi2, vi3
+0498: 01f218be 8000033c  MADDAz.xyzw ACC, vf3, vf18         | MOVE.- vf0, vf0
+04A0: 01e08410 8000033c  MAXx.xyzw vf16, vf16, vf0          | MOVE.- vf0, vf0
+04A8: 01ec62aa 81f1533c  MUL.xyzw vf10, vf12, vf12          | MOVE.xyzw vf17, vf10
+04B0: 01ee73ea 100d6807  MUL.xyzw vf15, vf14, vf14          | IADDIU vi13, vi13, 7
+04B8: 01f2238b 81f2733c  MADDw.xyzw vf14, vf4, vf18         | MOVE.xyzw vf18, vf14
+04C0: 01e969bc 10010801  MULAx.xyzw ACC, vf13, vf9          | IADDIU vi1, vi1, 1
+04C8: 01ea52ea 01ed1000  MUL.xyzw vf11, vf10, vf10          | LQ.xyzw vf13, 0(vi2)
+04D0: 01e988bd 01f10800  MADDAy.xyzw ACC, vf17, vf9         | LQ.xyzw vf17, 0(vi1)
+04D8: 01e990be 8000033c  MADDAz.xyzw ACC, vf18, vf9         | MOVE.- vf0, vf0
+04E0: 01e97bcb 10010801  MADDw.xyzw vf15, vf15, vf9         | IADDIU vi1, vi1, 1
+04E8: 01ee6ca8 8000033c  ADD.xyzw vf18, vf13, vf14          | MOVE.- vf0, vf0
+04F0: 01f129bc 81ee833c  MULAx.xyzw ACC, vf5, vf17          | MOVE.xyzw vf14, vf16
+04F8: 01f130bd 8000033c  MADDAy.xyzw ACC, vf6, vf17         | MOVE.- vf0, vf0
+0500: 01f13b0a 81ed633c  MADDz.xyzw vf12, vf7, vf17         | MOVE.xyzw vf13, vf12
+0508: 01ee09bc 03e29000  MULAx.xyzw ACC, vf1, vf14          | SQ.xyzw vf18, 0(vi2)
+0510: 01ee10bd 8000033c  MADDAy.xyzw ACC, vf2, vf14         | MOVE.- vf0, vf0
+0518: 01ee18be 8000033c  MADDAz.xyzw ACC, vf3, vf14         | MOVE.- vf0, vf0
+0520: 01ec62aa 81f1533c  MUL.xyzw vf10, vf12, vf12          | MOVE.xyzw vf17, vf10
+0528: 01e07c10 8000033c  MAXx.xyzw vf16, vf15, vf0          | MOVE.- vf0, vf0
+0530: 01eb5bea 10021001  MUL.xyzw vf15, vf11, vf11          | IADDIU vi2, vi2, 1
+0538: 01ee238b 81f25b3c  MADDw.xyzw vf14, vf4, vf14         | MOVE.xyzw vf18, vf11
+0540: 01ea52ea 520317f1  MUL.xyzw vf11, vf10, vf10          | IBNE vi3, vi2, -15
+0548: 01e969bc 01ed1000  MULAx.xyzw ACC, vf13, vf9          | LQ.xyzw vf13, 0(vi2)
+0550: 000002ff 48007800  NOP                                | JR vi15
+0558: 000002ff 09016800  NOP                                | ILW.x vi1, 0(vi13)
+0560: 01e2e0bd 03e47812  MADDAy.xyzw ACC, vf28, vf2         | SQ.xyzw vf15, 18(vi4)
+0568: 01e2eb0a 03e48014  MADDz.xyzw vf12, vf29, vf2         | SQ.xyzw vf16, 20(vi4)
+0570: 01e3d9bc 03e48816  MULAx.xyzw ACC, vf27, vf3          | SQ.xyzw vf17, 22(vi4)
+0578: 01e3e0bd 03e49018  MADDAy.xyzw ACC, vf28, vf3         | SQ.xyzw vf18, 24(vi4)
+0580: 01e3eb4a 8000033c  MADDz.xyzw vf13, vf29, vf3         | MOVE.- vf0, vf0
+0588: 81e4d9bc 437f0000  MULAx.xyzw ACC, vf27, vf4          | BAL 0
+0590: 01e4e0bd 00c51888  MADDAy.xyzw ACC, vf28, vf4         | LQ.yz vf5, 136(vi3)
+0598: 01e4eb8a 00c61878  MADDz.xyzw vf14, vf29, vf4         | LQ.yz vf6, 120(vi3)
+05A0: 800002ff 3f000000  NOP                                | L?1F
+05A8: 01e05ae2 8000033c  ADDi.xyzw vf11, vf11, vf0          | MOVE.- vf0, vf0
+05B0: 000002ff 088103fa  NOP                                | ILW.y vi1, 1018(vi0)
+05B8: 000002ff 082203fa  NOP                                | ILW.w vi2, 1018(vi0)
+05C0: 000002ff 81e16b7c  NOP                                | LQI.xyzw vf1, (vi13++)
+05C8: 000002ff 81e36b7c  NOP                                | LQI.xyzw vf3, (vi13++)
+05D0: 000002ff 800c08f0  NOP                                | IADD vi3, vi1, vi12
+05D8: 000002ff 01e21800  NOP                                | LQ.xyzw vf2, 0(vi3)
+05E0: 01e0183c 800218b0  ADDAx.xyzw ACC, vf3, vf0           | IADD vi2, vi3, vi2
+05E8: 01e110a9 80031872  MADD.xyzw vf2, vf2, vf1            | IADDI vi3, vi3, 1
+05F0: 000002ff 81e31b7c  NOP                                | LQI.xyzw vf3, (vi3++)
+05F8: 000002ff 09016800  NOP                                | ILW.x vi1, 0(vi13)
+0600: 000002ff 8000033c  NOP                                | MOVE.- vf0, vf0
+0608: 000002ff 52021ffc  NOP                                | IBNE vi2, vi3, -4
+0610: 01e118a9 03e317fe  MADD.xyzw vf2, vf3, vf1            | SQ.xyzw vf2, -2(vi3)
+0618: 000002ff 48007800  NOP                                | JR vi15
+0620: 000002ff 03e317ff  NOP                                | SQ.xyzw vf2, -1(vi3)
+0628: 01e1093c 03e45811  ITOF0.xyzw ACC, vf1, vf1           | SQ.xyzw vf11, 17(vi4)
+0630: 01e2113c 03e46013  ITOF0.xyzw ACC, vf2, vf2           | SQ.xyzw vf12, 19(vi4)
+0638: 01e3193c 03e46815  ITOF0.xyzw ACC, vf3, vf3           | SQ.xyzw vf13, 21(vi4)
+0640: 000002ff 01c16800  NOP                                | LQ.xyz vf1, 0(vi13)
+0648: 000002ff 01c203d6  NOP                                | LQ.xyz vf2, 982(vi0)
+0650: 000002ff 01c403d7  NOP                                | LQ.xyz vf4, 983(vi0)
+0658: 000002ff 01c303d8  NOP                                | LQ.xyz vf3, 984(vi0)
+0660: 01c111bc 090103f3  MULAx.xyz ACC, vf2, vf1            | ILW.x vi1, 1011(vi0)
+0668: 01c120bd 8000033c  MADDAy.xyz ACC, vf4, vf1           | MOVE.- vf0, vf0
+0670: 01c118ca 01c203d9  MADDz.xyz vf3, vf3, vf1            | LQ.xyz vf2, 985(vi0)
+0678: 000002ff 10020acc  NOP                                | IADDIU vi2, vi1, 716
+0680: 000002ff 10010a2c  NOP                                | IADDIU vi1, vi1, 556
+0688: 01c218a8 01c60fb0  ADD.xyz vf2, vf3, vf2              | LQ.xyz vf6, -80(vi1)
+0690: 000002ff 10010801  NOP                                | IADDIU vi1, vi1, 1
+0698: 01c610ec 01c60fff  SUB.xyz vf3, vf2, vf6              | LQ.xyz vf6, -1(vi1)
+06A0: 01c6192a 8000033c  MUL.xyz vf4, vf3, vf6              | MOVE.- vf0, vf0
+06A8: 01c319aa 01c30fb0  MUL.xyz vf6, vf3, vf3              | LQ.xyz vf3, -80(vi1)
+06B0: 01042101 8000033c  ADDy.x vf4, vf4, vf4               | MOVE.- vf0, vf0
+06B8: 002601bc 8000033c  MULAx.w ACC, vf0, vf6              | MOVE.- vf0, vf0
+06C0: 002600bd 8000033c  MADDAy.w ACC, vf0, vf6             | MOVE.- vf0, vf0
+06C8: 0026008a 10010801  MADDz.w vf2, vf0, vf6              | IADDIU vi1, vi1, 1
+06D0: 01c310ec 01c60fff  SUB.xyz vf3, vf2, vf3              | LQ.xyz vf6, -1(vi1)
+06D8: 01042102 81e203be  ADDz.x vf4, vf4, vf4               | RSQRT Q, vf0.w, vf2.w
+06E0: 01c619aa 8000033c  MUL.xyz vf6, vf3, vf6              | MOVE.- vf0, vf0
+06E8: 01c318ea 8000033c  MUL.xyz vf3, vf3, vf3              | MOVE.- vf0, vf0
+06F0: 01002110 8000033c  MAXx.x vf4, vf4, vf0               | MOVE.- vf0, vf0
+06F8: 01063181 8000033c  ADDy.x vf6, vf6, vf6               | MOVE.- vf0, vf0
+0700: 002301bc 01ca0fb0  MULAx.w ACC, vf0, vf3              | LQ.xyz vf10, -80(vi1)
+0708: 002300bd 8000033c  MADDAy.w ACC, vf0, vf3             | MOVE.- vf0, vf0
+0710: 0023008a 8000033c  MADDz.w vf2, vf0, vf3              | MOVE.- vf0, vf0
+0718: 01063202 10010801  ADDz.x vf8, vf6, vf6               | IADDIU vi1, vi1, 1
+0720: 01ca10ec 01c60fff  SUB.xyz vf3, vf2, vf10             | LQ.xyz vf6, -1(vi1)
+0728: 000002ff 800003bf  NOP                                | WAITQ
+0730: 010002a0 81e203be  ADDq.x vf10, vf0, vf0              | RSQRT Q, vf0.w, vf2.w
+0738: 01c619aa 8000033c  MUL.xyz vf6, vf3, vf6              | MOVE.- vf0, vf0
+0740: 01c318ea 8000033c  MUL.xyz vf3, vf3, vf3              | MOVE.- vf0, vf0
+0748: 010a52aa 8000033c  MUL.x vf10, vf10, vf10             | MOVE.- vf0, vf0
+0750: 01063181 8000033c  ADDy.x vf6, vf6, vf6               | MOVE.- vf0, vf0
+0758: 002301bc 8000033c  MULAx.w ACC, vf0, vf3              | MOVE.- vf0, vf0
+0760: 002300bd 01c70fb0  MADDAy.w ACC, vf0, vf3             | LQ.xyz vf7, -80(vi1)
+0768: 0023008a 800003bf  MADDz.w vf2, vf0, vf3              | WAITQ
+0770: 010630c2 082303f3  ADDz.x vf3, vf6, vf6               | ILW.w vi3, 1011(vi0)
+0778: 0104512a 10010801  MUL.x vf4, vf10, vf4               | IADDIU vi1, vi1, 1
+0780: 01c712ac 01c60fff  SUB.xyz vf10, vf2, vf7             | LQ.xyz vf6, -1(vi1)
+0788: 01004210 01e16801  MAXx.x vf8, vf8, vf0               | LQ.xyzw vf1, 1(vi13)
+0790: 010001e0 81e203be  ADDq.x vf7, vf0, vf0               | RSQRT Q, vf0.w, vf2.w
+0798: 010018d0 800310f0  MAXx.x vf3, vf3, vf0               | IADD vi3, vi2, vi3
+07A0: 01c651aa 8000033c  MUL.xyz vf6, vf10, vf6             | MOVE.- vf0, vf0
+07A8: 01ca52aa 8000033c  MUL.xyz vf10, vf10, vf10           | MOVE.- vf0, vf0
+07B0: 01e40918 100d6802  MULx.xyzw vf4, vf1, vf4            | IADDIU vi13, vi13, 2
+07B8: 010739ea 8109433c  MUL.x vf7, vf7, vf7                | MOVE.x vf9, vf8
+07C0: 01063181 8000033c  ADDy.x vf6, vf6, vf6               | MOVE.- vf0, vf0
+07C8: 002a01bc 01e81000  MULAx.w ACC, vf0, vf10             | LQ.xyzw vf8, 0(vi2)
+07D0: 002a00bd 01cb0fb0  MADDAy.w ACC, vf0, vf10            | LQ.xyz vf11, -80(vi1)
+07D8: 002a008a 10010801  MADDz.w vf2, vf0, vf10             | IADDIU vi1, vi1, 1
+07E0: 01063142 8000033c  ADDz.x vf5, vf6, vf6               | MOVE.- vf0, vf0
+07E8: 01093a6a 8000033c  MUL.x vf9, vf7, vf9                | MOVE.- vf0, vf0
+07F0: 01cb12ac 01c60fff  SUB.xyz vf10, vf2, vf11            | LQ.xyz vf6, -1(vi1)
+07F8: 01e441e8 8000033c  ADD.xyzw vf7, vf8, vf4             | MOVE.- vf0, vf0
+0800: 01000220 10021001  ADDq.x vf8, vf0, vf0               | IADDIU vi2, vi2, 1
+0808: 01e90918 81e203be  MULx.xyzw vf4, vf1, vf9            | RSQRT Q, vf0.w, vf2.w
+0810: 01c651aa 81091b3c  MUL.xyz vf6, vf10, vf6             | MOVE.x vf9, vf3
+0818: 01ca52aa 03e23fff  MUL.xyz vf10, vf10, vf10           | SQ.xyzw vf7, -1(vi2)
+0820: 010841ea 520317f3  MUL.x vf7, vf8, vf8                | IBNE vi3, vi2, -13
+0828: 010028d0 8000033c  MAXx.x vf3, vf5, vf0               | MOVE.- vf0, vf0
+0830: 000002ff 48007800  NOP                                | JR vi15
+0838: 000002ff 09016800  NOP                                | ILW.x vi1, 0(vi13)
+0840: 000002ff 81c16b7c  NOP                                | LQI.xyz vf1, (vi13++)
+0848: 000002ff 01c303d6  NOP                                | LQ.xyz vf3, 982(vi0)
+0850: 000002ff 01c203d7  NOP                                | LQ.xyz vf2, 983(vi0)
+0858: 000002ff 01c503d8  NOP                                | LQ.xyz vf5, 984(vi0)
+0860: 01c119bc 01c403dd  MULAx.xyz ACC, vf3, vf1            | LQ.xyz vf4, 989(vi0)
+0868: 01c110bd 01c203d9  MADDAy.xyz ACC, vf2, vf1           | LQ.xyz vf2, 985(vi0)
+0870: 01c128be 01c503f9  MADDAz.xyz ACC, vf5, vf1           | LQ.xyz vf5, 1017(vi0)
+0878: 000002ff 01c303de  NOP                                | LQ.xyz vf3, 990(vi0)
+0880: 000002ff 01c603df  NOP                                | LQ.xyz vf6, 991(vi0)
+0888: 01c0108b 090103f3  MADDw.xyz vf2, vf2, vf0            | ILW.x vi1, 1011(vi0)
+0890: 01c521bc 082203f3  MULAx.xyz ACC, vf4, vf5            | ILW.w vi2, 1011(vi0)
+0898: 01c518bd 01e403f7  MADDAy.xyz ACC, vf3, vf5           | LQ.xyzw vf4, 1015(vi0)
+08A0: 01c530ca 01c509dc  MADDz.xyz vf3, vf6, vf5            | LQ.xyz vf5, 476(vi1)
+08A8: 000002ff 800208b0  NOP                                | IADD vi2, vi1, vi2
+08B0: 01c5116c 10010801  SUB.xyz vf5, vf2, vf5              | IADDIU vi1, vi1, 1
+08B8: 000002ff 01c609dc  NOP                                | LQ.xyz vf6, 476(vi1)
+08C0: 000002ff 81c02f3f  NOP                                | ERLENG.xyz ft=0 fs=5
+08C8: 01c6116c 81c62b3c  SUB.xyz vf5, vf2, vf6              | MOVE.xyz vf6, vf5
+08D0: 000002ff 800007bf  NOP                                | ESIN.- ft=0 fs=0
+08D8: 000002ff 8109067c  NOP                                | MFP.x ft=9 fs=0
+08E0: 000002ff 81c02f3f  NOP                                | ERLENG.xyz ft=0 fs=5
+08E8: 01c93198 81084b3c  MULx.xyz vf6, vf6, vf9             | MOVE.x vf8, vf9
+08F0: 01c619a8 8000033c  ADD.xyz vf6, vf3, vf6              | MOVE.- vf0, vf0
+08F8: 01c632aa 8000033c  MUL.xyz vf10, vf6, vf6             | MOVE.- vf0, vf0
+0900: 002a01bc 8000033c  MULAx.w ACC, vf0, vf10             | MOVE.- vf0, vf0
+0908: 002a00bd 10010801  MADDAy.w ACC, vf0, vf10            | IADDIU vi1, vi1, 1
+0910: 002a008a 01ca09dc  MADDz.w vf2, vf0, vf10             | LQ.xyz vf10, 476(vi1)
+0918: 01ca116c 81ca2b3c  SUB.xyz vf5, vf2, vf10             | MOVE.xyz vf10, vf5
+0920: 000002ff 81e203be  NOP                                | RSQRT Q, vf0.w, vf2.w
+0928: 000002ff 800007bf  NOP                                | ESIN.- ft=0 fs=0
+0930: 000002ff 8109067c  NOP                                | MFP.x ft=9 fs=0
+0938: 000002ff 81c02f3f  NOP                                | ERLENG.xyz ft=0 fs=5
+0940: 01c951d8 81ca333c  MULx.xyz vf7, vf10, vf9            | MOVE.xyz vf10, vf6
+0948: 01c719a8 800003bf  ADD.xyz vf6, vf3, vf7              | WAITQ
+0950: 01c0531c 01c70a2a  MULq.xyz vf12, vf10, vf0           | LQ.xyz vf7, 554(vi1)
+0958: 01c632aa 8000033c  MUL.xyz vf10, vf6, vf6             | MOVE.- vf0, vf0
+0960: 01cc39ea 8000033c  MUL.xyz vf7, vf7, vf12             | MOVE.- vf0, vf0
+0968: 002a01bc 8000033c  MULAx.w ACC, vf0, vf10             | MOVE.- vf0, vf0
+0970: 002a00bd 10010801  MADDAy.w ACC, vf0, vf10            | IADDIU vi1, vi1, 1
+0978: 002a008a 01ca09dc  MADDz.w vf2, vf0, vf10             | LQ.xyz vf10, 476(vi1)
+0980: 010739c1 8000033c  ADDy.x vf7, vf7, vf7               | MOVE.- vf0, vf0
+0988: 01ca116c 81ca2b3c  SUB.xyz vf5, vf2, vf10             | MOVE.xyz vf10, vf5
+0990: 01073ac2 81e203be  ADDz.x vf11, vf7, vf7              | RSQRT Q, vf0.w, vf2.w
+0998: 010b5b2a 800007bf  MUL.x vf12, vf11, vf11             | ESIN.- ft=0 fs=0
+09A0: 010459bc 8107067c  MULAx.x ACC, vf11, vf4             | MFP.x ft=7 fs=0
+09A8: 01c752d8 81c02f3f  MULx.xyz vf11, vf10, vf7           | ERLENG.xyz ft=0 fs=5
+09B0: 010c62aa 8000033c  MUL.x vf10, vf12, vf12             | MOVE.- vf0, vf0
+09B8: 010460bd 81cc333c  MADDAy.x ACC, vf12, vf4            | MOVE.xyz vf12, vf6
+09C0: 01cb19a8 8000033c  ADD.xyz vf6, vf3, vf11             | MOVE.- vf0, vf0
+09C8: 010a52ea 8000033c  MUL.x vf11, vf10, vf10             | MOVE.- vf0, vf0
+09D0: 01c0639c 01cd0a2a  MULq.xyz vf14, vf12, vf0           | LQ.xyz vf13, 554(vi1)
+09D8: 01c6332a 8000033c  MUL.xyz vf12, vf6, vf6             | MOVE.- vf0, vf0
+09E0: 010450be 8000033c  MADDAz.x ACC, vf10, vf4            | MOVE.- vf0, vf0
+09E8: 01045acb 10010801  MADDw.x vf11, vf11, vf4            | IADDIU vi1, vi1, 1
+09F0: 01ce6aaa 10021004  MUL.xyz vf10, vf13, vf14           | IADDIU vi2, vi2, 4
+09F8: 002c01bc 81e16b7c  MULAx.w ACC, vf0, vf12             | LQI.xyzw vf1, (vi13++)
+0A00: 002c00bd 800007bf  MADDAy.w ACC, vf0, vf12            | ESIN.- ft=0 fs=0
+0A08: 002c008a 01cf09dc  MADDz.w vf2, vf0, vf12             | LQ.xyz vf15, 476(vi1)
+0A10: 010a5341 8000033c  ADDy.x vf13, vf10, vf10            | MOVE.- vf0, vf0
+0A18: 000002ff 810a433c  NOP                                | MOVE.x vf10, vf8
+0A20: 01005b10 81084b3c  MAXx.x vf12, vf11, vf0             | MOVE.x vf8, vf9
+0A28: 01cf116c 81cb2b3c  SUB.xyz vf5, vf2, vf15             | MOVE.xyz vf11, vf5
+0A30: 010a6b42 81e203be  ADDz.x vf13, vf13, vf10            | RSQRT Q, vf0.w, vf2.w
+0A38: 000002ff 81093b3c  NOP                                | MOVE.x vf9, vf7
+0A40: 000002ff 8107067c  NOP                                | MFP.x ft=7 fs=0
+0A48: 010a62aa 81c02f3f  MUL.x vf10, vf12, vf10             | ERLENG.xyz ft=0 fs=5
+0A50: 010d6b2a 8000033c  MUL.x vf12, vf13, vf13             | MOVE.- vf0, vf0
+0A58: 010469bc 8000033c  MULAx.x ACC, vf13, vf4             | MOVE.- vf0, vf0
+0A60: 01c75bd8 8000033c  MULx.xyz vf15, vf11, vf7           | MOVE.- vf0, vf0
+0A68: 01ea0b58 01eb0ac8  MULx.xyzw vf13, vf1, vf10          | LQ.xyzw vf11, 712(vi1)
+0A70: 010c62aa 8000033c  MUL.x vf10, vf12, vf12             | MOVE.- vf0, vf0
+0A78: 010460bd 81cc333c  MADDAy.x ACC, vf12, vf4            | MOVE.xyz vf12, vf6
+0A80: 01cf19a8 8000033c  ADD.xyz vf6, vf3, vf15             | MOVE.- vf0, vf0
+0A88: 01ed5be8 8000033c  ADD.xyzw vf15, vf11, vf13          | MOVE.- vf0, vf0
+0A90: 010a52ea 8000033c  MUL.x vf11, vf10, vf10             | MOVE.- vf0, vf0
+0A98: 01c0639c 01cd0a2a  MULq.xyz vf14, vf12, vf0           | LQ.xyz vf13, 554(vi1)
+0AA0: 01c6332a 8000033c  MUL.xyz vf12, vf6, vf6             | MOVE.- vf0, vf0
+0AA8: 010450be 03e17ac8  MADDAz.x ACC, vf10, vf4            | SQ.xyzw vf15, 712(vi1)
+0AB0: 01045acb 10010801  MADDw.x vf11, vf11, vf4            | IADDIU vi1, vi1, 1
+0AB8: 01ce6aaa 8000033c  MUL.xyz vf10, vf13, vf14           | MOVE.- vf0, vf0
+0AC0: 002c01bc 52020fe8  MULAx.w ACC, vf0, vf12             | IBNE vi2, vi1, -24
+0AC8: 002c00bd 8000033c  MADDAy.w ACC, vf0, vf12            | MOVE.- vf0, vf0
+0AD0: 000002ff 48007800  NOP                                | JR vi15
+0AD8: 000002ff 09016800  NOP                                | ILW.x vi1, 0(vi13)
+0AE0: 00c6313c 8000033c  ITOF0.yz ACC, vf6, vf6             | MOVE.- vf0, vf0
+0AE8: 00c009fe 810f33fd  MULAi.yz ACC, vf1, vf0             | MFIR.x vf15, vi6
+0AF0: 000002ff 090303f3  NOP                                | ILW.x vi3, 1011(vi0)
+0AF8: 000002ff 082203f3  NOP                                | ILW.w vi2, 1011(vi0)
+0B00: 01e0006c 10011acc  SUB.xyzw vf1, vf0, vf0             | IADDIU vi1, vi3, 716
+0B08: 000002ff 80020930  NOP                                | IADD vi4, vi1, vi2
+0B10: 000002ff 8000033c  NOP                                | MOVE.- vf0, vf0
+0B18: 000002ff 52040ffe  NOP                                | IBNE vi4, vi1, -2
+0B20: 000002ff 81e10b7d  NOP                                | SQI.xyzw vf1, (vi1++)
+0B28: 000002ff 48007800  NOP                                | JR vi15
+0B30: 000002ff 09016800  NOP                                | ILW.x vi1, 0(vi13)
+0B38: 00d919bc 811133fd  MULAx.yz ACC, vf3, vf25            | MFIR.x vf17, vi6
+0B40: 01e0006b 084103fa  MAX.xyzw vf1, vf0, vf0             | ILW.z vi1, 1018(vi0)
+0B48: 01e0012b 10030080  MAX.xyzw vf4, vf0, vf0             | IADDIU vi3, vi0, 128
+0B50: 01e002d3 082203fa  MAXw.xyzw vf11, vf0, vf0           | ILW.w vi2, 1018(vi0)
+0B58: 000002ff 00816fff  NOP                                | LQ.y vf1, -1(vi13)
+0B60: 000002ff 800c0870  NOP                                | IADD vi1, vi1, vi12
+0B68: 000002ff 09060800  NOP                                | ILW.x vi6, 0(vi1)
+0B70: 000002ff 09050801  NOP                                | ILW.x vi5, 1(vi1)
+0B78: 000002ff 11040000  NOP                                | IADDIU vi4, vi0, 16384
+0B80: 000002ff 11042000  NOP                                | IADDIU vi4, vi4, 16384
+0B88: 000002ff 01ec327c  NOP                                | LQ.xyzw vf12, 636(vi6)
+0B90: 000002ff 01e22a7c  NOP                                | LQ.xyzw vf2, 636(vi5)
+0B98: 004c0303 800208b0  ADDw.z vf12, vf0, vf12             | IADD vi2, vi1, vi2
+0BA0: 00420083 10021002  ADDw.z vf2, vf0, vf2               | IADDIU vi2, vi2, 2
+0BA8: 01ec60eb 10010802  MAX.xyzw vf3, vf12, vf12           | IADDIU vi1, vi1, 2
+0BB0: 0100002a 8000033c  MUL.x vf0, vf0, vf0                | MOVE.- vf0, vf0
+0BB8: 000002ff 09070800  NOP                                | ILW.x vi7, 0(vi1)
+0BC0: 000002ff 08880ffe  NOP                                | ILW.y vi8, -2(vi1)
+0BC8: 01e3196b 10010801  MAX.xyzw vf5, vf3, vf3             | IADDIU vi1, vi1, 1
+0BD0: 01e210eb 34091800  MAX.xyzw vf3, vf2, vf2             | FMAND vi9, vi3
+0BD8: 000002ff 01e23a7c  NOP                                | LQ.xyzw vf2, 636(vi7)
+0BE0: 0104203d 11e94fff  ADDAy.x ACC, vf4, vf4              | IADDIU vi9, vi9, 32767
+0BE8: 0104590a 80084a30  MADDz.x vf4, vf11, vf4             | IADD vi8, vi9, vi8
+0BF0: 01c32afe 80044234  OPMULA.xyz ACC, vf5, vf3           | IAND vi8, vi8, vi4
+0BF8: 01c5196e 800831b5  OPMSUB.xyz vf5, vf3, vf5           | IOR vi6, vi6, vi8
+0C00: 00420083 0b060ffd  ADDw.z vf2, vf0, vf2               | ISW.x vi6, -3(vi1)
+0C08: 000002ff 09060ffe  NOP                                | ILW.x vi6, -2(vi1)
+0C10: 01012019 09070800  MULy.x vf0, vf4, vf1               | ILW.x vi7, 0(vi1)
+0C18: 000002ff 520117f5  NOP                                | IBNE vi1, vi2, -11
+0C20: 01e2292a 08880ffe  MUL.xyzw vf4, vf5, vf2             | ILW.y vi8, -2(vi1)
+0C28: 000002ff 48007800  NOP                                | JR vi15
+0C30: 000002ff 09016800  NOP                                | ILW.x vi1, 0(vi13)
+0C38: 01e0631f 00c21ffc  MINIi.xyzw vf12, vf12, vf0         | LQ.yz vf2, -4(vi3)
+0C40: 01e06b5f 00c31805  MINIi.xyzw vf13, vf13, vf0         | LQ.yz vf3, 5(vi3)
+0C48: 01e0739f 00c41ffd  MINIi.xyzw vf14, vf14, vf0         | LQ.yz vf4, -3(vi3)
+0C50: 01eb597c 01011008  FTOI0.xyzw ACC, vf11, vf11         | LQ.x vf1, 8(vi2)
+0C58: 01ec617c 01021009  FTOI0.xyzw ACC, vf12, vf12         | LQ.x vf2, 9(vi2)
+0C60: 01ed697c 0103100a  FTOI0.xyzw ACC, vf13, vf13         | LQ.x vf3, 10(vi2)
+0C68: 01ee717c 0104100b  FTOI0.xyzw ACC, vf14, vf14         | LQ.x vf4, 11(vi2)
+0C70: 01e1093c 03e45809  ITOF0.xyzw ACC, vf1, vf1           | SQ.xyzw vf11, 9(vi4)
+0C78: 01e2113c 03e4600b  ITOF0.xyzw ACC, vf2, vf2           | SQ.xyzw vf12, 11(vi4)
+0C80: 000002ff 08436fff  NOP                                | ILW.z vi3, -1(vi13)
+0C88: 000002ff 81e16b7c  NOP                                | LQI.xyzw vf1, (vi13++)
+0C90: 000002ff 10031801  NOP                                | IADDIU vi3, vi3, 1
+0C98: 000002ff 8000033c  NOP                                | MOVE.- vf0, vf0
+0CA0: 000002ff 52021ffc  NOP                                | IBNE vi2, vi3, -4
+0CA8: 000002ff 03e30fff  NOP                                | SQ.xyzw vf1, -1(vi3)
+0CB0: 000002ff 48007800  NOP                                | JR vi15
+0CB8: 000002ff 09016800  NOP                                | ILW.x vi1, 0(vi13)
+0CC0: 00c019fe 10063010  MULAi.yz ACC, vf3, vf0             | IADDIU vi6, vi6, 16
+0CC8: 00c02a63 811033fd  MADDi.yz vf9, vf5, vf0             | MFIR.x vf16, vi6
+0CD0: 000002ff 01c26800  NOP                                | LQ.xyz vf2, 0(vi13)
+0CD8: 000002ff 01c703dd  NOP                                | LQ.xyz vf7, 989(vi0)
+0CE0: 000002ff 01c603de  NOP                                | LQ.xyz vf6, 990(vi0)
+0CE8: 000002ff 01c86802  NOP                                | LQ.xyz vf8, 2(vi13)
+0CF0: 000002ff 01c503df  NOP                                | LQ.xyz vf5, 991(vi0)
+0CF8: 000002ff 01e46803  NOP                                | LQ.xyzw vf4, 3(vi13)
+0D00: 01c239bc 01e103f2  MULAx.xyz ACC, vf7, vf2            | LQ.xyzw vf1, 1010(vi0)
+0D08: 01c8022c 01c303d9  SUB.xyz vf8, vf0, vf8              | LQ.xyz vf3, 985(vi0)
+0D10: 01c230bd 10040080  MADDAy.xyz ACC, vf6, vf2           | IADDIU vi4, vi0, 128
+0D18: 01c22a4a 8000033c  MADDz.xyz vf9, vf5, vf2            | MOVE.- vf0, vf0
+0D20: 0024096a 8000033c  MUL.w vf5, vf1, vf4                | MOVE.- vf0, vf0
+0D28: 01c839bc 8000033c  MULAx.xyz ACC, vf7, vf8            | MOVE.- vf0, vf0
+0D30: 01c830bd 8000033c  MADDAy.xyz ACC, vf6, vf8           | MOVE.- vf0, vf0
+0D38: 01c8294a 8000033c  MADDz.xyz vf5, vf5, vf8            | MOVE.- vf0, vf0
+0D40: 01c529db 8000033c  MULw.xyz vf7, vf5, vf5             | MOVE.- vf0, vf0
+0D48: 01c348e8 8000033c  ADD.xyz vf3, vf9, vf3              | MOVE.- vf0, vf0
+0D50: 01c7086c 8000033c  SUB.xyz vf1, vf1, vf7              | MOVE.- vf0, vf0
+0D58: 01c119ec 8000033c  SUB.xyz vf7, vf3, vf1              | MOVE.- vf0, vf0
+0D60: 01c739aa 8000033c  MUL.xyz vf6, vf7, vf7              | MOVE.- vf0, vf0
+0D68: 01800053 8000033c  MAXw.xy vf1, vf0, vf0              | MOVE.- vf0, vf0
+0D70: 01c539ea 8000033c  MUL.xyz vf7, vf7, vf5              | MOVE.- vf0, vf0
+0D78: 0106303d 8000033c  ADDAy.x ACC, vf6, vf6              | MOVE.- vf0, vf0
+0D80: 0106098a 090103f3  MADDz.x vf6, vf1, vf6              | ILW.x vi1, 1011(vi0)
+0D88: 0107383d 082303f3  ADDAy.x ACC, vf7, vf7              | ILW.w vi3, 1011(vi0)
+0D90: 010709ca 01e26801  MADDz.x vf7, vf1, vf7              | LQ.xyzw vf2, 1(vi13)
+0D98: 000002ff 100d6804  NOP                                | IADDIU vi13, vi13, 4
+0DA0: 000002ff 10020acc  NOP                                | IADDIU vi2, vi1, 716
+0DA8: 000002ff 10010a2c  NOP                                | IADDIU vi1, vi1, 556
+0DB0: 010739ea 34052000  MUL.x vf7, vf7, vf7                | FMAND vi5, vi4
+0DB8: 0104319a 52050052  MULz.x vf6, vf6, vf4               | IBNE vi5, vi0, 82
+0DC0: 0106382c 01c60fb0  SUB.x vf0, vf7, vf6                | LQ.xyz vf6, -80(vi1)
+0DC8: 000002ff 8000033c  NOP                                | MOVE.- vf0, vf0
+0DD0: 000002ff 8000033c  NOP                                | MOVE.- vf0, vf0
+0DD8: 000002ff 800310f0  NOP                                | IADD vi3, vi2, vi3
+0DE0: 01c619ac 34042000  SUB.xyz vf6, vf3, vf6              | FMAND vi4, vi4
+0DE8: 01c632aa 5204004c  MUL.xyz vf10, vf6, vf6             | IBNE vi4, vi0, 76
+0DF0: 002a01bc 8000033c  MULAx.w ACC, vf0, vf10             | MOVE.- vf0, vf0
+0DF8: 002a00bd 10010801  MADDAy.w ACC, vf0, vf10            | IADDIU vi1, vi1, 1
+0E00: 002a00ca 01ca0fb0  MADDz.w vf3, vf0, vf10             | LQ.xyz vf10, -80(vi1)
+0E08: 000002ff 81e303be  NOP                                | RSQRT Q, vf0.w, vf3.w
+0E10: 01ca19ac 81ca333c  SUB.xyz vf6, vf3, vf10             | MOVE.xyz vf10, vf6
+0E18: 01c6322a 8000033c  MUL.xyz vf8, vf6, vf6              | MOVE.- vf0, vf0
+0E20: 01c0529c 800003bf  MULq.xyz vf10, vf10, vf0           | WAITQ
+0E28: 002801bc 8000033c  MULAx.w ACC, vf0, vf8              | MOVE.- vf0, vf0
+0E30: 002800bd 10010801  MADDAy.w ACC, vf0, vf8             | IADDIU vi1, vi1, 1
+0E38: 002800ca 01c90ffe  MADDz.w vf3, vf0, vf8              | LQ.xyz vf9, -2(vi1)
+0E40: 01c5522a 8000033c  MUL.xyz vf8, vf10, vf5             | MOVE.- vf0, vf0
+0E48: 01c952aa 81e303be  MUL.xyz vf10, vf10, vf9            | RSQRT Q, vf0.w, vf3.w
+0E50: 0108403d 01c90fb0  ADDAy.x ACC, vf8, vf8              | LQ.xyz vf9, -80(vi1)
+0E58: 01080a0a 8000033c  MADDz.x vf8, vf1, vf8              | MOVE.- vf0, vf0
+0E60: 000002ff 8000033c  NOP                                | MOVE.- vf0, vf0
+0E68: 008a503c 8000033c  ADDAx.y ACC, vf10, vf10            | MOVE.- vf0, vf0
+0E70: 008a0a0a 8000033c  MADDz.y vf8, vf1, vf10             | MOVE.- vf0, vf0
+0E78: 01044204 8000033c  SUBx.x vf8, vf8, vf4               | MOVE.- vf0, vf0
+0E80: 01c919ac 81ca333c  SUB.xyz vf6, vf3, vf9              | MOVE.xyz vf10, vf6
+0E88: 000002ff 8000033c  NOP                                | MOVE.- vf0, vf0
+0E90: 000002ff 8000033c  NOP                                | MOVE.- vf0, vf0
+0E98: 01044219 8000033c  MULy.x vf8, vf8, vf4               | MOVE.- vf0, vf0
+0EA0: 01c6326a 8000033c  MUL.xyz vf9, vf6, vf6              | MOVE.- vf0, vf0
+0EA8: 010002e0 8000033c  ADDq.x vf11, vf0, vf0              | MOVE.- vf0, vf0
+0EB0: 01c0531c 8000033c  MULq.xyz vf12, vf10, vf0           | MOVE.- vf0, vf0
+0EB8: 01804290 8000033c  MAXx.xy vf10, vf8, vf0             | MOVE.- vf0, vf0
+0EC0: 002901bc 10010801  MULAx.w ACC, vf0, vf9              | IADDIU vi1, vi1, 1
+0EC8: 002900bd 01c80ffe  MADDAy.w ACC, vf0, vf9             | LQ.xyz vf8, -2(vi1)
+0ED0: 002900ca 8000033c  MADDz.w vf3, vf0, vf9              | MOVE.- vf0, vf0
+0ED8: 01c5626a 8000033c  MUL.xyz vf9, vf12, vf5             | MOVE.- vf0, vf0
+0EE0: 01c8622a 01cc0fb0  MUL.xyz vf8, vf12, vf8             | LQ.xyz vf12, -80(vi1)
+0EE8: 01805297 81e303be  MINIw.xy vf10, vf10, vf0           | RSQRT Q, vf0.w, vf3.w
+0EF0: 0109483d 8000033c  ADDAy.x ACC, vf9, vf9              | MOVE.- vf0, vf0
+0EF8: 01090a4a 8000033c  MADDz.x vf9, vf1, vf9              | MOVE.- vf0, vf0
+0F00: 0088403c 8000033c  ADDAx.y ACC, vf8, vf8              | MOVE.- vf0, vf0
+0F08: 010a5219 8000033c  MULy.x vf8, vf10, vf10             | MOVE.- vf0, vf0
+0F10: 000002ff 8000033c  NOP                                | MOVE.- vf0, vf0
+0F18: 01044a44 8000033c  SUBx.x vf9, vf9, vf4               | MOVE.- vf0, vf0
+0F20: 01cc19ac 81ca333c  SUB.xyz vf6, vf3, vf12             | MOVE.xyz vf10, vf6
+0F28: 00880aca 8000033c  MADDz.y vf11, vf1, vf8             | MOVE.- vf0, vf0
+0F30: 01085a2a 8000033c  MUL.x vf8, vf11, vf8               | MOVE.- vf0, vf0
+0F38: 01044ad9 8000033c  MULy.x vf11, vf9, vf4              | MOVE.- vf0, vf0
+0F40: 01c6326a 8000033c  MUL.xyz vf9, vf6, vf6              | MOVE.- vf0, vf0
+0F48: 010001e0 8000033c  ADDq.x vf7, vf0, vf0               | MOVE.- vf0, vf0
+0F50: 01c0529c 800003bf  MULq.xyz vf10, vf10, vf0           | WAITQ
+0F58: 01805b10 10010801  MAXx.xy vf12, vf11, vf0            | IADDIU vi1, vi1, 1
+0F60: 002901bc 01cb0ffe  MULAx.w ACC, vf0, vf9              | LQ.xyz vf11, -2(vi1)
+0F68: 002900bd 8000033c  MADDAy.w ACC, vf0, vf9             | MOVE.- vf0, vf0
+0F70: 002900ca 8000033c  MADDz.w vf3, vf0, vf9              | MOVE.- vf0, vf0
+0F78: 01c5526a 8000033c  MUL.xyz vf9, vf10, vf5             | MOVE.- vf0, vf0
+0F80: 01cb52ea 8000033c  MUL.xyz vf11, vf10, vf11           | MOVE.- vf0, vf0
+0F88: 01e81218 8000033c  MULx.xyzw vf8, vf2, vf8            | MOVE.- vf0, vf0
+0F90: 01806317 81e303be  MINIw.xy vf12, vf12, vf0           | RSQRT Q, vf0.w, vf3.w
+0F98: 0109483d 8000033c  ADDAy.x ACC, vf9, vf9              | MOVE.- vf0, vf0
+0FA0: 01090a4a 01ea1000  MADDz.x vf9, vf1, vf9              | LQ.xyzw vf10, 0(vi2)
+0FA8: 008b583c 01ce0fb0  ADDAx.y ACC, vf11, vf11            | LQ.xyz vf14, -80(vi1)
+0FB0: 008b0a4a 10010801  MADDz.y vf9, vf1, vf11             | IADDIU vi1, vi1, 1
+0FB8: 010c6359 8000033c  MULy.x vf13, vf12, vf12            | MOVE.- vf0, vf0
+0FC0: 01044ac4 8000033c  SUBx.x vf11, vf9, vf4              | MOVE.- vf0, vf0
+0FC8: 01ce19ac 81cc333c  SUB.xyz vf6, vf3, vf14             | MOVE.xyz vf12, vf6
+0FD0: 01e852a8 8000033c  ADD.xyzw vf10, vf10, vf8           | MOVE.- vf0, vf0
+0FD8: 010d3a2a 8000033c  MUL.x vf8, vf7, vf13               | MOVE.- vf0, vf0
+0FE0: 01045a59 8000033c  MULy.x vf9, vf11, vf4              | MOVE.- vf0, vf0
+0FE8: 01c632ea 8000033c  MUL.xyz vf11, vf6, vf6             | MOVE.- vf0, vf0
+0FF0: 010001e0 03e25000  ADDq.x vf7, vf0, vf0               | SQ.xyzw vf10, 0(vi2)
+0FF8: 01c0629c 8000033c  MULq.xyz vf10, vf12, vf0           | MOVE.- vf0, vf0
+1000: 01804a50 8000033c  MAXx.xy vf9, vf9, vf0              | MOVE.- vf0, vf0
+1008: 002b01bc 01cc0ffe  MULAx.w ACC, vf0, vf11             | LQ.xyz vf12, -2(vi1)
+1010: 002b00bd 8000033c  MADDAy.w ACC, vf0, vf11            | MOVE.- vf0, vf0
+1018: 002b00ca 8000033c  MADDz.w vf3, vf0, vf11             | MOVE.- vf0, vf0
+1020: 01c5536a 8000033c  MUL.xyz vf13, vf10, vf5            | MOVE.- vf0, vf0
+1028: 01cc52ea 8000033c  MUL.xyz vf11, vf10, vf12           | MOVE.- vf0, vf0
+1030: 01804b17 10021001  MINIw.xy vf12, vf9, vf0            | IADDIU vi2, vi2, 1
+1038: 01e81218 81e303be  MULx.xyzw vf8, vf2, vf8            | RSQRT Q, vf0.w, vf3.w
+1040: 010d683d 520317ec  ADDAy.x ACC, vf13, vf13            | IBNE vi3, vi2, -20
+1048: 010d0a4a 01ea1000  MADDz.x vf9, vf1, vf13             | LQ.xyzw vf10, 0(vi2)
+1050: 000002ff 48007800  NOP                                | JR vi15
+1058: 000002ff 09016800  NOP                                | ILW.x vi1, 0(vi13)
+1060: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1068: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1070: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1078: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1080: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1088: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1090: 000002ff 01c503dd  NOP                                | LQ.xyz vf5, 989(vi0)
+1098: 000002ff 01c66800  NOP                                | LQ.xyz vf6, 0(vi13)
+10A0: 000002ff 01c803de  NOP                                | LQ.xyz vf8, 990(vi0)
+10A8: 000002ff 01c703df  NOP                                | LQ.xyz vf7, 991(vi0)
+10B0: 000002ff 01c96802  NOP                                | LQ.xyz vf9, 2(vi13)
+10B8: 01c629bc 090103f3  MULAx.xyz ACC, vf5, vf6            | ILW.x vi1, 1011(vi0)
+10C0: 01c640bd 8000033c  MADDAy.xyz ACC, vf8, vf6           | MOVE.- vf0, vf0
+10C8: 01c638be 01c203d9  MADDAz.xyz ACC, vf7, vf6           | LQ.xyz vf2, 985(vi0)
+10D0: 01c901ac 8000033c  SUB.xyz vf6, vf0, vf9              | MOVE.- vf0, vf0
+10D8: 01c0108b 01c903f9  MADDw.xyz vf2, vf2, vf0            | LQ.xyz vf9, 1017(vi0)
+10E0: 01c629bc 8000033c  MULAx.xyz ACC, vf5, vf6            | MOVE.- vf0, vf0
+10E8: 01c640bd 8000033c  MADDAy.xyz ACC, vf8, vf6           | MOVE.- vf0, vf0
+10F0: 01c6390a 10020acc  MADDz.xyz vf4, vf7, vf6            | IADDIU vi2, vi1, 716
+10F8: 01c929bc 10010a2c  MULAx.xyz ACC, vf5, vf9            | IADDIU vi1, vi1, 556
+1100: 01c940bd 01c80fb0  MADDAy.xyz ACC, vf8, vf9           | LQ.xyz vf8, -80(vi1)
+1108: 01c8122c 10010801  SUB.xyz vf8, vf2, vf8              | IADDIU vi1, vi1, 1
+1110: 000002ff 81c0473f  NOP                                | ERLENG.xyz ft=0 fs=8
+1118: 01c9394a 01c70fb0  MADDz.xyz vf5, vf7, vf9            | LQ.xyz vf7, -80(vi1)
+1120: 000002ff 800007bf  NOP                                | ESIN.- ft=0 fs=0
+1128: 000002ff 810b067c  NOP                                | MFP.x ft=11 fs=0
+1130: 01c711ec 8000033c  SUB.xyz vf7, vf2, vf7              | MOVE.- vf0, vf0
+1138: 01cb4298 8000033c  MULx.xyz vf10, vf8, vf11           | MOVE.- vf0, vf0
+1140: 000002ff 81c03f3f  NOP                                | ERLENG.xyz ft=0 fs=7
+1148: 01ca236a 8000033c  MUL.xyz vf13, vf4, vf10            | MOVE.- vf0, vf0
+1150: 01ca2a28 8000033c  ADD.xyz vf8, vf5, vf10             | MOVE.- vf0, vf0
+1158: 010d6a81 8000033c  ADDy.x vf10, vf13, vf13            | MOVE.- vf0, vf0
+1160: 01c8442a 8000033c  MUL.xyz vf16, vf8, vf8             | MOVE.- vf0, vf0
+1168: 010d5282 01836803  ADDz.x vf10, vf10, vf13            | LQ.xy vf3, 3(vi13)
+1170: 003001bc 8000033c  MULAx.w ACC, vf0, vf16             | MOVE.- vf0, vf0
+1178: 003000bd 8000033c  MADDAy.w ACC, vf0, vf16            | MOVE.- vf0, vf0
+1180: 0030008a 8000033c  MADDz.w vf2, vf0, vf16             | MOVE.- vf0, vf0
+1188: 01035284 8000033c  SUBx.x vf10, vf10, vf3             | MOVE.- vf0, vf0
+1190: 000002ff 81e203be  NOP                                | RSQRT Q, vf0.w, vf2.w
+1198: 01005350 10010801  MAXx.x vf13, vf10, vf0             | IADDIU vi1, vi1, 1
+11A0: 000002ff 01cf0fb0  NOP                                | LQ.xyz vf15, -80(vi1)
+11A8: 000002ff 800007bf  NOP                                | ESIN.- ft=0 fs=0
+11B0: 01036c19 81ca3b3c  MULy.x vf16, vf13, vf3             | MOVE.xyz vf10, vf7
+11B8: 01cf11ec 810d067c  SUB.xyz vf7, vf2, vf15             | MFP.x ft=13 fs=0
+11C0: 01008417 8000033c  MINIw.x vf16, vf16, vf0            | MOVE.- vf0, vf0
+11C8: 01cd5498 81c03f3f  MULx.xyz vf18, vf10, vf13          | ERLENG.xyz ft=0 fs=7
+11D0: 000002ff 800003bf  NOP                                | WAITQ
+11D8: 000002ff 10010801  NOP                                | IADDIU vi1, vi1, 1
+11E0: 01c043dc 01ca0ffd  MULq.xyz vf15, vf8, vf0            | LQ.xyz vf10, -3(vi1)
+11E8: 01d22a28 8000033c  ADD.xyz vf8, vf5, vf18             | MOVE.- vf0, vf0
+11F0: 01d224aa 8000033c  MUL.xyz vf18, vf4, vf18            | MOVE.- vf0, vf0
+11F8: 01cf526a 8000033c  MUL.xyz vf9, vf10, vf15            | MOVE.- vf0, vf0
+1200: 01c8432a 8000033c  MUL.xyz vf12, vf8, vf8             | MOVE.- vf0, vf0
+1208: 01129281 8000033c  ADDy.x vf10, vf18, vf18            | MOVE.- vf0, vf0
+1210: 01094c81 8000033c  ADDy.x vf18, vf9, vf9              | MOVE.- vf0, vf0
+1218: 002c01bc 8000033c  MULAx.w ACC, vf0, vf12             | MOVE.- vf0, vf0
+1220: 002c00bd 8000033c  MADDAy.w ACC, vf0, vf12            | MOVE.- vf0, vf0
+1228: 011253c2 8000033c  ADDz.x vf15, vf10, vf18            | MOVE.- vf0, vf0
+1230: 002c008a 8000033c  MADDz.w vf2, vf0, vf12             | MOVE.- vf0, vf0
+1238: 01099282 8000033c  ADDz.x vf10, vf18, vf9             | MOVE.- vf0, vf0
+1240: 000002ff 800007bf  NOP                                | ESIN.- ft=0 fs=0
+1248: 01037bc4 81e203be  SUBx.x vf15, vf15, vf3             | RSQRT Q, vf0.w, vf2.w
+1250: 011052aa 01e603f7  MUL.x vf10, vf10, vf16             | LQ.xyzw vf6, 1015(vi0)
+1258: 000002ff 81105b3c  NOP                                | MOVE.x vf16, vf11
+1260: 000002ff 810b6b3c  NOP                                | MOVE.x vf11, vf13
+1268: 01007a50 01cf0fb0  MAXx.x vf9, vf15, vf0              | LQ.xyz vf15, -80(vi1)
+1270: 010651bc 810d067c  MULAx.x ACC, vf10, vf6             | MFP.x ft=13 fs=0
+1278: 010a54aa 81ca3b3c  MUL.x vf18, vf10, vf10             | MOVE.xyz vf10, vf7
+1280: 01cf11ec 8000033c  SUB.xyz vf7, vf2, vf15             | MOVE.- vf0, vf0
+1288: 01034a59 8000033c  MULy.x vf9, vf9, vf3               | MOVE.- vf0, vf0
+1290: 01cd53d8 8000033c  MULx.xyz vf15, vf10, vf13          | MOVE.- vf0, vf0
+1298: 0112932a 10010801  MUL.x vf12, vf18, vf18             | IADDIU vi1, vi1, 1
+12A0: 010690bd 81c03f3f  MADDAy.x ACC, vf18, vf6            | ERLENG.xyz ft=0 fs=7
+12A8: 01c0445c 01ca0ffd  MULq.xyz vf17, vf8, vf0            | LQ.xyz vf10, -3(vi1)
+12B0: 01cf2a28 8000033c  ADD.xyz vf8, vf5, vf15             | MOVE.- vf0, vf0
+12B8: 01004a57 8000033c  MINIw.x vf9, vf9, vf0              | MOVE.- vf0, vf0
+12C0: 01cf23ea 8000033c  MUL.xyz vf15, vf4, vf15            | MOVE.- vf0, vf0
+12C8: 01d152aa 8000033c  MUL.xyz vf10, vf10, vf17           | MOVE.- vf0, vf0
+12D0: 01c8446a 8000033c  MUL.xyz vf17, vf8, vf8             | MOVE.- vf0, vf0
+12D8: 010c64aa 8000033c  MUL.x vf18, vf12, vf12             | MOVE.- vf0, vf0
+12E0: 010f7bc1 8000033c  ADDy.x vf15, vf15, vf15            | MOVE.- vf0, vf0
+12E8: 010a5281 8000033c  ADDy.x vf10, vf10, vf10            | MOVE.- vf0, vf0
+12F0: 003101bc 8000033c  MULAx.w ACC, vf0, vf17             | MOVE.- vf0, vf0
+12F8: 003100bd 8000033c  MADDAy.w ACC, vf0, vf17            | MOVE.- vf0, vf0
+1300: 010f7bc2 8000033c  ADDz.x vf15, vf15, vf15            | MOVE.- vf0, vf0
+1308: 0031008a 8000033c  MADDz.w vf2, vf0, vf17             | MOVE.- vf0, vf0
+1310: 010a5282 8000033c  ADDz.x vf10, vf10, vf10            | MOVE.- vf0, vf0
+1318: 010660be 8000033c  MADDAz.x ACC, vf12, vf6            | MOVE.- vf0, vf0
+1320: 0106930b 8112833c  MADDw.x vf12, vf18, vf6            | MOVE.x vf18, vf16
+1328: 01037bc4 8000033c  SUBx.x vf15, vf15, vf3             | MOVE.- vf0, vf0
+1330: 010952aa 81e203be  MUL.x vf10, vf10, vf9              | RSQRT Q, vf0.w, vf2.w
+1338: 010062d0 81105b3c  MAXx.x vf11, vf12, vf0             | MOVE.x vf16, vf11
+1340: 01007b10 01cf0fb0  MAXx.x vf12, vf15, vf0             | LQ.xyz vf15, -80(vi1)
+1348: 010a526a 800007bf  MUL.x vf9, vf10, vf10              | ESIN.- ft=0 fs=0
+1350: 010651bc 81ca3b3c  MULAx.x ACC, vf10, vf6             | MOVE.xyz vf10, vf7
+1358: 010b94aa 8107067c  MUL.x vf18, vf18, vf11             | MFP.x ft=7 fs=0
+1360: 01cf12ec 8000033c  SUB.xyz vf11, vf2, vf15            | MOVE.- vf0, vf0
+1368: 01036319 8000033c  MULy.x vf12, vf12, vf3             | MOVE.- vf0, vf0
+1370: 01094baa 8000033c  MUL.x vf14, vf9, vf9               | MOVE.- vf0, vf0
+1378: 01c753d8 800003bf  MULx.xyz vf15, vf10, vf7           | WAITQ
+1380: 010648bd 81c05f3f  MADDAy.x ACC, vf9, vf6             | ERLENG.xyz ft=0 fs=11
+1388: 01006317 10010801  MINIw.x vf12, vf12, vf0            | IADDIU vi1, vi1, 1
+1390: 01c0445c 01ca0ffd  MULq.xyz vf17, vf8, vf0            | LQ.xyz vf10, -3(vi1)
+1398: 01cf2a28 8000033c  ADD.xyz vf8, vf5, vf15             | MOVE.- vf0, vf0
+13A0: 010e726a 8000033c  MUL.x vf9, vf14, vf14              | MOVE.- vf0, vf0
+13A8: 01cf23ea 8000033c  MUL.xyz vf15, vf4, vf15            | MOVE.- vf0, vf0
+13B0: 01d152aa 8000033c  MUL.xyz vf10, vf10, vf17           | MOVE.- vf0, vf0
+13B8: 01c8446a 8000033c  MUL.xyz vf17, vf8, vf8             | MOVE.- vf0, vf0
+13C0: 010670be 082303f3  MADDAz.x ACC, vf14, vf6            | ILW.w vi3, 1011(vi0)
+13C8: 010f7bc1 8000033c  ADDy.x vf15, vf15, vf15            | MOVE.- vf0, vf0
+13D0: 010a5281 8000033c  ADDy.x vf10, vf10, vf10            | MOVE.- vf0, vf0
+13D8: 003101bc 01e16801  MULAx.w ACC, vf0, vf17             | LQ.xyzw vf1, 1(vi13)
+13E0: 003100bd 800310f0  MADDAy.w ACC, vf0, vf17            | IADD vi3, vi2, vi3
+13E8: 010f7bc2 8000033c  ADDz.x vf15, vf15, vf15            | MOVE.- vf0, vf0
+13F0: 0031008a 8000033c  MADDz.w vf2, vf0, vf17             | MOVE.- vf0, vf0
+13F8: 010a5382 8000033c  ADDz.x vf14, vf10, vf10            | MOVE.- vf0, vf0
+1400: 01064a4b 8000033c  MADDw.x vf9, vf9, vf6              | MOVE.- vf0, vf0
+1408: 01037c44 01ea1000  SUBx.x vf17, vf15, vf3             | LQ.xyzw vf10, 0(vi2)
+1410: 01f20bd8 81e203be  MULx.xyzw vf15, vf1, vf18          | RSQRT Q, vf0.w, vf2.w
+1418: 010c74aa 8000033c  MUL.x vf18, vf14, vf12             | MOVE.- vf0, vf0
+1420: 01004b10 8000033c  MAXx.x vf12, vf9, vf0              | MOVE.- vf0, vf0
+1428: 01008b90 100d6804  MAXx.x vf14, vf17, vf0             | IADDIU vi13, vi13, 4
+1430: 01ef5368 81096b3c  ADD.xyzw vf13, vf10, vf15          | MOVE.x vf9, vf13
+1438: 0112946a 01d30fb0  MUL.x vf17, vf18, vf18             | LQ.xyz vf19, -80(vi1)
+1440: 010691bc 81d25b3c  MULAx.x ACC, vf18, vf6             | MOVE.xyz vf18, vf11
+1448: 01037399 810a067c  MULy.x vf14, vf14, vf3             | MFP.x ft=10 fs=0
+1450: 010c832a 03e26800  MUL.x vf12, vf16, vf12             | SQ.xyzw vf13, 0(vi2)
+1458: 01d312ec 8000033c  SUB.xyz vf11, vf2, vf19            | MOVE.- vf0, vf0
+1460: 01118bea 10010801  MUL.x vf15, vf17, vf17             | IADDIU vi1, vi1, 1
+1468: 01ca9498 8000033c  MULx.xyz vf18, vf18, vf10          | MOVE.- vf0, vf0
+1470: 010688bd 01d00ffd  MADDAy.x ACC, vf17, vf6            | LQ.xyz vf16, -3(vi1)
+1478: 01c044dc 81c05f3f  MULq.xyz vf19, vf8, vf0            | ERLENG.xyz ft=0 fs=11
+1480: 010f7b6a 8000033c  MUL.x vf13, vf15, vf15             | MOVE.- vf0, vf0
+1488: 01d22a28 8000033c  ADD.xyz vf8, vf5, vf18             | MOVE.- vf0, vf0
+1490: 01d2246a 8000033c  MUL.xyz vf17, vf4, vf18            | MOVE.- vf0, vf0
+1498: 01d3842a 8000033c  MUL.xyz vf16, vf16, vf19           | MOVE.- vf0, vf0
+14A0: 01007397 8000033c  MINIw.x vf14, vf14, vf0            | MOVE.- vf0, vf0
+14A8: 01c844aa 8000033c  MUL.xyz vf18, vf8, vf8             | MOVE.- vf0, vf0
+14B0: 01118cc1 8000033c  ADDy.x vf19, vf17, vf17            | MOVE.- vf0, vf0
+14B8: 01108441 8000033c  ADDy.x vf17, vf16, vf16            | MOVE.- vf0, vf0
+14C0: 010678be 8000033c  MADDAz.x ACC, vf15, vf6            | MOVE.- vf0, vf0
+14C8: 003201bc 8000033c  MULAx.w ACC, vf0, vf18             | MOVE.- vf0, vf0
+14D0: 003200bd 8000033c  MADDAy.w ACC, vf0, vf18            | MOVE.- vf0, vf0
+14D8: 01119c02 8000033c  ADDz.x vf16, vf19, vf17            | MOVE.- vf0, vf0
+14E0: 0032008a 8000033c  MADDz.w vf2, vf0, vf18             | MOVE.- vf0, vf0
+14E8: 01108c82 8000033c  ADDz.x vf18, vf17, vf16            | MOVE.- vf0, vf0
+14F0: 01066ccb 01f11001  MADDw.x vf19, vf13, vf6            | LQ.xyzw vf17, 1(vi2)
+14F8: 010383c4 81104b3c  SUBx.x vf15, vf16, vf3             | MOVE.x vf16, vf9
+1500: 01ec0b58 81e203be  MULx.xyzw vf13, vf1, vf12          | RSQRT Q, vf0.w, vf2.w
+1508: 010e94aa 10021001  MUL.x vf18, vf18, vf14             | IADDIU vi2, vi2, 1
+1510: 01009b10 81093b3c  MAXx.x vf12, vf19, vf0             | MOVE.x vf9, vf7
+1518: 01007b90 520317e3  MAXx.x vf14, vf15, vf0             | IBNE vi3, vi2, -29
+1520: 01ed8b68 8107533c  ADD.xyzw vf13, vf17, vf13          | MOVE.x vf7, vf10
+1528: 000002ff 48007800  NOP                                | JR vi15
+1530: 000002ff 09016800  NOP                                | ILW.x vi1, 0(vi13)
+1538: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1540: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1548: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1550: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1558: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1560: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1568: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1570: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1578: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1580: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1588: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1590: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1598: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+15A0: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+15A8: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+15B0: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+15B8: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+15C0: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+15C8: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+15D0: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+15D8: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+15E0: 000002ff 01c36800  NOP                                | LQ.xyz vf3, 0(vi13)
+15E8: 000002ff 01c103dd  NOP                                | LQ.xyz vf1, 989(vi0)
+15F0: 000002ff 090103f3  NOP                                | ILW.x vi1, 1011(vi0)
+15F8: 000002ff 01c203de  NOP                                | LQ.xyz vf2, 990(vi0)
+1600: 000002ff 01c403df  NOP                                | LQ.xyz vf4, 991(vi0)
+1608: 01c309bc 10020acc  MULAx.xyz ACC, vf1, vf3            | IADDIU vi2, vi1, 716
+1610: 01c310bd 10010a2c  MADDAy.xyz ACC, vf2, vf3           | IADDIU vi1, vi1, 556
+1618: 01c320ca 81c40b7c  MADDz.xyz vf3, vf4, vf3            | LQI.xyz vf4, (vi1++)
+1620: 000002ff 81c80b7c  NOP                                | LQI.xyz vf8, (vi1++)
+1628: 01c4192a 8000033c  MUL.xyz vf4, vf3, vf4              | MOVE.- vf0, vf0
+1630: 01042141 8000033c  ADDy.x vf5, vf4, vf4               | MOVE.- vf0, vf0
+1638: 01c8192a 8045233c  MUL.xyz vf4, vf3, vf8              | MOVE.z vf5, vf4
+1640: 000002ff 81c80b7c  NOP                                | LQI.xyz vf8, (vi1++)
+1648: 01052942 8000033c  ADDz.x vf5, vf5, vf5               | MOVE.- vf0, vf0
+1650: 81042181 3f000000  ADDy.x vf6, vf4, vf4               | L?1F
+1658: 01c8192a 8045233c  MUL.xyz vf4, vf3, vf8              | MOVE.z vf5, vf4
+1660: 0100023e 8000033c  ADDAi.x ACC, vf0, vf0              | MOVE.- vf0, vf0
+1668: 010029e3 082303f3  MADDi.x vf7, vf5, vf0              | ILW.w vi3, 1011(vi0)
+1670: 01002967 81c80b7c  MSUBi.x vf5, vf5, vf0              | LQI.xyz vf8, (vi1++)
+1678: 010532c2 01e16801  ADDz.x vf11, vf6, vf5              | LQ.xyzw vf1, 1(vi13)
+1680: 0100023e 01e26802  ADDAi.x ACC, vf0, vf0              | LQ.xyzw vf2, 2(vi13)
+1688: 01042181 01ea1000  ADDy.x vf6, vf4, vf4               | LQ.xyzw vf10, 0(vi2)
+1690: 01c8192a 8045233c  MUL.xyz vf4, vf3, vf8              | MOVE.z vf5, vf4
+1698: 01005967 81092b3c  MSUBi.x vf5, vf11, vf0             | MOVE.x vf9, vf5
+16A0: 01005a23 8000033c  MADDi.x vf8, vf11, vf0             | MOVE.- vf0, vf0
+16A8: 01e0503c 100d6803  ADDAx.xyzw ACC, vf10, vf0          | IADDIU vi13, vi13, 3
+16B0: 01e708bc 800310f0  MADDAx.xyzw ACC, vf1, vf7          | IADD vi3, vi2, vi3
+16B8: 01e911c8 81cb0b7c  MADDx.xyzw vf7, vf2, vf9           | LQI.xyz vf11, (vi1++)
+16C0: 01053282 8000033c  ADDz.x vf10, vf6, vf5              | MOVE.- vf0, vf0
+16C8: 0100023e 8109433c  ADDAi.x ACC, vf0, vf0              | MOVE.x vf9, vf8
+16D0: 01042181 01ec1001  ADDy.x vf6, vf4, vf4               | LQ.xyzw vf12, 1(vi2)
+16D8: 01cb192a 8045233c  MUL.xyz vf4, vf3, vf11             | MOVE.z vf5, vf4
+16E0: 01005223 810b2b3c  MADDi.x vf8, vf10, vf0             | MOVE.x vf11, vf5
+16E8: 01005167 81e23b7d  MSUBi.x vf5, vf10, vf0             | SQI.xyzw vf7, (vi2++)
+16F0: 01e0603c 8000033c  ADDAx.xyzw ACC, vf12, vf0          | MOVE.- vf0, vf0
+16F8: 01e908bc 520317f8  MADDAx.xyzw ACC, vf1, vf9          | IBNE vi3, vi2, -8
+1700: 01eb11c8 81cb0b7c  MADDx.xyzw vf7, vf2, vf11          | LQI.xyz vf11, (vi1++)
+1708: 000002ff 48007800  NOP                                | JR vi15
+1710: 000002ff 09016800  NOP                                | ILW.x vi1, 0(vi13)
+1718: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1720: 01000113 01c26800  MAXw.x vf4, vf0, vf0               | LQ.xyz vf2, 0(vi13)
+1728: 000002ff 01c303d6  NOP                                | LQ.xyz vf3, 982(vi0)
+1730: 000002ff 01c103d7  NOP                                | LQ.xyz vf1, 983(vi0)
+1738: 000002ff 01c503d8  NOP                                | LQ.xyz vf5, 984(vi0)
+1740: 01c219bc 090103f3  MULAx.xyz ACC, vf3, vf2            | ILW.x vi1, 1011(vi0)
+1748: 01c208bd 01c303d9  MADDAy.xyz ACC, vf1, vf2           | LQ.xyz vf3, 985(vi0)
+1750: 01c2294a 10020acc  MADDz.xyz vf5, vf5, vf2            | IADDIU vi2, vi1, 716
+1758: 000002ff 100109dc  NOP                                | IADDIU vi1, vi1, 476
+1760: 01c328e8 81ca0b7c  ADD.xyz vf3, vf5, vf3              | LQI.xyz vf10, (vi1++)
+1768: 01ca1aac 81c90b7c  SUB.xyz vf10, vf3, vf10            | LQI.xyz vf9, (vi1++)
+1770: 01ca52aa 01e26802  MUL.xyz vf10, vf10, vf10           | LQ.xyzw vf2, 2(vi13)
+1778: 01c91a6c 8000033c  SUB.xyz vf9, vf3, vf9              | MOVE.- vf0, vf0
+1780: 010a503d 8000033c  ADDAy.x ACC, vf10, vf10            | MOVE.- vf0, vf0
+1788: 010a228a 8000033c  MADDz.x vf10, vf4, vf10            | MOVE.- vf0, vf0
+1790: 0102522a 800a03bd  MUL.x vf8, vf10, vf2               | SQRT Q, vf10.x
+1798: 01c94aaa 81c90b7c  MUL.xyz vf10, vf9, vf9             | LQI.xyz vf9, (vi1++)
+17A0: 010a503d 8000033c  ADDAy.x ACC, vf10, vf10            | MOVE.- vf0, vf0
+17A8: 0080129c 800003bf  MULq.y vf10, vf2, vf0              | WAITQ
+17B0: 010a228a 8000033c  MADDz.x vf10, vf4, vf10            | MOVE.- vf0, vf0
+17B8: 01c91a6c 8000033c  SUB.xyz vf9, vf3, vf9              | MOVE.- vf0, vf0
+17C0: 010a4141 8000033c  ADDy.x vf5, vf8, vf10              | MOVE.- vf0, vf0
+17C8: 0102522a 800a03bd  MUL.x vf8, vf10, vf2               | SQRT Q, vf10.x
+17D0: 01c94aaa 8000033c  MUL.xyz vf10, vf9, vf9             | MOVE.- vf0, vf0
+17D8: 01022942 81c90b7c  ADDz.x vf5, vf5, vf2               | LQI.xyz vf9, (vi1++)
+17E0: 010a503d 8000033c  ADDAy.x ACC, vf10, vf10            | MOVE.- vf0, vf0
+17E8: 010a228a 8000033c  MADDz.x vf10, vf4, vf10            | MOVE.- vf0, vf0
+17F0: 0080129c 8000033c  MULq.y vf10, vf2, vf0              | MOVE.- vf0, vf0
+17F8: 01c91a6c 082303f3  SUB.xyz vf9, vf3, vf9              | ILW.w vi3, 1011(vi0)
+1800: 010029ab 8000033c  MAX.x vf6, vf5, vf0                | MOVE.- vf0, vf0
+1808: 010a41c1 800a03bd  ADDy.x vf7, vf8, vf10              | SQRT Q, vf10.x
+1810: 01c9496a 800310f0  MUL.xyz vf5, vf9, vf9              | IADD vi3, vi2, vi3
+1818: 0102522a 01e16801  MUL.x vf8, vf10, vf2               | LQ.xyzw vf1, 1(vi13)
+1820: 01023297 8000033c  MINIw.x vf10, vf6, vf2             | MOVE.- vf0, vf0
+1828: 010239c2 8000033c  ADDz.x vf7, vf7, vf2               | MOVE.- vf0, vf0
+1830: 0105283d 81c90b7c  ADDAy.x ACC, vf5, vf5              | LQI.xyz vf9, (vi1++)
+1838: 0105214a 8000033c  MADDz.x vf5, vf4, vf5              | MOVE.- vf0, vf0
+1840: 0080111c 8000033c  MULq.y vf4, vf2, vf0               | MOVE.- vf0, vf0
+1848: 01ea0a98 8000033c  MULx.xyzw vf10, vf1, vf10          | MOVE.- vf0, vf0
+1850: 01c91aec 01e91000  SUB.xyz vf11, vf3, vf9             | LQ.xyzw vf9, 0(vi2)
+1858: 010039eb 800503bd  MAX.x vf7, vf7, vf0                | SQRT Q, vf5.x
+1860: 01044181 8000033c  ADDy.x vf6, vf8, vf4               | MOVE.- vf0, vf0
+1868: 0102296a 8000033c  MUL.x vf5, vf5, vf2                | MOVE.- vf0, vf0
+1870: 01cb5a2a 8000033c  MUL.xyz vf8, vf11, vf11            | MOVE.- vf0, vf0
+1878: 01ea4aa8 8000033c  ADD.xyzw vf10, vf9, vf10           | MOVE.- vf0, vf0
+1880: 010239d7 100d6803  MINIw.x vf7, vf7, vf2              | IADDIU vi13, vi13, 3
+1888: 01023182 8000033c  ADDz.x vf6, vf6, vf2               | MOVE.- vf0, vf0
+1890: 0108403d 81cb0b7c  ADDAy.x ACC, vf8, vf8              | LQI.xyz vf11, (vi1++)
+1898: 0108220a 8000033c  MADDz.x vf8, vf4, vf8              | MOVE.- vf0, vf0
+18A0: 0080121c 81e2537d  MULq.y vf8, vf2, vf0               | SQI.xyzw vf10, (vi2++)
+18A8: 01e709d8 8000033c  MULx.xyzw vf7, vf1, vf7            | MOVE.- vf0, vf0
+18B0: 01cb1aec 8000033c  SUB.xyz vf11, vf3, vf11            | MOVE.- vf0, vf0
+18B8: 0100326b 01ea1000  MAX.x vf9, vf6, vf0                | LQ.xyzw vf10, 0(vi2)
+18C0: 01082981 8000033c  ADDy.x vf6, vf5, vf8               | MOVE.- vf0, vf0
+18C8: 0102416a 800803bd  MUL.x vf5, vf8, vf2                | SQRT Q, vf8.x
+18D0: 01cb5a2a 8000033c  MUL.xyz vf8, vf11, vf11            | MOVE.- vf0, vf0
+18D8: 01e752a8 520317f5  ADD.xyzw vf10, vf10, vf7           | IBNE vi3, vi2, -11
+18E0: 010249d7 8000033c  MINIw.x vf7, vf9, vf2              | MOVE.- vf0, vf0
+18E8: 000002ff 48007800  NOP                                | JR vi15
+18F0: 000002ff 09016800  NOP                                | ILW.x vi1, 0(vi13)
+18F8: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1900: 000002ff 4000000d  NOP                                | B 13
+1908: 000002ff 01c91000  NOP                                | LQ.xyz vf9, 0(vi2)
+1910: 000002ff 01e403d5  NOP                                | LQ.xyzw vf4, 981(vi0)
+1918: 000002ff 01ca1001  NOP                                | LQ.xyz vf10, 1(vi2)
+1920: 000002ff 01cb1002  NOP                                | LQ.xyz vf11, 2(vi2)
+1928: 000002ff 01cc1003  NOP                                | LQ.xyz vf12, 3(vi2)
+1930: 01c449bc 01e203d3  MULAx.xyz ACC, vf9, vf4            | LQ.xyzw vf2, 979(vi0)
+1938: 01c450bd 8000033c  MADDAy.xyz ACC, vf10, vf4          | MOVE.- vf0, vf0
+1940: 01c458be 8000033c  MADDAz.xyz ACC, vf11, vf4          | MOVE.- vf0, vf0
+1948: 01c4610b 01e103d2  MADDw.xyz vf4, vf12, vf4           | LQ.xyzw vf1, 978(vi0)
+1950: 01c249bc 01e303d4  MULAx.xyz ACC, vf9, vf2            | LQ.xyzw vf3, 980(vi0)
+1958: 01c250bd 100401dc  MADDAy.xyz ACC, vf10, vf2          | IADDIU vi4, vi0, 476
+1960: 01c258be 40000009  MADDAz.xyz ACC, vf11, vf2          | B 9
+1968: 01c2608b 8000033c  MADDw.xyz vf2, vf12, vf2           | MOVE.- vf0, vf0
+1970: 000002ff 01e203db  NOP                                | LQ.xyzw vf2, 987(vi0)
+1978: 000002ff 01ca1001  NOP                                | LQ.xyz vf10, 1(vi2)
+1980: 000002ff 01cb1002  NOP                                | LQ.xyz vf11, 2(vi2)
+1988: 000002ff 01cc1003  NOP                                | LQ.xyz vf12, 3(vi2)
+1990: 01c249bc 01e303dc  MULAx.xyz ACC, vf9, vf2            | LQ.xyzw vf3, 988(vi0)
+1998: 01c250bd 01e103da  MADDAy.xyz ACC, vf10, vf2          | LQ.xyzw vf1, 986(vi0)
+19A0: 01c258be 1004022c  MADDAz.xyz ACC, vf11, vf2          | IADDIU vi4, vi0, 556
+19A8: 01c2608b 81c4633c  MADDw.xyz vf2, vf12, vf2           | MOVE.xyz vf4, vf12
+19B0: 01c349bc 090b03f3  MULAx.xyz ACC, vf9, vf3            | ILW.x vi11, 1011(vi0)
+19B8: 01c350bd 082303f3  MADDAy.xyz ACC, vf10, vf3          | ILW.w vi3, 1011(vi0)
+19C0: 01c358be 8000033c  MADDAz.xyz ACC, vf11, vf3          | MOVE.- vf0, vf0
+19C8: 01c360cb 8000033c  MADDw.xyz vf3, vf12, vf3           | MOVE.- vf0, vf0
+19D0: 01c149bc 80045870  MULAx.xyz ACC, vf9, vf1            | IADD vi1, vi11, vi4
+19D8: 01c150bd 81c50b7c  MADDAy.xyz ACC, vf10, vf1          | LQI.xyz vf5, (vi1++)
+19E0: 01c158be 10025b1c  MADDAz.xyz ACC, vf11, vf1          | IADDIU vi2, vi11, 796
+19E8: 01c1630b 8000033c  MADDw.xyz vf12, vf12, vf1          | MOVE.- vf0, vf0
+19F0: 01c561bc 81d40b7c  MULAx.xyz ACC, vf12, vf5           | LQI.xyz vf20, (vi1++)
+19F8: 01c510bd 800310f0  MADDAy.xyz ACC, vf2, vf5           | IADD vi3, vi2, vi3
+1A00: 01c518be 8000033c  MADDAz.xyz ACC, vf3, vf5           | MOVE.- vf0, vf0
+1A08: 01c0214b 8000033c  MADDw.xyz vf5, vf4, vf0            | MOVE.- vf0, vf0
+1A10: 01d461bc 10021001  MULAx.xyz ACC, vf12, vf20          | IADDIU vi2, vi2, 1
+1A18: 01d410bd 01940800  MADDAy.xyz ACC, vf2, vf20          | LQ.xy vf20, 0(vi1)
+1A20: 01d418be 80540b7c  MADDAz.xyz ACC, vf3, vf20          | LQI.z vf20, (vi1++)
+1A28: 000002ff 520317fc  NOP                                | IBNE vi3, vi2, -4
+1A30: 01c0214b 03c22fff  MADDw.xyz vf5, vf4, vf0            | SQ.xyz vf5, -1(vi2)
+1A38: 000002ff 48007800  NOP                                | JR vi15
+1A40: 000002ff 09016800  NOP                                | ILW.x vi1, 0(vi13)
+1A48: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1A50: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1A58: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1A60: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1A68: 000002ff 01c203d6  NOP                                | LQ.xyz vf2, 982(vi0)
+1A70: 000002ff 01c16800  NOP                                | LQ.xyz vf1, 0(vi13)
+1A78: 000002ff 01c603d7  NOP                                | LQ.xyz vf6, 983(vi0)
+1A80: 000002ff 01c503d8  NOP                                | LQ.xyz vf5, 984(vi0)
+1A88: 01c111bc 01c403dd  MULAx.xyz ACC, vf2, vf1            | LQ.xyz vf4, 989(vi0)
+1A90: 01c130bd 01c26801  MADDAy.xyz ACC, vf6, vf1           | LQ.xyz vf2, 1(vi13)
+1A98: 01c128be 01c103d9  MADDAz.xyz ACC, vf5, vf1           | LQ.xyz vf1, 985(vi0)
+1AA0: 000002ff 090103f3  NOP                                | ILW.x vi1, 1011(vi0)
+1AA8: 01c0084b 01c603de  MADDw.xyz vf1, vf1, vf0            | LQ.xyz vf6, 990(vi0)
+1AB0: 01c221bc 01c409dc  MULAx.xyz ACC, vf4, vf2            | LQ.xyz vf4, 476(vi1)
+1AB8: 01c230bd 082203f3  MADDAy.xyz ACC, vf6, vf2           | ILW.w vi2, 1011(vi0)
+1AC0: 01c4092c 8000033c  SUB.xyz vf4, vf1, vf4              | MOVE.- vf0, vf0
+1AC8: 01c421aa 800208b0  MUL.xyz vf6, vf4, vf4              | IADD vi2, vi1, vi2
+1AD0: 002601bc 10010801  MULAx.w ACC, vf0, vf6              | IADDIU vi1, vi1, 1
+1AD8: 002600bd 01c709dc  MADDAy.w ACC, vf0, vf6             | LQ.xyz vf7, 476(vi1)
+1AE0: 0026004a 81c6233c  MADDz.w vf1, vf0, vf6              | MOVE.xyz vf6, vf4
+1AE8: 01c7092c 81e103be  SUB.xyz vf4, vf1, vf7              | RSQRT Q, vf0.w, vf1.w
+1AF0: 01c421ea 01c503df  MUL.xyz vf7, vf4, vf4              | LQ.xyz vf5, 991(vi0)
+1AF8: 002701bc 10010801  MULAx.w ACC, vf0, vf7              | IADDIU vi1, vi1, 1
+1B00: 002700bd 01c809dc  MADDAy.w ACC, vf0, vf7             | LQ.xyz vf8, 476(vi1)
+1B08: 0027004a 01c70a2a  MADDz.w vf1, vf0, vf7              | LQ.xyz vf7, 554(vi1)
+1B10: 01c2288a 81c5333c  MADDz.xyz vf2, vf5, vf2            | MOVE.xyz vf5, vf6
+1B18: 01c8092c 81c6233c  SUB.xyz vf4, vf1, vf8              | MOVE.xyz vf6, vf4
+1B20: 01c7126a 8000033c  MUL.xyz vf9, vf2, vf7              | MOVE.- vf0, vf0
+1B28: 01c02a1c 81e103be  MULq.xyz vf8, vf5, vf0             | RSQRT Q, vf0.w, vf1.w
+1B30: 01c4216a 8000033c  MUL.xyz vf5, vf4, vf4              | MOVE.- vf0, vf0
+1B38: 010948c1 8000033c  ADDy.x vf3, vf9, vf9               | MOVE.- vf0, vf0
+1B40: 01c741ea 8000033c  MUL.xyz vf7, vf8, vf7              | MOVE.- vf0, vf0
+1B48: 002501bc 8000033c  MULAx.w ACC, vf0, vf5              | MOVE.- vf0, vf0
+1B50: 002500bd 800003bf  MADDAy.w ACC, vf0, vf5             | WAITQ
+1B58: 0025004a 10010801  MADDz.w vf1, vf0, vf5              | IADDIU vi1, vi1, 1
+1B60: 004000c3 01ca09dc  ADDw.z vf3, vf0, vf0               | LQ.xyz vf10, 476(vi1)
+1B68: 808738c0 3f000000  ADDx.y vf3, vf7, vf7               | L?1F
+1B70: 0180023e 81c8333c  ADDAi.xy ACC, vf0, vf0             | MOVE.xyz vf8, vf6
+1B78: 010918c2 01c50a2a  ADDz.x vf3, vf3, vf9               | LQ.xyz vf5, 554(vi1)
+1B80: 01ca092c 81c6233c  SUB.xyz vf4, vf1, vf10             | MOVE.xyz vf6, vf4
+1B88: 008718c2 81e103be  ADDz.y vf3, vf3, vf7               | RSQRT Q, vf0.w, vf1.w
+1B90: 01c0421c 10021004  MULq.xyz vf8, vf8, vf0             | IADDIU vi2, vi2, 4
+1B98: 01c511ea 10010801  MUL.xyz vf7, vf2, vf5              | IADDIU vi1, vi1, 1
+1BA0: 01c4226a 100d6802  MUL.xyz vf9, vf4, vf4              | IADDIU vi13, vi13, 2
+1BA8: 01c5416a 8000033c  MUL.xyz vf5, vf8, vf5              | MOVE.- vf0, vf0
+1BB0: 018018e3 8000033c  MADDi.xy vf3, vf3, vf0             | MOVE.- vf0, vf0
+1BB8: 01073a01 8000033c  ADDy.x vf8, vf7, vf7               | MOVE.- vf0, vf0
+1BC0: 002901bc 8000033c  MULAx.w ACC, vf0, vf9              | MOVE.- vf0, vf0
+1BC8: 002900bd 01ca09dc  MADDAy.w ACC, vf0, vf9             | LQ.xyz vf10, 476(vi1)
+1BD0: 0029004a 81c9333c  MADDz.w vf1, vf0, vf9              | MOVE.xyz vf9, vf6
+1BD8: 008528c0 03c11b18  ADDx.y vf3, vf5, vf5               | SQ.xyz vf3, 792(vi1)
+1BE0: 010740c2 01c80a2a  ADDz.x vf3, vf8, vf7               | LQ.xyz vf8, 554(vi1)
+1BE8: 01ca092c 81c6233c  SUB.xyz vf4, vf1, vf10             | MOVE.xyz vf6, vf4
+1BF0: 01c04a9c 81e103be  MULq.xyz vf10, vf9, vf0            | RSQRT Q, vf0.w, vf1.w
+1BF8: 008518c2 10010801  ADDz.y vf3, vf3, vf5               | IADDIU vi1, vi1, 1
+1C00: 01c811ea 8000033c  MUL.xyz vf7, vf2, vf8              | MOVE.- vf0, vf0
+1C08: 01c4226a 52020ff4  MUL.xyz vf9, vf4, vf4              | IBNE vi2, vi1, -12
+1C10: 01c8516a 8000033c  MUL.xyz vf5, vf10, vf8             | MOVE.- vf0, vf0
+1C18: 000002ff 48007800  NOP                                | JR vi15
+1C20: 000002ff 09016800  NOP                                | ILW.x vi1, 0(vi13)
+1C28: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1C30: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1C38: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1C40: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1C48: 000002ff 090103fa  NOP                                | ILW.x vi1, 1018(vi0)
+1C50: 000002ff 082203fa  NOP                                | ILW.w vi2, 1018(vi0)
+1C58: 000002ff 81e16b7c  NOP                                | LQI.xyzw vf1, (vi13++)
+1C60: 000002ff 81e26b7c  NOP                                | LQI.xyzw vf2, (vi13++)
+1C68: 000002ff 800c0870  NOP                                | IADD vi1, vi1, vi12
+1C70: 000002ff 81c50b7c  NOP                                | LQI.xyz vf5, (vi1++)
+1C78: 000002ff 81e36b7c  NOP                                | LQI.xyzw vf3, (vi13++)
+1C80: 01e509bc 81e46b7c  MULAx.xyzw ACC, vf1, vf5           | LQI.xyzw vf4, (vi13++)
+1C88: 01e510bd 800208b0  MADDAy.xyzw ACC, vf2, vf5          | IADD vi2, vi1, vi2
+1C90: 01e518be 81c50b7c  MADDAz.xyzw ACC, vf3, vf5          | LQI.xyz vf5, (vi1++)
+1C98: 01e0218b 8000033c  MADDw.xyzw vf6, vf4, vf0           | MOVE.- vf0, vf0
+1CA0: 01e509bc 52020ffd  MULAx.xyzw ACC, vf1, vf5           | IBNE vi2, vi1, -3
+1CA8: 01e510bd 03e137fe  MADDAy.xyzw ACC, vf2, vf5          | SQ.xyzw vf6, -2(vi1)
+1CB0: 000002ff 48007800  NOP                                | JR vi15
+1CB8: 000002ff 09016800  NOP                                | ILW.x vi1, 0(vi13)
+1CC0: 000002ff 100503da  NOP                                | IADDIU vi5, vi0, 986
+1CC8: 01e00100 40000004  ADDx.xyzw vf4, vf0, vf0            | B 4
+1CD0: 000002ff 1006022c  NOP                                | IADDIU vi6, vi0, 556
+1CD8: 000002ff 100503d2  NOP                                | IADDIU vi5, vi0, 978
+1CE0: 000002ff 01e42803  NOP                                | LQ.xyzw vf4, 3(vi5)
+1CE8: 000002ff 100601dc  NOP                                | IADDIU vi6, vi0, 476
+1CF0: 0020016b 01e22802  MAX.w vf5, vf0, vf0                | LQ.xyzw vf2, 2(vi5)
+1CF8: 000002ff 01c51000  NOP                                | LQ.xyz vf5, 0(vi2)
+1D00: 000002ff 01c11001  NOP                                | LQ.xyz vf1, 1(vi2)
+1D08: 000002ff 01c71002  NOP                                | LQ.xyz vf7, 2(vi2)
+1D10: 000002ff 01c61003  NOP                                | LQ.xyz vf6, 3(vi2)
+1D18: 01c229bc 8000033c  MULAx.xyz ACC, vf5, vf2            | MOVE.- vf0, vf0
+1D20: 01c208bd 090103f3  MADDAy.xyz ACC, vf1, vf2           | ILW.x vi1, 1011(vi0)
+1D28: 01c238be 8000033c  MADDAz.xyz ACC, vf7, vf2           | MOVE.- vf0, vf0
+1D30: 01c230cb 8000033c  MADDw.xyz vf3, vf6, vf2            | MOVE.- vf0, vf0
+1D38: 01c429bc 01e22801  MULAx.xyz ACC, vf5, vf4            | LQ.xyzw vf2, 1(vi5)
+1D40: 01c408bd 8000033c  MADDAy.xyz ACC, vf1, vf4           | MOVE.- vf0, vf0
+1D48: 01c438be 10030b1c  MADDAz.xyz ACC, vf7, vf4           | IADDIU vi3, vi1, 796
+1D50: 01c4310b 80060870  MADDw.xyz vf4, vf6, vf4            | IADD vi1, vi1, vi6
+1D58: 01c229bc 01e82800  MULAx.xyz ACC, vf5, vf2            | LQ.xyzw vf8, 0(vi5)
+1D60: 01c208bd 8000033c  MADDAy.xyz ACC, vf1, vf2           | MOVE.- vf0, vf0
+1D68: 01c238be 8000033c  MADDAz.xyz ACC, vf7, vf2           | MOVE.- vf0, vf0
+1D70: 01c2308b 8000033c  MADDw.xyz vf2, vf6, vf2            | MOVE.- vf0, vf0
+1D78: 01c829bc 81c50b7c  MULAx.xyz ACC, vf5, vf8            | LQI.xyz vf5, (vi1++)
+1D80: 01c808bd 8000033c  MADDAy.xyz ACC, vf1, vf8           | MOVE.- vf0, vf0
+1D88: 01c838be 8000033c  MADDAz.xyz ACC, vf7, vf8           | MOVE.- vf0, vf0
+1D90: 01c8304b 81c60b7c  MADDw.xyz vf1, vf6, vf8            | LQI.xyz vf6, (vi1++)
+1D98: 01c509bc 8000033c  MULAx.xyz ACC, vf1, vf5            | MOVE.- vf0, vf0
+1DA0: 01c510bd 8000033c  MADDAy.xyz ACC, vf2, vf5           | MOVE.- vf0, vf0
+1DA8: 01c518be 8000033c  MADDAz.xyz ACC, vf3, vf5           | MOVE.- vf0, vf0
+1DB0: 01c5220b 01c51800  MADDw.xyz vf8, vf4, vf5            | LQ.xyz vf5, 0(vi3)
+1DB8: 004002bc 8000033c  ADDA.z ACC, vf0, vf0               | MOVE.- vf0, vf0
+1DC0: 018829be 8000033c  MULAz.xy ACC, vf5, vf8             | MOVE.- vf0, vf0
+1DC8: 01c5414a 8000033c  MADDz.xyz vf5, vf8, vf5            | MOVE.- vf0, vf0
+1DD0: 01c609bc 082403f3  MULAx.xyz ACC, vf1, vf6            | ILW.w vi4, 1011(vi0)
+1DD8: 01c610bd 8000033c  MADDAy.xyz ACC, vf2, vf6           | MOVE.- vf0, vf0
+1DE0: 01c618be 81c70b7c  MADDAz.xyz ACC, vf3, vf6           | LQI.xyz vf7, (vi1++)
+1DE8: 01c5220b 01c61801  MADDw.xyz vf8, vf4, vf5            | LQ.xyz vf6, 1(vi3)
+1DF0: 000002ff 80041930  NOP                                | IADD vi4, vi3, vi4
+1DF8: 004002bc 8000033c  ADDA.z ACC, vf0, vf0               | MOVE.- vf0, vf0
+1E00: 018831be 8000033c  MULAz.xy ACC, vf6, vf8             | MOVE.- vf0, vf0
+1E08: 01c6414a 81c32b7d  MADDz.xyz vf5, vf8, vf6            | SQI.xyz vf5, (vi3++)
+1E10: 01c709bc 8000033c  MULAx.xyz ACC, vf1, vf7            | MOVE.- vf0, vf0
+1E18: 01c710bd 01c61801  MADDAy.xyz ACC, vf2, vf7           | LQ.xyz vf6, 1(vi3)
+1E20: 01c718be 52041ffa  MADDAz.xyz ACC, vf3, vf7           | IBNE vi4, vi3, -6
+1E28: 01c5220b 81c70b7c  MADDw.xyz vf8, vf4, vf5            | LQI.xyz vf7, (vi1++)
+1E30: 000002ff 48007800  NOP                                | JR vi15
+1E38: 000002ff 09016800  NOP                                | ILW.x vi1, 0(vi13)
+1E40: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1E48: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1E50: 000002ff 00e26800  NOP                                | LQ.yzw vf2, 0(vi13)
+1E58: 000002ff 090103f3  NOP                                | ILW.x vi1, 1011(vi0)
+1E60: 00820042 100109dc  ADDz.y vf1, vf0, vf2               | IADDIU vi1, vi1, 476
+1E68: 01020041 01c30800  ADDy.x vf1, vf0, vf2               | LQ.xyz vf3, 0(vi1)
+1E70: 00420043 01c20850  ADDw.z vf1, vf0, vf2               | LQ.xyz vf2, 80(vi1)
+1E78: 01c01abc 082203f3  ADDA.xyz ACC, vf3, vf0             | ILW.w vi2, 1011(vi0)
+1E80: 01c11129 01c20801  MADD.xyz vf4, vf2, vf1             | LQ.xyz vf2, 1(vi1)
+1E88: 000002ff 01c30851  NOP                                | LQ.xyz vf3, 81(vi1)
+1E90: 000002ff 800208b0  NOP                                | IADD vi2, vi1, vi2
+1E98: 01c012bc 81c1237d  ADDA.xyz ACC, vf2, vf0             | SQI.xyz vf4, (vi1++)
+1EA0: 01c11929 01c20801  MADD.xyz vf4, vf3, vf1             | LQ.xyz vf2, 1(vi1)
+1EA8: 000002ff 01c30851  NOP                                | LQ.xyz vf3, 81(vi1)
+1EB0: 000002ff 52020ffd  NOP                                | IBNE vi2, vi1, -3
+1EB8: 01c012bc 81c1237d  ADDA.xyz ACC, vf2, vf0             | SQI.xyz vf4, (vi1++)
+1EC0: 000002ff 48007800  NOP                                | JR vi15
+1EC8: 000002ff 09016800  NOP                                | ILW.x vi1, 0(vi13)
+1ED0: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1ED8: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1EE0: 000002ff 40000002  NOP                                | B 2
+1EE8: 000002ff 100a0000  NOP                                | IADDIU vi10, vi0, 0
+1EF0: 000002ff 100a0001  NOP                                | IADDIU vi10, vi0, 1
+1EF8: 01e00710 082503fa  MAXx.xyzw vf28, vf0, vf0           | ILW.w vi5, 1018(vi0)
+1F00: 01e00750 088103f3  MAXx.xyzw vf29, vf0, vf0           | ILW.y vi1, 1011(vi0)
+1F08: 01e00790 090203fa  MAXx.xyzw vf30, vf0, vf0           | ILW.x vi2, 1018(vi0)
+1F10: 01e007d0 088303fa  MAXx.xyzw vf31, vf0, vf0           | ILW.y vi3, 1018(vi0)
+1F18: 01c001ff 084403fa  CLIP.xyz ACC, vf0, vf0             | ILW.z vi4, 1018(vi0)
+1F20: 01c001ff 084603ff  CLIP.xyz ACC, vf0, vf0             | ILW.z vi6, 1023(vi0)
+1F28: 000002ff 01f003f5  NOP                                | LQ.xyzw vf16, 1013(vi0)
+1F30: 000002ff 809b6b7c  NOP                                | LQI.y vf27, (vi13++)
+1F38: 000002ff 11082800  NOP                                | IADDIU vi8, vi5, 16384
+1F40: 000002ff 11084000  NOP                                | IADDIU vi8, vi8, 16384
+1F48: 000002ff 800c2130  NOP                                | IADD vi4, vi4, vi12
+1F50: 000002ff 09072000  NOP                                | ILW.x vi7, 0(vi4)
+1F58: 000002ff 520a0005  NOP                                | IBNE vi10, vi0, 5
+1F60: 000002ff 800c18f0  NOP                                | IADD vi3, vi3, vi12
+1F68: 000002ff 5800089a  NOP                                | IBLTZ vi0, vi1, 154
+1F70: 000002ff 811b43fd  NOP                                | MFIR.x vf27, vi8
+1F78: 000002ff 4000000c  NOP                                | B 12
+1F80: 000002ff 80052970  NOP                                | IADD vi5, vi5, vi5
+1F88: 000002ff 580008dc  NOP                                | IBLTZ vi0, vi1, 220
+1F90: 000002ff 811b43fd  NOP                                | MFIR.x vf27, vi8
+1F98: 000002ff 4000004e  NOP                                | B 78
+1FA0: 000002ff 80052970  NOP                                | IADD vi5, vi5, vi5
+1FA8: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1FB0: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1FB8: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1FC0: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1FC8: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1FD0: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1FD8: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1FE0: 000002ff 01e53a7c  NOP                                | LQ.xyzw vf5, 636(vi7)
+1FE8: 000002ff 01e303ea  NOP                                | LQ.xyzw vf3, 1002(vi0)
+1FF0: 000002ff 01e403eb  NOP                                | LQ.xyzw vf4, 1003(vi0)
+1FF8: 000002ff 01ea3acc  NOP                                | LQ.xyzw vf10, 716(vi7)
+2000: 000002ff 01e203f6  NOP                                | LQ.xyzw vf2, 1014(vi0)
+2008: 01e51abe 006103f8  MULA.xyzw ACC, vf3, vf5            | LQ.zw vf1, 1016(vi0)
+2010: 01e5214b 800c10b0  MADDw.xyzw vf5, vf4, vf5           | IADD vi2, vi2, vi12
+2018: 01f052be 81e61b7c  MULA.xyzw ACC, vf10, vf16          | LQI.xyzw vf6, (vi3++)
+2020: 01f012a9 81e503bc  MADD.xyzw vf10, vf2, vf16          | DIV Q, vf0.w, vf5.w
+2028: 01ea32aa 81c6137c  MUL.xyzw vf10, vf6, vf10           | LQI.xyz vf6, (vi2++)
+2030: 002101be 090c2001  MULAz.w ACC, vf0, vf1              | ILW.x vi12, 1(vi4)
+2038: 01c031dc 0a273004  MULq.xyz vf7, vf6, vf0             | ISW.w vi7, 4(vi6)
+2040: 01e05290 01eb627c  MAXx.xyzw vf10, vf10, vf0          | LQ.xyzw vf11, 636(vi12)
+2048: 002009a1 01e962cc  MADDq.w vf6, vf1, vf0              | LQ.xyzw vf9, 716(vi12)
+2050: 01eb1abe 80053230  MULA.xyzw ACC, vf3, vf11           | IADD vi8, vi6, vi5
+2058: 01eb214b 81c62b3c  MADDw.xyzw vf5, vf4, vf11          | MOVE.xyz vf6, vf5
+2060: 01f04abe 81e81b7c  MULA.xyzw ACC, vf9, vf16           | LQI.xyzw vf8, (vi3++)
+2068: 81f01269 437f0000  MADD.xyzw vf9, vf2, vf16           | BAL 0
+2070: 01e0529f 0a2c3008  MINIi.xyzw vf10, vf10, vf0         | ISW.w vi12, 8(vi6)
+2078: 00203190 81e503bc  MAXx.w vf6, vf6, vf0               | DIV Q, vf0.w, vf5.w
+2080: 01e9422a 09072002  MUL.xyzw vf8, vf8, vf9             | ILW.x vi7, 2(vi4)
+2088: 01c0319c 03c63802  MULq.xyz vf6, vf6, vf0             | SQ.xyz vf7, 2(vi6)
+2090: 01ea517c 81c7137c  FTOI0.xyzw ACC, vf10, vf10         | LQI.xyz vf7, (vi2++)
+2098: 0020319f 80054230  MINIi.w vf6, vf6, vf0              | IADD vi8, vi8, vi5
+20A0: 002101be 01e93a7c  MULAz.w ACC, vf0, vf1              | LQ.xyzw vf9, 636(vi7)
+20A8: 01e04210 01eb3acc  MAXx.xyzw vf8, vf8, vf0            | LQ.xyzw vf11, 716(vi7)
+20B0: 01c039dc 0a27300c  MULq.xyz vf7, vf7, vf0             | ISW.w vi7, 12(vi6)
+20B8: 00200ee1 03e65003  MADDq.w vf27, vf1, vf0             | SQ.xyzw vf10, 3(vi6)
+20C0: 01e91abe 81ea1b7c  MULA.xyzw ACC, vf3, vf9            | LQI.xyzw vf10, (vi3++)
+20C8: 01e9214b 81c92b3c  MADDw.xyzw vf5, vf4, vf9           | MOVE.xyz vf9, vf5
+20D0: 01f05abe 03c63806  MULA.xyzw ACC, vf11, vf16          | SQ.xyz vf7, 6(vi6)
+20D8: 01f012e9 1009300c  MADD.xyzw vf11, vf2, vf16          | IADDIU vi9, vi6, 12
+20E0: 01e6317d 10042003  FTOI4.xyzw ACC, vf6, vf6           | IADDIU vi4, vi4, 3
+20E8: 01e0421f 50094010  MINIi.xyzw vf8, vf8, vf0           | IBEQ vi9, vi8, 16
+20F0: 0020da50 81e503bc  MAXx.w vf9, vf27, vf0              | DIV Q, vf0.w, vf5.w
+20F8: 01eb52ea 09072000  MUL.xyzw vf11, vf10, vf11          | ILW.x vi7, 0(vi4)
+2100: 01c049dc 81cc137c  MULq.xyz vf7, vf9, vf0             | LQI.xyz vf12, (vi2++)
+2108: 01ea417c 10042001  FTOI0.xyzw ACC, vf8, vf10          | IADDIU vi4, vi4, 1
+2110: 002049df 022937f5  MINIi.w vf7, vf9, vf0              | SQ.w vf6, -11(vi9)
+2118: 002101be 01e93a7c  MULAz.w ACC, vf0, vf1              | LQ.xyzw vf9, 636(vi7)
+2120: 01e05a10 01eb3acc  MAXx.xyzw vf8, vf11, vf0           | LQ.xyzw vf11, 716(vi7)
+2128: 01c0631c 0a274804  MULq.xyz vf12, vf12, vf0           | ISW.w vi7, 4(vi9)
+2130: 002009a1 03e957fb  MADDq.w vf6, vf1, vf0              | SQ.xyzw vf10, -5(vi9)
+2138: 01e91abe 81ea1b7c  MULA.xyzw ACC, vf3, vf9            | LQI.xyzw vf10, (vi3++)
+2140: 01e9214b 81c92b3c  MADDw.xyzw vf5, vf4, vf9           | MOVE.xyz vf9, vf5
+2148: 01f05abe 03c967fe  MULA.xyzw ACC, vf11, vf16          | SQ.xyz vf12, -2(vi9)
+2150: 01f012e9 10094804  MADD.xyzw vf11, vf2, vf16          | IADDIU vi9, vi9, 4
+2158: 01e0421f 03c937f4  MINIi.xyzw vf8, vf8, vf0           | SQ.xyz vf6, -12(vi9)
+2160: 00203250 520947f2  MAXx.w vf9, vf6, vf0               | IBNE vi9, vi8, -14
+2168: 01e6397d 81e503bc  FTOI4.xyzw ACC, vf7, vf6           | DIV Q, vf0.w, vf5.w
+2170: 01eb512a 81c3137c  MUL.xyzw vf4, vf10, vf11           | LQI.xyz vf3, (vi2++)
+2178: 01c04a5c 007b03f4  MULq.xyz vf9, vf9, vf0             | LQ.zw vf27, 1012(vi0)
+2180: 01e2417c 082b03ff  FTOI0.xyzw ACC, vf8, vf2           | ILW.w vi11, 1023(vi0)
+2188: 00204a5f 022937f5  MINIi.w vf9, vf9, vf0              | SQ.w vf6, -11(vi9)
+2190: 002101be 81c12b3c  MULAz.w ACC, vf0, vf1              | MOVE.xyz vf1, vf5
+2198: 01e02210 03c937f8  MAXx.xyzw vf8, vf4, vf0            | SQ.xyz vf6, -8(vi9)
+21A0: 01c0191c 03e917fb  MULq.xyz vf4, vf3, vf0             | SQ.xyzw vf2, -5(vi9)
+21A8: 002009a1 03e6d800  MADDq.w vf6, vf1, vf0              | SQ.xyzw vf27, 0(vi6)
+21B0: 01e5497d 0a2603ff  FTOI4.xyzw ACC, vf9, vf5           | ISW.w vi6, 1023(vi0)
+21B8: 01e0421f 0a4b03ff  MINIi.xyzw vf8, vf8, vf0           | ISW.z vi11, 1023(vi0)
+21C0: 01c0099c 03c927fe  MULq.xyz vf6, vf1, vf0             | SQ.xyz vf4, -2(vi9)
+21C8: 00203190 02292ff9  MAXx.w vf6, vf6, vf0               | SQ.w vf5, -7(vi9)
+21D0: 01e9417c 03c92ffc  FTOI0.xyzw ACC, vf8, vf9           | SQ.xyz vf5, -4(vi9)
+21D8: 0020319f 03e94fff  MINIi.w vf6, vf6, vf0              | SQ.xyzw vf9, -1(vi9)
+21E0: 01e6317d 09016800  FTOI4.xyzw ACC, vf6, vf6           | ILW.x vi1, 0(vi13)
+21E8: 000002ff 022937fd  NOP                                | SQ.w vf6, -3(vi9)
+21F0: 000002ff 03c93000  NOP                                | SQ.xyz vf6, 0(vi9)
+21F8: 000002ff 48007800  NOP                                | JR vi15
+2200: 000002ff 800036fc  NOP                                | XGKICK vi6
+2208: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2210: 000002ff 01e53a7c  NOP                                | LQ.xyzw vf5, 636(vi7)
+2218: 000002ff 01e303ea  NOP                                | LQ.xyzw vf3, 1002(vi0)
+2220: 000002ff 01e403eb  NOP                                | LQ.xyzw vf4, 1003(vi0)
+2228: 000002ff 01e73acc  NOP                                | LQ.xyzw vf7, 716(vi7)
+2230: 000002ff 01e203f6  NOP                                | LQ.xyzw vf2, 1014(vi0)
+2238: 01e51abe 81ed1b7c  MULA.xyzw ACC, vf3, vf5            | LQI.xyzw vf13, (vi3++)
+2240: 01e5214b 006103f8  MADDw.xyzw vf5, vf4, vf5           | LQ.zw vf1, 1016(vi0)
+2248: 01f03abe 090c2001  MULA.xyzw ACC, vf7, vf16           | ILW.x vi12, 1(vi4)
+2250: 01f011e9 81e503bc  MADD.xyzw vf7, vf2, vf16           | DIV Q, vf0.w, vf5.w
+2258: 01e76b6a 01c63b1c  MUL.xyzw vf13, vf13, vf7           | LQ.xyz vf6, 796(vi7)
+2260: 002101be 01e7627c  MULAz.w ACC, vf0, vf1              | LQ.xyzw vf7, 636(vi12)
+2268: 01e06a50 0a273004  MAXx.xyzw vf9, vf13, vf0           | ISW.w vi7, 4(vi6)
+2270: 01c0331c 01eb62cc  MULq.xyz vf12, vf6, vf0            | LQ.xyzw vf11, 716(vi12)
+2278: 802009a1 437f0000  MADDq.w vf6, vf1, vf0              | BAL 0
+2280: 01e71abe 0a2c3008  MULA.xyzw ACC, vf3, vf7            | ISW.w vi12, 8(vi6)
+2288: 01e7214b 81c72b3c  MADDw.xyzw vf5, vf4, vf7           | MOVE.xyz vf7, vf5
+2290: 01f05abe 81ed1b7c  MULA.xyzw ACC, vf11, vf16          | LQI.xyzw vf13, (vi3++)
+2298: 01f01329 03c66002  MADD.xyzw vf12, vf2, vf16          | SQ.xyz vf12, 2(vi6)
+22A0: 01e04adf 01c6631c  MINIi.xyzw vf11, vf9, vf0          | LQ.xyz vf6, 796(vi12)
+22A8: 00203190 81e503bc  MAXx.w vf6, vf6, vf0               | DIV Q, vf0.w, vf5.w
+22B0: 01c039dc 09072002  MULq.xyz vf7, vf7, vf0             | ILW.x vi7, 2(vi4)
+22B8: 01ec6a6a 800530b0  MUL.xyzw vf9, vf13, vf12           | IADD vi2, vi6, vi5
+22C0: 01ed597c 800510b0  FTOI0.xyzw ACC, vf11, vf13         | IADD vi2, vi2, vi5
+22C8: 002031df 8000033c  MINIi.w vf7, vf6, vf0              | MOVE.- vf0, vf0
+22D0: 002101be 01eb3a7c  MULAz.w ACC, vf0, vf1              | LQ.xyzw vf11, 636(vi7)
+22D8: 01e04a50 1008300c  MAXx.xyzw vf9, vf9, vf0            | IADDIU vi8, vi6, 12
+22E0: 01c0329c 01e83acc  MULq.xyz vf10, vf6, vf0            | LQ.xyzw vf8, 716(vi7)
+22E8: 002009a1 0a274000  MADDq.w vf6, vf1, vf0              | ISW.w vi7, 0(vi8)
+22F0: 01eb1abe 81ec1b7c  MULA.xyzw ACC, vf3, vf11           | LQI.xyzw vf12, (vi3++)
+22F8: 01eb214b 81cb2b3c  MADDw.xyzw vf5, vf4, vf11          | MOVE.xyz vf11, vf5
+2300: 01f042be 03e86ff7  MULA.xyzw ACC, vf8, vf16           | SQ.xyzw vf13, -9(vi8)
+2308: 01f01369 01c63b1c  MADD.xyzw vf13, vf2, vf16          | LQ.xyz vf6, 796(vi7)
+2310: 01e7397d 03c857fa  FTOI4.xyzw ACC, vf7, vf7           | SQ.xyz vf10, -6(vi8)
+2318: 01e04a5f 50081010  MINIi.xyzw vf9, vf9, vf0           | IBEQ vi8, vi2, 16
+2320: 00203190 81e503bc  MAXx.w vf6, vf6, vf0               | DIV Q, vf0.w, vf5.w
+2328: 01ed62aa 09072003  MUL.xyzw vf10, vf12, vf13          | ILW.x vi7, 3(vi4)
+2330: 01c05a1c 10042001  MULq.xyz vf8, vf11, vf0            | IADDIU vi4, vi4, 1
+2338: 01e9497c 10084004  FTOI0.xyzw ACC, vf9, vf9           | IADDIU vi8, vi8, 4
+2340: 0020321f 02283ff1  MINIi.w vf8, vf6, vf0              | SQ.w vf7, -15(vi8)
+2348: 002101be 01eb3a7c  MULAz.w ACC, vf0, vf1              | LQ.xyzw vf11, 636(vi7)
+2350: 01e05290 01ed3acc  MAXx.xyzw vf10, vf10, vf0          | LQ.xyzw vf13, 716(vi7)
+2358: 01c0339c 01c63b1c  MULq.xyz vf14, vf6, vf0            | LQ.xyz vf6, 796(vi7)
+2360: 002009a1 0a274000  MADDq.w vf6, vf1, vf0              | ISW.w vi7, 0(vi8)
+2368: 01eb1abe 81ec1b7c  MULA.xyzw ACC, vf3, vf11           | LQI.xyzw vf12, (vi3++)
+2370: 01eb214b 81cb2b3c  MADDw.xyzw vf5, vf4, vf11          | MOVE.xyz vf11, vf5
+2378: 01f06abe 03c877fa  MULA.xyzw ACC, vf13, vf16          | SQ.xyz vf14, -6(vi8)
+2380: 01f01369 03e84ff7  MADD.xyzw vf13, vf2, vf16          | SQ.xyzw vf9, -9(vi8)
+2388: 01e0525f 03c83ff4  MINIi.xyzw vf9, vf10, vf0          | SQ.xyz vf7, -12(vi8)
+2390: 00203190 520817f2  MAXx.w vf6, vf6, vf0               | IBNE vi8, vi2, -14
+2398: 01e7417d 81e503bc  FTOI4.xyzw ACC, vf8, vf7           | DIV Q, vf0.w, vf5.w
+23A0: 01ed60aa 007b03f4  MUL.xyzw vf2, vf12, vf13           | LQ.zw vf27, 1012(vi0)
+23A8: 01c05adc 082b03ff  MULq.xyz vf11, vf11, vf0           | ILW.w vi11, 1023(vi0)
+23B0: 01e9497c 0a2603ff  FTOI0.xyzw ACC, vf9, vf9           | ISW.w vi6, 1023(vi0)
+23B8: 002032df 02283ff5  MINIi.w vf11, vf6, vf0             | SQ.w vf7, -11(vi8)
+23C0: 002101be 03c83ff8  MULAz.w ACC, vf0, vf1              | SQ.xyz vf7, -8(vi8)
+23C8: 01e01090 03e6d800  MAXx.xyzw vf2, vf2, vf0            | SQ.xyzw vf27, 0(vi6)
+23D0: 01c0305c 81c62b3c  MULq.xyz vf1, vf6, vf0             | MOVE.xyz vf6, vf5
+23D8: 002009e1 03e84ffb  MADDq.w vf7, vf1, vf0              | SQ.xyzw vf9, -5(vi8)
+23E0: 01e5597d 0a4b03ff  FTOI4.xyzw ACC, vf11, vf5          | ISW.z vi11, 1023(vi0)
+23E8: 01e0125f 09016800  MINIi.xyzw vf9, vf2, vf0           | ILW.x vi1, 0(vi13)
+23F0: 01c031dc 03c80ffe  MULq.xyz vf7, vf6, vf0             | SQ.xyz vf1, -2(vi8)
+23F8: 002039d0 02282ff9  MAXx.w vf7, vf7, vf0               | SQ.w vf5, -7(vi8)
+2400: 01eb497c 03c82ffc  FTOI0.xyzw ACC, vf9, vf11          | SQ.xyz vf5, -4(vi8)
+2408: 002039df 03e85fff  MINIi.w vf7, vf7, vf0              | SQ.xyzw vf11, -1(vi8)
+2410: 01e7397d 8000033c  FTOI4.xyzw ACC, vf7, vf7           | MOVE.- vf0, vf0
+2418: 000002ff 02283ffd  NOP                                | SQ.w vf7, -3(vi8)
+2420: 000002ff 03c83800  NOP                                | SQ.xyz vf7, 0(vi8)
+2428: 000002ff 48007800  NOP                                | JR vi15
+2430: 000002ff 800036fc  NOP                                | XGKICK vi6
+2438: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2440: 000002ff 007b03f4  NOP                                | LQ.zw vf27, 1012(vi0)
+2448: 000002ff 01ea3a7c  NOP                                | LQ.xyzw vf10, 636(vi7)
+2450: 000002ff 01e103ea  NOP                                | LQ.xyzw vf1, 1002(vi0)
+2458: 000002ff 01e203eb  NOP                                | LQ.xyzw vf2, 1003(vi0)
+2460: 000002ff 81e6db7d  NOP                                | SQI.xyzw vf27, (vi6++)
+2468: 000002ff 81ed1b7c  NOP                                | LQI.xyzw vf13, (vi3++)
+2470: 000002ff 006503f8  NOP                                | LQ.zw vf5, 1016(vi0)
+2478: 01ea0abe 01ee03f6  MULA.xyzw ACC, vf1, vf10           | LQ.xyzw vf14, 1014(vi0)
+2480: 01ea118b 01e93acc  MADDw.xyzw vf6, vf2, vf10          | LQ.xyzw vf9, 716(vi7)
+2488: 01ca51ff 11eb07ff  CLIP.xyz ACC, vf10, vf10           | IADDIU vi11, vi0, 32767
+2490: 01f06b6a 800c10b0  MUL.xyzw vf13, vf13, vf16          | IADD vi2, vi2, vi12
+2498: 000002ff 81c7137c  NOP                                | LQI.xyz vf7, (vi2++)
+24A0: 800002ff 45000000  NOP                                | L?22
+24A8: 002001de 81e603bc  MULi.w vf7, vf0, vf0               | DIV Q, vf0.w, vf6.w
+24B0: 000002ff 2400003f  NOP                                | FCAND 00003F
+24B8: 01ed72be 800807b2  MULA.xyzw ACC, vf14, vf13          | IADDI vi8, vi0, -2
+24C0: 01ed4b69 800907b2  MADD.xyzw vf13, vf9, vf13          | IADDI vi9, vi0, -2
+24C8: 000002ff 58003804  NOP                                | IBLTZ vi0, vi7, 4
+24D0: 000002ff 800102b0  NOP                                | IADD vi10, vi0, vi1
+24D8: 002003ec 5c004003  SUB.w vf15, vf0, vf0               | IBLEZ vi0, vi8, 3
+24E0: 800002ff 437f0000  NOP                                | BAL 0
+24E8: 01e06b5f 420c0076  MINIi.xyzw vf13, vf13, vf0         | BAL 118
+24F0: 000002ff 802f3b3c  NOP                                | MOVE.w vf15, vf7
+24F8: 002501be 09072001  MULAz.w ACC, vf0, vf5              | ILW.x vi7, 1(vi4)
+2500: 00202a61 81fceb3c  MADDq.w vf9, vf5, vf0              | MOVE.xyzw vf28, vf29
+2508: 01e0ff82 81fd533c  ADDz.xyzw vf30, vf31, vf0          | MOVE.xyzw vf29, vf10
+2510: 81c0321c 437f0000  MULq.xyz vf8, vf6, vf0             | BAL 0
+2518: 01c03c5c 800b3b34  MULq.xyz vf17, vf7, vf0            | IAND vi12, vi7, vi11
+2520: 00204a10 01ea627c  MAXx.w vf8, vf9, vf0               | LQ.xyzw vf10, 636(vi12)
+2528: 01dce1ff 10042001  CLIP.xyz ACC, vf28, vf28           | IADDIU vi4, vi4, 1
+2530: 01dde9ff 10063004  CLIP.xyz ACC, vf29, vf29           | IADDIU vi6, vi6, 4
+2538: 01e06b5f 03c68ffd  MINIi.xyzw vf13, vf13, vf0         | SQ.xyz vf17, -3(vi6)
+2540: 0020421f 01e962cc  MINIi.w vf8, vf8, vf0              | LQ.xyzw vf9, 716(vi12)
+2548: 01ca51ff 81ff3b3c  CLIP.xyz ACC, vf10, vf10           | MOVE.xyzw vf31, vf7
+2550: 01ea0abe 81c7137c  MULA.xyzw ACC, vf1, vf10           | LQI.xyz vf7, (vi2++)
+2558: 01e06c90 800a4a30  MAXx.xyzw vf18, vf13, vf0          | IADD vi8, vi9, vi10
+2560: 002f4228 81ed1b7c  ADD.w vf8, vf8, vf15               | LQI.xyzw vf13, (vi3++)
+2568: 01ea118b 2400003f  MADDw.xyzw vf6, vf2, vf10          | FCAND 00003F
+2570: 01e062c0 80014230  ADDx.xyzw vf11, vf12, vf0          | IADD vi8, vi8, vi1
+2578: 01f2917c 81ec933c  FTOI0.xyzw ACC, vf18, vf18         | MOVE.xyzw vf12, vf18
+2580: 01e8417d 800a0270  FTOI4.xyzw ACC, vf8, vf8           | IADD vi9, vi0, vi10
+2588: 01f06b6a 80052ff2  MUL.xyzw vf13, vf13, vf16          | IADDI vi5, vi5, -1
+2590: 000002ff 81e603bc  NOP                                | DIV Q, vf0.w, vf6.w
+2598: 000002ff 03e697fe  NOP                                | SQ.xyzw vf18, -2(vi6)
+25A0: 000002ff 03e647fc  NOP                                | SQ.xyzw vf8, -4(vi6)
+25A8: 01ed72be 520507e3  MULA.xyzw ACC, vf14, vf13          | IBNE vi5, vi0, -29
+25B0: 01ed4b69 03e647ff  MADD.xyzw vf13, vf9, vf13          | SQ.xyzw vf8, -1(vi6)
+25B8: 000002ff 082603ff  NOP                                | ILW.w vi6, 1023(vi0)
+25C0: 000002ff 084703ff  NOP                                | ILW.z vi7, 1023(vi0)
+25C8: 000002ff 800c06bc  NOP                                | XTOP vi12
+25D0: 000002ff 09016800  NOP                                | ILW.x vi1, 0(vi13)
+25D8: 000002ff 0a4603ff  NOP                                | ISW.z vi6, 1023(vi0)
+25E0: 000002ff 0a2703ff  NOP                                | ISW.w vi7, 1023(vi0)
+25E8: 000002ff 48007800  NOP                                | JR vi15
+25F0: 000002ff 80003efc  NOP                                | XGKICK vi7
+25F8: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2600: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2608: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2610: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2618: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2620: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2628: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2630: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2638: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2640: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2648: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2650: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2658: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2660: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2668: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2670: 000002ff 007b03f4  NOP                                | LQ.zw vf27, 1012(vi0)
+2678: 000002ff 01ea3a7c  NOP                                | LQ.xyzw vf10, 636(vi7)
+2680: 000002ff 01e103ea  NOP                                | LQ.xyzw vf1, 1002(vi0)
+2688: 000002ff 01e203eb  NOP                                | LQ.xyzw vf2, 1003(vi0)
+2690: 000002ff 81e6db7d  NOP                                | SQI.xyzw vf27, (vi6++)
+2698: 000002ff 81ed1b7c  NOP                                | LQI.xyzw vf13, (vi3++)
+26A0: 000002ff 006503f8  NOP                                | LQ.zw vf5, 1016(vi0)
+26A8: 01ea0abe 01ee03f6  MULA.xyzw ACC, vf1, vf10           | LQ.xyzw vf14, 1014(vi0)
+26B0: 01ea118b 01e93acc  MADDw.xyzw vf6, vf2, vf10          | LQ.xyzw vf9, 716(vi7)
+26B8: 01ca51ff 11eb07ff  CLIP.xyz ACC, vf10, vf10           | IADDIU vi11, vi0, 32767
+26C0: 01f06b6a 01c73b1c  MUL.xyzw vf13, vf13, vf16          | LQ.xyz vf7, 796(vi7)
+26C8: 800002ff 45000000  NOP                                | L?22
+26D0: 002001de 81e603bc  MULi.w vf7, vf0, vf0               | DIV Q, vf0.w, vf6.w
+26D8: 000002ff 2400003f  NOP                                | FCAND 00003F
+26E0: 01ed72be 800807b2  MULA.xyzw ACC, vf14, vf13          | IADDI vi8, vi0, -2
+26E8: 01ed4b69 800907b2  MADD.xyzw vf13, vf9, vf13          | IADDI vi9, vi0, -2
+26F0: 000002ff 58003804  NOP                                | IBLTZ vi0, vi7, 4
+26F8: 000002ff 800102b0  NOP                                | IADD vi10, vi0, vi1
+2700: 002003ec 5c004003  SUB.w vf15, vf0, vf0               | IBLEZ vi0, vi8, 3
+2708: 800002ff 437f0000  NOP                                | BAL 0
+2710: 01e06b5f 420c0031  MINIi.xyzw vf13, vf13, vf0         | BAL 49
+2718: 000002ff 802f3b3c  NOP                                | MOVE.w vf15, vf7
+2720: 002501be 09072001  MULAz.w ACC, vf0, vf5              | ILW.x vi7, 1(vi4)
+2728: 00202a61 81fceb3c  MADDq.w vf9, vf5, vf0              | MOVE.xyzw vf28, vf29
+2730: 01e0ff82 81fd533c  ADDz.xyzw vf30, vf31, vf0          | MOVE.xyzw vf29, vf10
+2738: 81c0321c 437f0000  MULq.xyz vf8, vf6, vf0             | BAL 0
+2740: 01c03c5c 800b3b34  MULq.xyz vf17, vf7, vf0            | IAND vi12, vi7, vi11
+2748: 00204a10 01ea627c  MAXx.w vf8, vf9, vf0               | LQ.xyzw vf10, 636(vi12)
+2750: 01dce1ff 10042001  CLIP.xyz ACC, vf28, vf28           | IADDIU vi4, vi4, 1
+2758: 01dde9ff 10063004  CLIP.xyz ACC, vf29, vf29           | IADDIU vi6, vi6, 4
+2760: 01e06b5f 03c68ffd  MINIi.xyzw vf13, vf13, vf0         | SQ.xyz vf17, -3(vi6)
+2768: 0020421f 01e962cc  MINIi.w vf8, vf8, vf0              | LQ.xyzw vf9, 716(vi12)
+2770: 01ca51ff 81ff3b3c  CLIP.xyz ACC, vf10, vf10           | MOVE.xyzw vf31, vf7
+2778: 01ea0abe 01c7631c  MULA.xyzw ACC, vf1, vf10           | LQ.xyz vf7, 796(vi12)
+2780: 01e06c90 800a4a30  MAXx.xyzw vf18, vf13, vf0          | IADD vi8, vi9, vi10
+2788: 002f4228 81ed1b7c  ADD.w vf8, vf8, vf15               | LQI.xyzw vf13, (vi3++)
+2790: 01ea118b 2400003f  MADDw.xyzw vf6, vf2, vf10          | FCAND 00003F
+2798: 01e062c0 80014230  ADDx.xyzw vf11, vf12, vf0          | IADD vi8, vi8, vi1
+27A0: 01f2917c 81ec933c  FTOI0.xyzw ACC, vf18, vf18         | MOVE.xyzw vf12, vf18
+27A8: 01e8417d 800a0270  FTOI4.xyzw ACC, vf8, vf8           | IADD vi9, vi0, vi10
+27B0: 01f06b6a 80052ff2  MUL.xyzw vf13, vf13, vf16          | IADDI vi5, vi5, -1
+27B8: 000002ff 81e603bc  NOP                                | DIV Q, vf0.w, vf6.w
+27C0: 000002ff 03e697fe  NOP                                | SQ.xyzw vf18, -2(vi6)
+27C8: 000002ff 03e647fc  NOP                                | SQ.xyzw vf8, -4(vi6)
+27D0: 01ed72be 520507e3  MULA.xyzw ACC, vf14, vf13          | IBNE vi5, vi0, -29
+27D8: 01ed4b69 03e647ff  MADD.xyzw vf13, vf9, vf13          | SQ.xyzw vf8, -1(vi6)
+27E0: 000002ff 082603ff  NOP                                | ILW.w vi6, 1023(vi0)
+27E8: 000002ff 084703ff  NOP                                | ILW.z vi7, 1023(vi0)
+27F0: 000002ff 800c06bc  NOP                                | XTOP vi12
+27F8: 000002ff 09016800  NOP                                | ILW.x vi1, 0(vi13)
+2800: 000002ff 0a4603ff  NOP                                | ISW.z vi6, 1023(vi0)
+2808: 000002ff 0a2703ff  NOP                                | ISW.w vi7, 1023(vi0)
+2810: 000002ff 48007800  NOP                                | JR vi15
+2818: 000002ff 80003efc  NOP                                | XGKICK vi7
+2820: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2828: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2830: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2838: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2840: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2848: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2850: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2858: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2860: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2868: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2870: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2878: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2880: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2888: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2890: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2898: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+28A0: 000002ff 26fdf7df  NOP                                | FCOR FDF7DF
+28A8: 000002ff 5201009f  NOP                                | IBNE vi1, vi0, 159
+28B0: 000002ff 26fefbef  NOP                                | FCOR FEFBEF
+28B8: 000002ff 5201009d  NOP                                | IBNE vi1, vi0, 157
+28C0: 000002ff 26ff7df7  NOP                                | FCOR FF7DF7
+28C8: 000002ff 5201009b  NOP                                | IBNE vi1, vi0, 155
+28D0: 000002ff 26ffbefb  NOP                                | FCOR FFBEFB
+28D8: 000002ff 52010099  NOP                                | IBNE vi1, vi0, 153
+28E0: 000002ff 26ffdf7d  NOP                                | FCOR FFDF7D
+28E8: 000002ff 52010097  NOP                                | IBNE vi1, vi0, 151
+28F0: 000002ff 26ffefbe  NOP                                | FCOR FFEFBE
+28F8: 000002ff 52010095  NOP                                | IBNE vi1, vi0, 149
+2900: 000002ff 0b0503fe  NOP                                | ISW.x vi5, 1022(vi0)
+2908: 000002ff 0a8603fe  NOP                                | ISW.y vi6, 1022(vi0)
+2910: 000002ff 0a4703fe  NOP                                | ISW.z vi7, 1022(vi0)
+2918: 000002ff 0a2803fe  NOP                                | ISW.w vi8, 1022(vi0)
+2920: 000002ff 0b0903fd  NOP                                | ISW.x vi9, 1021(vi0)
+2928: 000002ff 0a8a03fd  NOP                                | ISW.y vi10, 1021(vi0)
+2930: 000002ff 0a4b03fd  NOP                                | ISW.z vi11, 1021(vi0)
+2938: 000002ff 088b03f4  NOP                                | ILW.y vi11, 1012(vi0)
+2940: 000002ff 0a2c03fd  NOP                                | ISW.w vi12, 1021(vi0)
+2948: 000002ff 0b0d03fc  NOP                                | ISW.x vi13, 1020(vi0)
+2950: 000002ff 0a8f03fc  NOP                                | ISW.y vi15, 1020(vi0)
+2958: 000002ff 100a0001  NOP                                | IADDIU vi10, vi0, 1
+2960: 000002ff 800a5af4  NOP                                | IAND vi11, vi11, vi10
+2968: 000002ff 03e0e396  NOP                                | SQ.xyzw vf28, 918(vi0)
+2970: 000002ff 03e0eb99  NOP                                | SQ.xyzw vf29, 921(vi0)
+2978: 01e06b50 03e0539c  MAXx.xyzw vf13, vf13, vf0          | SQ.xyzw vf10, 924(vi0)
+2980: 000002ff 03e0e39f  NOP                                | SQ.xyzw vf28, 927(vi0)
+2988: 000002ff 03e0f398  NOP                                | SQ.xyzw vf30, 920(vi0)
+2990: 000002ff 03e0fb9b  NOP                                | SQ.xyzw vf31, 923(vi0)
+2998: 000002ff 03e03b9e  NOP                                | SQ.xyzw vf7, 926(vi0)
+29A0: 000002ff 03e06b9d  NOP                                | SQ.xyzw vf13, 925(vi0)
+29A8: 000002ff 500b0005  NOP                                | IBEQ vi11, vi0, 5
+29B0: 000002ff 03e0f3a1  NOP                                | SQ.xyzw vf30, 929(vi0)
+29B8: 000002ff 03e06b97  NOP                                | SQ.xyzw vf13, 919(vi0)
+29C0: 000002ff 03e06b9a  NOP                                | SQ.xyzw vf13, 922(vi0)
+29C8: 000002ff 40000004  NOP                                | B 4
+29D0: 000002ff 03e06ba0  NOP                                | SQ.xyzw vf13, 928(vi0)
+29D8: 000002ff 03e05b97  NOP                                | SQ.xyzw vf11, 919(vi0)
+29E0: 000002ff 03e0639a  NOP                                | SQ.xyzw vf12, 922(vi0)
+29E8: 000002ff 03e05ba0  NOP                                | SQ.xyzw vf11, 928(vi0)
+29F0: 01000507 10250000  SUBw.x vf20, vf0, vf0              | IADDIU vi5, vi0, 2048
+29F8: 000002ff 10060020  NOP                                | IADDIU vi6, vi0, 32
+2A00: 000002ff 10070002  NOP                                | IADDIU vi7, vi0, 2
+2A08: 000002ff 1008039a  NOP                                | IADDIU vi8, vi0, 922
+2A10: 000002ff 100903b4  NOP                                | IADDIU vi9, vi0, 948
+2A18: 000002ff 100a0003  NOP                                | IADDIU vi10, vi0, 3
+2A20: 000002ff 100b0000  NOP                                | IADDIU vi11, vi0, 0
+2A28: 000002ff 01f10396  NOP                                | LQ.xyzw vf17, 918(vi0)
+2A30: 000002ff 01f50399  NOP                                | LQ.xyzw vf21, 921(vi0)
+2A38: 000002ff 01f70398  NOP                                | LQ.xyzw vf23, 920(vi0)
+2A40: 000002ff 01f20397  NOP                                | LQ.xyzw vf18, 919(vi0)
+2A48: 000002ff 80004bb0  NOP                                | IADD vi14, vi9, vi0
+2A50: 01d189ff 420c006c  CLIP.xyz ACC, vf17, vf17           | BAL 108
+2A58: 01d5a9ff 81f6437c  CLIP.xyz ACC, vf21, vf21           | LQI.xyzw vf22, (vi8++)
+2A60: 01000503 10050400  ADDw.x vf20, vf0, vf0              | IADDIU vi5, vi0, 1024
+2A68: 000002ff 10060010  NOP                                | IADDIU vi6, vi0, 16
+2A70: 000002ff 100803b8  NOP                                | IADDIU vi8, vi0, 952
+2A78: 000002ff 10090396  NOP                                | IADDIU vi9, vi0, 918
+2A80: 000002ff 800b02b0  NOP                                | IADD vi10, vi0, vi11
+2A88: 000002ff 100b0000  NOP                                | IADDIU vi11, vi0, 0
+2A90: 000002ff 01f103b4  NOP                                | LQ.xyzw vf17, 948(vi0)
+2A98: 000002ff 01f503b7  NOP                                | LQ.xyzw vf21, 951(vi0)
+2AA0: 000002ff 01f703b6  NOP                                | LQ.xyzw vf23, 950(vi0)
+2AA8: 000002ff 01f203b5  NOP                                | LQ.xyzw vf18, 949(vi0)
+2AB0: 000002ff 80004bb0  NOP                                | IADD vi14, vi9, vi0
+2AB8: 01d189ff 420c005f  CLIP.xyz ACC, vf17, vf17           | BAL 95
+2AC0: 01d5a9ff 81f6437c  CLIP.xyz ACC, vf21, vf21           | LQI.xyzw vf22, (vi8++)
+2AC8: 01000507 10050080  SUBw.x vf20, vf0, vf0              | IADDIU vi5, vi0, 128
+2AD0: 000002ff 10060002  NOP                                | IADDIU vi6, vi0, 2
+2AD8: 000002ff 10070000  NOP                                | IADDIU vi7, vi0, 0
+2AE0: 000002ff 1008039a  NOP                                | IADDIU vi8, vi0, 922
+2AE8: 000002ff 100903b4  NOP                                | IADDIU vi9, vi0, 948
+2AF0: 000002ff 800b02b0  NOP                                | IADD vi10, vi0, vi11
+2AF8: 000002ff 100b0000  NOP                                | IADDIU vi11, vi0, 0
+2B00: 000002ff 01f10396  NOP                                | LQ.xyzw vf17, 918(vi0)
+2B08: 000002ff 01f50399  NOP                                | LQ.xyzw vf21, 921(vi0)
+2B10: 000002ff 01f70398  NOP                                | LQ.xyzw vf23, 920(vi0)
+2B18: 000002ff 01f20397  NOP                                | LQ.xyzw vf18, 919(vi0)
+2B20: 000002ff 80004bb0  NOP                                | IADD vi14, vi9, vi0
+2B28: 01d189ff 420c0051  CLIP.xyz ACC, vf17, vf17           | BAL 81
+2B30: 01d5a9ff 81f6437c  CLIP.xyz ACC, vf21, vf21           | LQI.xyzw vf22, (vi8++)
+2B38: 01000503 10050040  ADDw.x vf20, vf0, vf0              | IADDIU vi5, vi0, 64
+2B40: 000002ff 10060001  NOP                                | IADDIU vi6, vi0, 1
+2B48: 000002ff 100803b8  NOP                                | IADDIU vi8, vi0, 952
+2B50: 000002ff 10090396  NOP                                | IADDIU vi9, vi0, 918
+2B58: 000002ff 800b02b0  NOP                                | IADD vi10, vi0, vi11
+2B60: 000002ff 100b0000  NOP                                | IADDIU vi11, vi0, 0
+2B68: 000002ff 01f103b4  NOP                                | LQ.xyzw vf17, 948(vi0)
+2B70: 000002ff 01f503b7  NOP                                | LQ.xyzw vf21, 951(vi0)
+2B78: 000002ff 01f703b6  NOP                                | LQ.xyzw vf23, 950(vi0)
+2B80: 000002ff 01f203b5  NOP                                | LQ.xyzw vf18, 949(vi0)
+2B88: 000002ff 80004bb0  NOP                                | IADD vi14, vi9, vi0
+2B90: 01d189ff 420c0044  CLIP.xyz ACC, vf17, vf17           | BAL 68
+2B98: 01d5a9ff 81f6437c  CLIP.xyz ACC, vf21, vf21           | LQI.xyzw vf22, (vi8++)
+2BA0: 01000507 10050200  SUBw.x vf20, vf0, vf0              | IADDIU vi5, vi0, 512
+2BA8: 000002ff 10060008  NOP                                | IADDIU vi6, vi0, 8
+2BB0: 000002ff 10070001  NOP                                | IADDIU vi7, vi0, 1
+2BB8: 000002ff 1008039a  NOP                                | IADDIU vi8, vi0, 922
+2BC0: 000002ff 100903b4  NOP                                | IADDIU vi9, vi0, 948
+2BC8: 000002ff 800b02b0  NOP                                | IADD vi10, vi0, vi11
+2BD0: 000002ff 100b0000  NOP                                | IADDIU vi11, vi0, 0
+2BD8: 000002ff 01f10396  NOP                                | LQ.xyzw vf17, 918(vi0)
+2BE0: 000002ff 01f50399  NOP                                | LQ.xyzw vf21, 921(vi0)
+2BE8: 000002ff 01f70398  NOP                                | LQ.xyzw vf23, 920(vi0)
+2BF0: 000002ff 01f20397  NOP                                | LQ.xyzw vf18, 919(vi0)
+2BF8: 000002ff 80004bb0  NOP                                | IADD vi14, vi9, vi0
+2C00: 01d189ff 420c0036  CLIP.xyz ACC, vf17, vf17           | BAL 54
+2C08: 01d5a9ff 81f6437c  CLIP.xyz ACC, vf21, vf21           | LQI.xyzw vf22, (vi8++)
+2C10: 01000503 10050100  ADDw.x vf20, vf0, vf0              | IADDIU vi5, vi0, 256
+2C18: 000002ff 10060004  NOP                                | IADDIU vi6, vi0, 4
+2C20: 000002ff 100803b8  NOP                                | IADDIU vi8, vi0, 952
+2C28: 000002ff 10090396  NOP                                | IADDIU vi9, vi0, 918
+2C30: 000002ff 800b02b0  NOP                                | IADD vi10, vi0, vi11
+2C38: 000002ff 100b0000  NOP                                | IADDIU vi11, vi0, 0
+2C40: 000002ff 01f103b4  NOP                                | LQ.xyzw vf17, 948(vi0)
+2C48: 000002ff 01f503b7  NOP                                | LQ.xyzw vf21, 951(vi0)
+2C50: 000002ff 01f703b6  NOP                                | LQ.xyzw vf23, 950(vi0)
+2C58: 000002ff 01f203b5  NOP                                | LQ.xyzw vf18, 949(vi0)
+2C60: 000002ff 80004bb0  NOP                                | IADD vi14, vi9, vi0
+2C68: 01d189ff 420c0029  CLIP.xyz ACC, vf17, vf17           | BAL 41
+2C70: 01d5a9ff 81f6437c  CLIP.xyz ACC, vf21, vf21           | LQI.xyzw vf22, (vi8++)
+2C78: 000002ff 110a5800  NOP                                | IADDIU vi10, vi11, 16384
+2C80: 000002ff 110a5000  NOP                                | IADDIU vi10, vi10, 16384
+2C88: 000002ff 0b0a036c  NOP                                | ISW.x vi10, 876(vi0)
+2C90: 000002ff 1009036d  NOP                                | IADDIU vi9, vi0, 877
+2C98: 000002ff 81f303bc  NOP                                | DIV Q, vf0.w, vf19.w
+2CA0: 000002ff 01f97003  NOP                                | LQ.xyzw vf25, 3(vi14)
+2CA8: 000002ff 100c03ff  NOP                                | IADDIU vi12, vi0, 1023
+2CB0: 000002ff 800066fc  NOP                                | XGKICK vi12
+2CB8: 002501be 800003bf  MULAz.w ACC, vf0, vf5              | WAITQ
+2CC0: 00202a21 01fa7001  MADDq.w vf8, vf5, vf0              | LQ.xyzw vf26, 1(vi14)
+2CC8: 01e09d5c 01fb7002  MULq.xyzw vf21, vf19, vf0          | LQ.xyzw vf27, 2(vi14)
+2CD0: 01f90abe 100c036c  MULA.xyzw ACC, vf1, vf25           | IADDIU vi12, vi0, 876
+2CD8: 01f914cb 084703fe  MADDw.xyzw vf19, vf2, vf25         | ILW.z vi7, 1022(vi0)
+2CE0: 00204210 088603fe  MAXx.w vf8, vf8, vf0               | ILW.y vi6, 1022(vi0)
+2CE8: 000002ff 090503fe  NOP                                | ILW.x vi5, 1022(vi0)
+2CF0: 000002ff 800b5ff2  NOP                                | IADDI vi11, vi11, -1
+2CF8: 81c0dedc 437f0000  MULq.xyz vf27, vf27, vf0           | BAL 0
+2D00: 0020421f 10094804  MINIi.w vf8, vf8, vf0              | IADDIU vi9, vi9, 4
+2D08: 01fad17c 100e7003  FTOI0.xyzw ACC, vf26, vf26         | IADDIU vi14, vi14, 3
+2D10: 01f5a97d 81f303bc  FTOI4.xyzw ACC, vf21, vf21         | DIV Q, vf0.w, vf19.w
+2D18: 000002ff 01f97003  NOP                                | LQ.xyzw vf25, 3(vi14)
+2D20: 0028417d 03e9dffd  FTOI4.w ACC, vf8, vf8              | SQ.xyzw vf27, -3(vi9)
+2D28: 000002ff 03e9d7fe  NOP                                | SQ.xyzw vf26, -2(vi9)
+2D30: 000002ff 03e9afff  NOP                                | SQ.xyzw vf21, -1(vi9)
+2D38: 000002ff 520b07ef  NOP                                | IBNE vi11, vi0, -17
+2D40: 000002ff 022947fc  NOP                                | SQ.w vf8, -4(vi9)
+2D48: 000002ff 800066fc  NOP                                | XGKICK vi12
+2D50: 000002ff 084703fe  NOP                                | ILW.z vi7, 1022(vi0)
+2D58: 000002ff 088603fe  NOP                                | ILW.y vi6, 1022(vi0)
+2D60: 000002ff 090503fe  NOP                                | ILW.x vi5, 1022(vi0)
+2D68: 000002ff 81e603bc  NOP                                | DIV Q, vf0.w, vf6.w
+2D70: 000002ff 088f03fc  NOP                                | ILW.y vi15, 1020(vi0)
+2D78: 000002ff 090d03fc  NOP                                | ILW.x vi13, 1020(vi0)
+2D80: 000002ff 082c03fd  NOP                                | ILW.w vi12, 1021(vi0)
+2D88: 000002ff 084b03fd  NOP                                | ILW.z vi11, 1021(vi0)
+2D90: 000002ff 088a03fd  NOP                                | ILW.y vi10, 1021(vi0)
+2D98: 000002ff 090903fd  NOP                                | ILW.x vi9, 1021(vi0)
+2DA0: 000002ff 082803fe  NOP                                | ILW.w vi8, 1022(vi0)
+2DA8: 000002ff 48006000  NOP                                | JR vi12
+2DB0: 000002ff 8000033c  NOP                                | MOVE.- vf0, vf0
+2DB8: 01e0bcc0 120a5001  ADDx.xyzw vf19, vf23, vf0          | ISUBIU vi10, vi10, 1
+2DC0: 000002ff 120f6002  NOP                                | ISUBIU vi15, vi12, 2
+2DC8: 000002ff 520a0002  NOP                                | IBNE vi10, vi0, 2
+2DD0: 000002ff 38010000  NOP                                | FCGET vi1
+2DD8: 000002ff 100f05d1  NOP                                | IADDIU vi15, vi0, 1489
+2DE0: 00348e58 80050b74  MULx.w vf25, vf17, vf20            | IAND vi13, vi1, vi5
+2DE8: 0034ae98 80060874  MULx.w vf26, vf21, vf20            | IAND vi1, vi1, vi6
+2DF0: 000002ff 500d0004  NOP                                | IBEQ vi13, vi0, 4
+2DF8: 000002ff 81f7437c  NOP                                | LQI.xyzw vf23, (vi8++)
+2E00: 000002ff 5201000e  NOP                                | IBNE vi1, vi0, 14
+2E08: 000002ff 100105cc  NOP                                | IADDIU vi1, vi0, 1484
+2E10: 000002ff 40000016  NOP                                | B 22
+2E18: 000002ff 100b5801  NOP                                | IADDIU vi11, vi11, 1
+2E20: 000002ff 81e98b7d  NOP                                | SQI.xyzw vf17, (vi9++)
+2E28: 000002ff 81e9937d  NOP                                | SQI.xyzw vf18, (vi9++)
+2E30: 000002ff 52010003  NOP                                | IBNE vi1, vi0, 3
+2E38: 000002ff 81e99b7d  NOP                                | SQI.xyzw vf19, (vi9++)
+2E40: 01e0ac40 48007800  ADDx.xyzw vf17, vf21, vf0          | JR vi15
+2E48: 01e0b480 81f5437c  ADDx.xyzw vf18, vf22, vf0          | LQI.xyzw vf21, (vi8++)
+2E50: 000002ff 4201000e  NOP                                | BAL 14
+2E58: 000002ff 100b5801  NOP                                | IADDIU vi11, vi11, 1
+2E60: 000002ff 81e9cb7d  NOP                                | SQI.xyzw vf25, (vi9++)
+2E68: 000002ff 81e9d37d  NOP                                | SQI.xyzw vf26, (vi9++)
+2E70: 000002ff 81e9db7d  NOP                                | SQI.xyzw vf27, (vi9++)
+2E78: 01e0ac40 48007800  ADDx.xyzw vf17, vf21, vf0          | JR vi15
+2E80: 01e0b480 81f5437c  ADDx.xyzw vf18, vf22, vf0          | LQI.xyzw vf21, (vi8++)
+2E88: 000002ff 500b07d8  NOP                                | IBEQ vi11, vi0, -40
+2E90: 000002ff 01f97000  NOP                                | LQ.xyzw vf25, 0(vi14)
+2E98: 000002ff 01fa7001  NOP                                | LQ.xyzw vf26, 1(vi14)
+2EA0: 000002ff 01fb7002  NOP                                | LQ.xyzw vf27, 2(vi14)
+2EA8: 000002ff 81e9cb7d  NOP                                | SQI.xyzw vf25, (vi9++)
+2EB0: 01f90abe 81e9d37d  MULA.xyzw ACC, vf1, vf25           | SQI.xyzw vf26, (vi9++)
+2EB8: 01f914cb 48006000  MADDw.xyzw vf19, vf2, vf25         | JR vi12
+2EC0: 000002ff 81e9db7d  NOP                                | SQI.xyzw vf27, (vi9++)
+2EC8: 01f98e47 50070005  SUBw.xyzw vf25, vf17, vf25         | IBEQ vi7, vi0, 5
+2ED0: 01faae87 80070370  SUBw.xyzw vf26, vf21, vf26         | IADD vi13, vi0, vi7
+2ED8: 000002ff 120d6801  NOP                                | ISUBIU vi13, vi13, 1
+2EE0: 000002ff 81f9cb3d  NOP                                | MR32.xyzw vf25, vf25
+2EE8: 000002ff 520d07fd  NOP                                | IBNE vi13, vi0, -3
+2EF0: 000002ff 81fad33d  NOP                                | MR32.xyzw vf26, vf26
+2EF8: 0119d6ec 8118cb3c  SUB.x vf27, vf26, vf25             | MOVE.x vf24, vf25
+2F00: 009a0600 807b03bc  ADDx.y vf24, vf0, vf26             | DIV Q, vf0.w, vf27.x
+2F08: 0198c1fd 8000033c  ABS.xy ACC, vf24, vf24             | MOVE.- vf0, vf0
+2F10: 00400620 800003bf  ADDq.z vf24, vf0, vf0              | WAITQ
+2F18: 01f889bd 01f103f4  MULAy.xyzw ACC, vf17, vf24         | LQ.xyzw vf17, 1012(vi0)
+2F20: 01f8ae48 8000033c  MADDx.xyzw vf25, vf21, vf24        | MOVE.- vf0, vf0
+2F28: 01f891bd 8000033c  MULAy.xyzw ACC, vf18, vf24         | MOVE.- vf0, vf0
+2F30: 0058c1fd 8000033c  ABS.z ACC, vf24, vf24              | MOVE.- vf0, vf0
+2F38: 01f8b688 8000033c  MADDx.xyzw vf26, vf22, vf24        | MOVE.- vf0, vf0
+2F40: 01f899bd 02e08b6c  MULAy.xyzw ACC, vf19, vf24         | SQ.yzw vf17, 876(vi0)
+2F48: 01f8bec8 8000033c  MADDx.xyzw vf27, vf23, vf24        | MOVE.- vf0, vf0
+2F50: 01f8ce5a 8000033c  MULz.xyzw vf25, vf25, vf24         | MOVE.- vf0, vf0
+2F58: 81f8d69a 3a83126f  MULz.xyzw vf26, vf26, vf24         | L?1D
+2F60: 01f8deda 48000800  MULz.xyzw vf27, vf27, vf24         | JR vi1
+2F68: 81e0d6a2 437f0000  ADDi.xyzw vf26, vf26, vf0          | BAL 0
+2F70: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2F78: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2F80: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2F88: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2F90: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2F98: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2FA0: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2FA8: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2FB0: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2FB8: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2FC0: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2FC8: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2FD0: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2FD8: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2FE0: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2FE8: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2FF0: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+2FF8: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3000: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3008: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3010: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3018: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3020: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3028: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3030: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3038: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3040: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3048: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3050: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3058: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3060: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3068: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3070: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3078: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3080: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3088: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3090: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3098: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+30A0: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+30A8: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+30B0: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+30B8: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+30C0: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+30C8: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+30D0: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+30D8: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+30E0: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+30E8: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+30F0: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+30F8: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3100: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3108: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3110: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3118: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3120: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3128: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3130: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3138: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3140: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3148: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3150: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3158: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3160: 000002ff 090103f3  NOP                                | ILW.x vi1, 1011(vi0)
+3168: 000002ff 082303f3  NOP                                | ILW.w vi3, 1011(vi0)
+3170: 000002ff 10020a7c  NOP                                | IADDIU vi2, vi1, 636
+3178: 000002ff 800310f0  NOP                                | IADD vi3, vi2, vi3
+3180: 000002ff 00241000  NOP                                | LQ.w vf4, 0(vi2)
+3188: 000002ff 8021137c  NOP                                | LQI.w vf1, (vi2++)
+3190: 000002ff 004103ee  NOP                                | LQ.z vf1, 1006(vi0)
+3198: 800002ff 3f800000  NOP                                | L?1F
+31A0: 00200866 004203ef  SUBi.w vf1, vf1, vf0               | LQ.z vf2, 1007(vi0)
+31A8: 000002ff 010303f0  NOP                                | LQ.x vf3, 1008(vi0)
+31B0: 000002ff 8022137c  NOP                                | LQI.w vf2, (vi2++)
+31B8: 000002ff 8000033c  NOP                                | MOVE.- vf0, vf0
+31C0: 0021212f 8000033c  MINI.w vf4, vf4, vf1               | MOVE.- vf0, vf0
+31C8: 000002ff 8000033c  NOP                                | MOVE.- vf0, vf0
+31D0: 00201066 520317fb  SUBi.w vf1, vf2, vf0               | IBNE vi3, vi2, -5
+31D8: 000002ff 8000033c  NOP                                | MOVE.- vf0, vf0
+31E0: 0021212f 10020a7c  MINI.w vf4, vf4, vf1               | IADDIU vi2, vi1, 636
+31E8: 01040047 8000033c  SUBw.x vf1, vf0, vf4               | MOVE.- vf0, vf0
+31F0: 0103086b 01a31000  MAX.x vf1, vf1, vf3                | LQ.xyw vf3, 0(vi2)
+31F8: 010008af 00211000  MINI.x vf2, vf1, vf0               | LQ.w vf1, 0(vi2)
+3200: 00220880 8000033c  ADDx.w vf2, vf1, vf2               | MOVE.- vf0, vf0
+3208: 000002ff 81e113bc  NOP                                | DIV Q, vf2.w, vf1.w
+3210: 01a018dc 800003bf  MULq.xyw vf3, vf3, vf0             | WAITQ
+3218: 004309bf 8000033c  MULAw.z ACC, vf1, vf3              | MOVE.- vf0, vf0
+3220: 004010cb 01a11001  MADDw.z vf3, vf2, vf0              | LQ.xyw vf1, 1(vi2)
+3228: 000002ff 8000033c  NOP                                | MOVE.- vf0, vf0
+3230: 000002ff 8000033c  NOP                                | MOVE.- vf0, vf0
+3238: 000002ff 8000033c  NOP                                | MOVE.- vf0, vf0
+3240: 01a008dc 81e21b7d  MULq.xyw vf3, vf1, vf0             | SQI.xyzw vf3, (vi2++)
+3248: 000002ff 8000033c  NOP                                | MOVE.- vf0, vf0
+3250: 000002ff 8000033c  NOP                                | MOVE.- vf0, vf0
+3258: 000002ff 520317f8  NOP                                | IBNE vi3, vi2, -8
+3260: 004309bf 8000033c  MULAw.z ACC, vf1, vf3              | MOVE.- vf0, vf0
+3268: 000002ff 48007800  NOP                                | JR vi15
+3270: 000002ff 09016800  NOP                                | ILW.x vi1, 0(vi13)
+3278: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3280: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3288: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3290: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+3298: 00000000 00000000  ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+32A0: 000002ff 01c303dd  NOP                                | LQ.xyz vf3, 989(vi0)
+32A8: 000002ff 81e16b7c  NOP                                | LQI.xyzw vf1, (vi13++)
+32B0: 000002ff 01c203de  NOP                                | LQ.xyz vf2, 990(vi0)
+32B8: 000002ff 01c503df  NOP                                | LQ.xyz vf5, 991(vi0)
+32C0: 000002ff 01c403d9  NOP                                | LQ.xyz vf4, 985(vi0)
+32C8: 01c119bc 090303f3  MULAx.xyz ACC, vf3, vf1            | ILW.x vi3, 1011(vi0)
+32D0: 01c110bd 082203f3  MADDAy.xyz ACC, vf2, vf1           | ILW.w vi2, 1011(vi0)
+32D8: 01c128be 8000033c  MADDAz.xyz ACC, vf5, vf1           | MOVE.- vf0, vf0
+32E0: 01c0208b 01c419dc  MADDw.xyz vf2, vf4, vf0            | LQ.xyz vf4, 476(vi3)
+32E8: 01c4106c 01c51a2c  SUB.xyz vf1, vf2, vf4              | LQ.xyz vf5, 556(vi3)
+32F0: 01c1296a 10031801  MUL.xyz vf5, vf5, vf1              | IADDIU vi3, vi3, 1
+32F8: 01c109ea 80031070  MUL.xyz vf7, vf1, vf1              | IADD vi1, vi2, vi3
+3300: 01052941 81c6233c  ADDy.x vf5, vf5, vf5               | MOVE.xyz vf6, vf4
+3308: 002701bc 01c419dc  MULAx.w ACC, vf0, vf7              | LQ.xyz vf4, 476(vi3)
+3310: 002700bd 8000033c  MADDAy.w ACC, vf0, vf7             | MOVE.- vf0, vf0
+3318: 0027008a 80010ff2  MADDz.w vf2, vf0, vf7              | IADDI vi1, vi1, -1
+3320: 01052802 01c71a2c  ADDz.x vf0, vf5, vf5               | LQ.xyz vf7, 556(vi3)
+3328: 01c4106c 81c50b3c  SUB.xyz vf1, vf2, vf4              | MOVE.xyz vf5, vf1
+3330: 000002ff 10040088  NOP                                | IADDIU vi4, vi0, 136
+3338: 000002ff 81e203be  NOP                                | RSQRT Q, vf0.w, vf2.w
+3340: 000002ff 34022000  NOP                                | FMAND vi2, vi4
+3348: 01c13a2a 10031801  MUL.xyz vf8, vf7, vf1              | IADDIU vi3, vi3, 1
+3350: 01c10a6a 81c7333c  MUL.xyz vf9, vf1, vf1              | MOVE.xyz vf7, vf6
+3358: 000002ff 800003bf  NOP                                | WAITQ
+3360: 01084201 81c6233c  ADDy.x vf8, vf8, vf8               | MOVE.xyz vf6, vf4
+3368: 002901bc 01c419dc  MULAx.w ACC, vf0, vf9              | LQ.xyz vf4, 476(vi3)
+3370: 002900bd 802213fd  MADDAy.w ACC, vf0, vf9             | MFIR.w vf2, vi2
+3378: 0029010a 81c92b3c  MADDz.w vf4, vf0, vf9              | MOVE.xyz vf9, vf5
+3380: 01084002 81c50b3c  ADDz.x vf0, vf8, vf8               | MOVE.xyz vf5, vf1
+3388: 01c4106c 01c81a2c  SUB.xyz vf1, vf2, vf4              | LQ.xyz vf8, 556(vi3)
+3390: 000002ff 81c33b3c  NOP                                | MOVE.xyz vf3, vf7
+3398: 0022113d 81e403be  ITOF4.w ACC, vf2, vf2              | RSQRT Q, vf0.w, vf4.w
+33A0: 01c049dc 34022000  MULq.xyz vf7, vf9, vf0             | FMAND vi2, vi4
+33A8: 01c1422a 8000033c  MUL.xyz vf8, vf8, vf1              | MOVE.- vf0, vf0
+33B0: 01c10a6a 10010803  MUL.xyz vf9, vf1, vf1              | IADDIU vi1, vi1, 3
+33B8: 01c0183c 10031801  ADDAx.xyz ACC, vf3, vf0            | IADDIU vi3, vi3, 1
+33C0: 002110aa 8000033c  MUL.w vf2, vf2, vf1                | MOVE.- vf0, vf0
+33C8: 01084201 8000033c  ADDy.x vf8, vf8, vf8               | MOVE.- vf0, vf0
+33D0: 002901bc 8000033c  MULAx.w ACC, vf0, vf9              | MOVE.- vf0, vf0
+33D8: 002900bd 01c319dc  MADDAy.w ACC, vf0, vf9             | LQ.xyz vf3, 476(vi3)
+33E0: 002900ca 81c92b3c  MADDz.w vf3, vf0, vf9              | MOVE.xyz vf9, vf5
+33E8: 01084002 802613fd  ADDz.x vf0, vf8, vf8               | MFIR.w vf6, vi2
+33F0: 01c23a0b 81c50b3c  MADDw.xyz vf8, vf7, vf2            | MOVE.xyz vf5, vf1
+33F8: 01c3106c 01ca1a2c  SUB.xyz vf1, vf2, vf3              | LQ.xyz vf10, 556(vi3)
