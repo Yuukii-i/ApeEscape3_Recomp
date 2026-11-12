@@ -229,3 +229,8 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - Replay: mem=0 gif=0, taken 7597. Live picture correct (logs\shot_f2o_1.png).
 - A/B f2o (3 rounds, silent, AC): fps 41.8 -> 51.7 (+24%), p50 23.17 -> 18.67 with PS2X_VU1_FUNC=1.
 - Diagnostic modes (probe_ae, movie HLE verify, VU1 verify, replay/capture) keep the old hook order.
+
+## 44. Functional VU1 engine DEFAULT ON (PS2X_VU1_FUNC=0 reverts; REVERSAL_MEMO)
+- Exactness (replay PS2X_VU1_REPLAY_FUNC=1, mem/gif): shop corpus 7597/8000 taken, early-run capture (vu1corpus.bin, 20 s) 6598/8000, snow corpus 4895/5956, all mem=0 gif=0.
+- Default build without env (logs\shot_fdef_1.png): picture correct, 51 fps in the shop (silent). Live fallbacks: 15E0, 1C48, 1EE0 (real clipping), 0B40, 3160, 0AF0, 1900, 1EF0; no non-0008 starts live.
+- Roles from now: coding by Gemini 4 Hydrogen (Medium) via antigravity, Sonnet for quick fixes, Haiku for reading.
