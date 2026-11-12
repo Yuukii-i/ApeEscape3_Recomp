@@ -224,3 +224,8 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 ## 42. PERF-F2W: 8-wide AVX2 skinned path in the functional engine (Sonnet; ported lbVertex8 + exactness guard, scalar fallback per group)
 - Replay: mem=0 gif=0, taken 7597, run_ms 18.58 -> 15.34 (1.92 us/call).
 - A/B f2w (3 rounds, silent, AC): fps 40.7 -> 46.3 (+14%), p50 23.00 -> 21.42 with PS2X_VU1_FUNC=1.
+
+## 43. Functional engine per-call overhead (Sonnet): one GIF submit per program, hook before resetScheduler/state init, skinned output span logged once
+- Replay: mem=0 gif=0, taken 7597. Live picture correct (logs\shot_f2o_1.png).
+- A/B f2o (3 rounds, silent, AC): fps 41.8 -> 51.7 (+24%), p50 23.17 -> 18.67 with PS2X_VU1_FUNC=1.
+- Diagnostic modes (probe_ae, movie HLE verify, VU1 verify, replay/capture) keep the old hook order.
