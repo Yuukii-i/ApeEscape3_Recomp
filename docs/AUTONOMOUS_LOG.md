@@ -179,3 +179,10 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - Non-kick writes (PROBE-DB3H): 31% of programs; hottest qword 1018 (43.6k programs/window) and the table 636-650 (~23-28k). Majority predictor (PERF-DB3P, kick-only if >=75% of observations): spec 31k of 140k X1 runs, reruns ~500, waits_exact ~224k: nearly every program still waits for its predecessor.
 - Cost: each thread ~1856 ms busy per window vs 1632 for the single executor in DB1, drain wait 1427 vs 573 ms: snapshot/diff/apply + per-program GS flush + turn waits outweigh the parallel part.
 - Conclusion: program-level parallelism is blocked by real program-to-program dependencies (1018 + table + constants) and per-program sync cost. Parked behind PS2X_VU1_DUAL (default off). The VU1 time has to come down per program (decompiled/HLE kernels, per-call overhead), not by splitting.
+
+## 35. Vu1Exec profile (silent, dev, PS2X_PROF_VU1EXEC, logs\shot_vxprof.err)
+- Idle 18.8% (waiting for events): the VU1 thread is NOT saturated; the frame is a latency chain EE -> parser -> Vu1Exec -> EE fence wait.
+- Inclusive: execute 69.6%, vu1NativeRun 55.8%, lbFull (skinning) 16.4% (lbVertex8R 8.8), lbVert 4.2, lbCopy 1.8; submitGifPacket 7.2 (GifArbiter::submit 4.4, coalesce insert 1.2, assign 1.5), flushPipelines 6.8 (finishXgkick 4.2, progressXgkick 2.6), resetScheduler 1.9, std::function layers ~2.
+- Single hottest hot block: vuH_14 (pc 0158, 6-pair 4x4 matrix MUL/MADD loop with LQ/LQI/SQI) 4.9%.
+- Per-call overhead live: prologue 20 + epilogue 61 + submit 40 ms/s at ~107k calls/s = ~1.1 us per call (~15% of busy).
+- Every single item is <= 5% of the thread except skinning; 60 fps needs ~-8 ms of VU1 latency per frame => whole-program decompiled kernels remain the only lever of that size.
