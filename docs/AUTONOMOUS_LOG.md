@@ -157,3 +157,12 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - DUAL off (logs\shot_db2off_1.png): picture correct, 40 fps (single sample), so the default path is unaffected.
 - reruns=0 with all 3D gone means the error is not the W prediction. Suspects for next session: (1) per-submit ps2_gs_async_batch(false/true) from two threads + thread_local GIF coalescing (PERF-MF t_gsCoalesce) and PATH arbitration when PATH1 is submitted from Vu1Exec2; (2) VU1 state on the second instance that the scramble test did not cover (s_vu1B is never told about anything m_vu1 gets outside the MSCAL callback); (3) X1 output order. First check: run DUAL=1 with X1 forced to run nothing but its own capture submitted by X0 (or PS2X_GIF_COALESCE=0) to split GIF-path vs VU-state causes.
 - Cost even if fixed: per-program GS flush and turn waits; fps target needs a cheaper ordering (per-turn capture buffers submitted in order by one thread).
+
+## 32. Where the time goes after the PCSX2 50%-EE test (silent, dev exe)
+- User test: PCSX2 at EE cycle rate 50% holds 60 fps in the shop (silent mode) => the game's EE work per frame is < half a real EE frame; we spend ~14 ms EE CPU on it.
+- EE thread sampler (logs\shot_eeprof.err, sampler on => ~30 fps): ~38% of EE samples asleep in ps2_vif1_fence (readIORegister of VIF/GIF status = waiting for the VU1 job), the rest is flat guest code + glue (dispatchGuestBranch 3-4%, writeIORegister 3%, VU0 run 3%, _NLG_Return2 5% unresolved). Earlier P350: VU0 calls ~25% of EE active, glue ~15%.
+- So the frame = EE work + waiting for VU1. Real hardware waits little because its VU1 is fast; our VU1 is the frame limiter.
+- Live VU1 split (PS2X_VU1_TSC, per second): loop 565 ms (hot blocks 243, native kernels ~320), epilogue 61, submit 40, prologue 20; 0 slow pairs live.
+- Shop corpus replay with kernels: 8000 calls, MISMATCHED=0, 2.23 us/call (no GS submit).
+- PS2X_VU1_FAST=1: INVALID (vu1/frame 6377 -> 333, rendering broken), not a lever.
+- DB2 with PS2X_GIF_COALESCE=0: still no 3D => not the coalescing. Next: Task DC verify mode (X0 does all work, X1 recomputes odd programs and compares GIF + W).
