@@ -220,3 +220,7 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - Profile of the functional engine (logs\shot_f2prof.err): fmacV's per-lane double re-classification dominated because lanes with an exactly-zero operand always fail the exponent window. Zero-operand lanes now use the IEEE result (identical: signed zero / ac + 0), signbit via raw bits.
 - Replay: mem=0 gif=0, taken 7597, run_ms 23.41 -> 18.58.
 - A/B f2z (3 rounds, silent, AC): fps 42.2 -> 43.7, p50 23.17 -> 22.42 with PS2X_VU1_FUNC=1. First net win of the functional engine.
+
+## 42. PERF-F2W: 8-wide AVX2 skinned path in the functional engine (Sonnet; ported lbVertex8 + exactness guard, scalar fallback per group)
+- Replay: mem=0 gif=0, taken 7597, run_ms 18.58 -> 15.34 (1.92 us/call).
+- A/B f2w (3 rounds, silent, AC): fps 40.7 -> 46.3 (+14%), p50 23.00 -> 21.42 with PS2X_VU1_FUNC=1.
