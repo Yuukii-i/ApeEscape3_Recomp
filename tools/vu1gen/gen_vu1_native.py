@@ -3,7 +3,7 @@
 
 Input : logs/vuusage_u1_<hash>.txt (dumped by the interpreter, PROBE-GC/HC): per-pair scheduler usage tables.
 Output: PS2Recomp/ps2xRuntime/src/lib/vu/generated/vu1_native_exec_<k>.cpp   (plain functions, literal constants)
-        PS2Recomp/ps2xRuntime/src/lib/vu/generated/vu1_native_dispatch.cpp  (pc -> function table + vu1NativeRun)
+        PS2Recomp/ps2xRuntime/src/lib/vu/generated/vu1_native_dispatch.generated.cpp.txt  (reference only; the real vu1_native_dispatch.cpp is hand-maintained)
 
 Every function is the production path of one interpreter loop iteration (no probes) with the pair's decode values
 partially evaluated: it uses the interpreter's real scheduler state (ready arrays, pipelines) through direct data access
@@ -279,7 +279,8 @@ def main():
             for pc in part:
                 f.write('\n'.join(emit_pair(pc, pairs[pc])))
                 f.write('\n')
-    with open(OUT_DIR + '%s_native_dispatch.cpp' % UC['name'], 'w', newline='\n') as f:
+    # the committed vu1_native_dispatch.cpp is hand-maintained (Level B kernels live in vu1_native_hand.inc): never overwrite it
+    with open(OUT_DIR + '%s_native_dispatch.generated.cpp.txt' % UC['name'], 'w', newline='\n') as f:
         f.write(FILE_HEAD % {'src': src})
         f.write('const uint64_t k%sNativeMainHash = 0x%sull;\n\n' % (UC['Name'], h))
         for pc in native:
@@ -291,7 +292,7 @@ def main():
             f.write('  %s,\n' % ('%s_%04X' % (UC['step'], i * 8) if i * 8 in nset else 'nullptr'))
         f.write('};\n}\n\n')
         f.write(RUN_TEMPLATE.replace('vu1NativeRun', UC['name'] + 'NativeRun').replace('0x4000u', '0x%04Xu' % UC['pclim'])
-                .replace('kVu1HotStart', 'k%sHotStart' % UC['Name']).replace('vu1HotLookup', UC['name'] + 'HotLookup')
+                .replace('kVu1HotStart', 'k%sHotStart' % UC['Name']).replace('vu1HotLookup', UC['name'] + 'HotLookup').replace('vu1NativeStats', UC['name'] + 'NativeStats')
                 .replace('[probe] hot blocks=', '[probe] %s blocks=' % UC['hot']))
     files.append('%s_native_dispatch.cpp' % UC['name'])
     print('image %s: %d native pairs, %d files' % (h, len(native), len(files)))
@@ -301,11 +302,23 @@ def main():
 
 
 RUN_TEMPLATE = '''#include <cstdio>
+#include <cstdlib>
+#include <intrin.h>
 
 namespace
 {
 uint64_t s_hotBlocks = 0, s_hotPairs = 0, s_slowPairs = 0;
+// PERF-XG: slow-pair causes {0 no hot block starts at pc, 1 xgkick active (PS2X_VU1_XG_HOT off), 2 branch/ebit/halt/budget state,
+// 3 hash miss, 4 hot block declined, 5 slow pair executed while a transfer was active} and an optional TSC split (PS2X_VU1_TSC=1)
+uint64_t s_cause[6] = {};
+struct HotSlot { uint64_t h; VuHotFn fn; bool ok; };
+HotSlot s_hotSlot[sizeof(kVu1HotStart) / sizeof(kVu1HotStart[0])] = {}; // PERF-HC
+uint64_t s_tsc[4] = {}; // hot ticks, slow ticks, hot blocks timed, slow pairs timed
+const bool s_xgHot = []() { const char *e = std::getenv("PS2X_VU1_XG_HOT"); return e && e[0] == '1'; }();
+const bool s_tscOn = []() { const char *e = std::getenv("PS2X_VU1_TSC"); return e && e[0] == '1'; }();
 }
+
+uint64_t *vu1NativeStats(uint32_t which) { return which == 0u ? s_cause : s_tsc; }
 
 int vu1NativeRun(VU1Interpreter &vu, VuNativeCtx &c)
 {
@@ -316,7 +329,7 @@ int vu1NativeRun(VU1Interpreter &vu, VuNativeCtx &c)
         if ((pc & 7u) != 0u || pc >= 0x4000u)
             return 2;
         // PERF-IE: hot blocks with static timing (generated/vu1_hot_blocks.cpp); any unknown state falls back to the pair executors
-        if (kVu1HotStart[pc >> 3] && !vu.m_xgkick.active && !vu.m_state.branchPending && !vu.m_state.ebit &&
+        if (kVu1HotStart[pc >> 3] && (s_xgHot || !vu.m_xgkick.active) && !vu.m_state.branchPending && !vu.m_state.ebit &&
             !vu.m_state.haltAfterDelaySlot && c.budgetEnd - vu.m_cycle > 160u)
         {
             if (!c.hashValid)
@@ -324,35 +337,72 @@ int vu1NativeRun(VU1Interpreter &vu, VuNativeCtx &c)
                 c.nextHash = c.ops->blkHash(vu);
                 c.hashValid = true;
             }
-            const VuHotFn hf = vu1HotLookup(pc, c.nextHash);
+            // PERF-HC: direct-mapped (pc -> {entry hash, block}) cache in front of the switch lookup; misses (no block) are cached too
+            HotSlot &hs = s_hotSlot[pc >> 3];
+            VuHotFn hf;
+            if (hs.ok && hs.h == c.nextHash)
+                hf = hs.fn;
+            else
+            {
+                hf = vu1HotLookup(pc, c.nextHash);
+                hs.h = c.nextHash;
+                hs.fn = hf;
+                hs.ok = true;
+            }
             if (hf)
             {
                 const uint64_t i0 = c.instrs;
+                const uint64_t tH0 = s_tscOn ? __rdtsc() : 0ull;
                 const int hr = hf(vu, c);
-                s_hotPairs += c.instrs - i0;
-                ++s_hotBlocks;
-                if (c.check && c.ops->blkHash(vu) != c.nextHash)
+                if (s_tscOn)
                 {
-                    ++c.checkFail;
-                    if (c.checkFail <= 6)
-                        std::printf("[probe] hot block exit-hash MISMATCH at pc=%04X (block entered at %04X)\\n", vu.m_state.pc, pc);
-                    c.hashValid = false;
+                    s_tsc[0] += __rdtsc() - tH0;
+                    ++s_tsc[2];
                 }
-                if ((s_hotBlocks & 0x7FFFFFull) == 0u)
-                    std::printf("[probe] hot blocks=%llu hotPairs=%llu slowPairs=%llu hotShare=%.1f%% checkFail=%llu\\n", (unsigned long long)s_hotBlocks,
-                                (unsigned long long)s_hotPairs, (unsigned long long)s_slowPairs,
-                                100.0 * s_hotPairs / double(s_hotPairs + s_slowPairs + 1), (unsigned long long)c.checkFail);
-                if (hr != 0)
-                    return hr;
-                continue;
+                if (hr >= 0)
+                {
+                    s_hotPairs += c.instrs - i0;
+                    ++s_hotBlocks;
+                    if (c.check && c.ops->blkHash(vu) != c.nextHash)
+                    {
+                        ++c.checkFail;
+                        if (c.checkFail <= 6)
+                            std::printf("[probe] hot block exit-hash MISMATCH at pc=%04X (block entered at %04X)\\n", vu.m_state.pc, pc);
+                        c.hashValid = false;
+                    }
+                    if ((s_hotBlocks & 0x7FFFFFull) == 0u)
+                        std::printf("[probe] hot blocks=%llu hotPairs=%llu slowPairs=%llu hotShare=%.1f%% checkFail=%llu\\n", (unsigned long long)s_hotBlocks,
+                                    (unsigned long long)s_hotPairs, (unsigned long long)s_slowPairs,
+                                    100.0 * s_hotPairs / double(s_hotPairs + s_slowPairs + 1), (unsigned long long)c.checkFail);
+                    if (hr != 0)
+                        return hr;
+                    continue;
+                }
+                ++s_cause[4]; // declined before executing anything
             }
+            else
+                ++s_cause[3];
         }
+        else if (!kVu1HotStart[pc >> 3])
+            ++s_cause[0];
+        else if (vu.m_xgkick.active && !s_xgHot)
+            ++s_cause[1];
+        else
+            ++s_cause[2];
         c.hashValid = false;
         const StepFn fn = kStep[pc >> 3];
         if (!fn)
             return 2;
         ++s_slowPairs;
+        if (vu.m_xgkick.active)
+            ++s_cause[5];
+        const uint64_t tS0 = s_tscOn ? __rdtsc() : 0ull;
         const int r = fn(vu, c);
+        if (s_tscOn)
+        {
+            s_tsc[1] += __rdtsc() - tS0;
+            ++s_tsc[3];
+        }
         if (r != 0)
             return r;
     }

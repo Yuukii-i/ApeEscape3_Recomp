@@ -81,6 +81,17 @@ def lower(lo):
         return '%s vi%d, vi%d, %d' % (LOW[op], ft, fs, imm11)
     if op == 0x20 or op == 0x21:
         return '%s %d' % (LOW[op], imm11)
+    if op in (0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x1A, 0x1B):
+        imm24 = (lo & 0x7FF) | ((lo >> 10) & 0x7800) | (((lo >> 21) & 3) << 15)
+        if op in (0x18, 0x1A, 0x1B):
+            return '%s vi%d, vi%d' % (LOW[op], ft, fs)
+        return '%s %06X' % (LOW[op], lo & 0xFFFFFF)
+    if op == 0x1C:
+        return 'FCGET vi%d' % ft
+    if op == 0x24:
+        return 'JR vi%d' % fs
+    if op == 0x25:
+        return 'JALR vi%d, vi%d' % (ft, fs)
     if op in LOW:
         return '%s ...' % LOW[op]
     if op == 0x40:
@@ -88,7 +99,35 @@ def lower(lo):
         if o6 >= 0x3C:
             e = (lo & 3) | ((lo >> 4) & 0x7C)
             n = L2S.get(e, 'LS?%02X' % e)
-            return '%s.%s ft=%d fs=%d' % (n, dest_s(dest), ft, fs)
+            ds = dest_s(dest)
+            if n == 'MOVE':
+                return 'MOVE.%s vf%d, vf%d' % (ds, ft, fs)
+            if n == 'MR32':
+                return 'MR32.%s vf%d, vf%d' % (ds, ft, fs)
+            if n in ('LQI', 'LQD'):
+                return '%s.%s vf%d, (vi%d%s)' % (n, ds, ft, fs, '++' if n == 'LQI' else '')
+            if n in ('SQI', 'SQD'):
+                return '%s.%s vf%d, (vi%d%s)' % (n, ds, fs, ft, '++' if n == 'SQI' else '')
+            if n == 'MTIR':
+                return 'MTIR vi%d, vf%d.%s' % (ft, fs, 'xyzw'[(lo >> 21) & 3])
+            if n == 'MFIR':
+                return 'MFIR.%s vf%d, vi%d' % (ds, ft, fs)
+            if n in ('ILWR', 'ISWR'):
+                return '%s.%s vi%d, (vi%d)' % (n, ds, ft, fs)
+            if n == 'DIV':
+                return 'DIV Q, vf%d.%s, vf%d.%s' % (fs, 'xyzw'[(lo >> 21) & 3], ft, 'xyzw'[(lo >> 23) & 3])
+            if n in ('SQRT', 'WAITQ'):
+                return '%s Q, vf%d.%s' % (n, ft, 'xyzw'[(lo >> 23) & 3]) if n == 'SQRT' else 'WAITQ'
+            if n == 'RSQRT':
+                return 'RSQRT Q, vf%d.%s, vf%d.%s' % (fs, 'xyzw'[(lo >> 21) & 3], ft, 'xyzw'[(lo >> 23) & 3])
+            if n in ('XTOP', 'XITOP'):
+                return '%s vi%d' % (n, ft)
+            if n == 'XGKICK':
+                return 'XGKICK vi%d' % fs
+            return '%s.%s ft=%d fs=%d' % (n, ds, ft, fs)
+        if o6 == 0x32:
+            imm5 = fd - 32 if fd & 16 else fd
+            return 'IADDI vi%d, vi%d, %d' % (ft, fs, imm5)
         n = L2.get(o6, 'L2?%02X' % o6)
         return '%s vi%d, vi%d, vi%d' % (n, fd, fs, ft)
     return 'L?%02X' % op

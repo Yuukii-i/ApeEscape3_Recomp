@@ -4,8 +4,10 @@ A static recompilation of the PlayStation 2 game **Ape Escape 3** (NTSC-U, `SCUS
 
 The game's MIPS R5900 (Emotion Engine) executable is translated ahead of time into native C++ (`recomp_source/`). A custom runtime then provides the rest of the console: kernel and scheduler, GIF/GS/VU0/VU1/VIF/IPU/DMA hardware, and high-level emulation of the IOP services the game talks to (file streaming, memory card, controller, sound).
 
-> ## ⚠️ Early development: playable only up to the first hub, and slow
-> The game now boots, plays the opening movies, shows the title menu and character select in 3D, and the **first tutorial level can be played from start to finish**: walking, camera, the net, capturing the first monkey, the level-complete screen, the cutscene and the hub (lobby). Saving, sound and performance are still unsolved (see below). Expect crashes and slow frame rates. This is a development snapshot, not a release.
+> ## ⚠️ Early development: playable speed (not full speed), random crashes likely
+> The game now runs at **playable speeds, but not at full speed** (it does not hold 60 fps yet). **Random crashes are very likely.** **It is unknown whether the game can be beaten at this point**: nobody has played it from start to finish on this port.
+>
+> It boots, plays the opening movies, shows the title menu and character select in 3D, and the **first tutorial level can be played from start to finish**: walking, camera, the net, capturing the first monkey, the level-complete screen, the cutscene and the hub (lobby). Saving and sound are still unsolved (see below). This is a development snapshot, not a release.
 
 You need your own legally obtained disc image of the game. **No game files, executables, or assets are included in this repository**, and none should ever be committed.
 
@@ -37,12 +39,13 @@ You need your own legally obtained disc image of the game. **No game files, exec
 
 ## Known issues
 
-- **Performance**: roughly 30 frames per second at the title, about 24 in the tutorial and about 20 in the hub. The EE thread is the limit (about 98% busy in the hub). Needs generator-level work.
+- **Performance**: playable, but not full speed. On the test laptop the hub runs at roughly 40 to 50 fps depending on the power mode (a locked 60 is the goal). VU1 work, now on its own pipeline thread, is the current limit.
+- **Stability**: random crashes are very likely.
 - **Saving**: using the save station in the hub soft-locks (the game asks for its save folder, gets "no entry" from the blank card, then waits forever).
 - **Sound**: the audio clock exists, but there is no ADPCM decoding, mixing or output.
 - The gadget menu's Select button can soft-lock.
 - Widescreen UI scaling, display filtering and other display options are not finished.
-- Only the tutorial level and the hub have been played; later levels are untested.
+- Only the tutorial level and the hub have been played; later levels are untested, and it is unknown whether the game can be beaten.
 
 ---
 
