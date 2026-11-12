@@ -248,3 +248,11 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - Replay mem/gif: shop 7733/8000 taken, early-run 7403/8000, snow 5481/5956, all mem=0 gif=0. Remaining fallbacks: startPC != 0008 (corpora only) and 1EE0 real clipping.
 - Live (logs\shot_f3_1.png): picture correct, 55 fps on screen, functional 98.4% (fallbacks 1EE0 clipping 1.6%).
 - A/B f3all (3 rounds, silent, AC): all exact (PS2X_VU1_FUNC=0 PS2X_VU0_FAST=0) vs new defaults: fps 38.0 -> 51.3 (+35%), p50 25.93 -> 19.38.
+
+## 49. Tasks F4 + V0C (Gemini 4 Hydrogen Medium, ~4 min each, run in parallel)
+- F4: functional real clipping clipPolygon (2900..2F68: context save 1020..1022, spill 918..929, 6-plane Sutherland-Hodgman ping-pong 918/948, edge interpolation incl. 876.yzw, early exit, clipped GIF emission XGKICK 1023/876); helpers absV (ABS), mr32 (MR32).
+- V0C: VU0 fast path vectorised (SIMD normalisation, _mm_fmadd_ps, exponent-window + safe-zero check, exact scalar fallback per op, MAC/STATUS via movemask, vf in registers).
+- EE profile before V0C (sampler + concurrent agy job, rough): executeVU0Microprogram 16% incl. (vu0fast::executeFast 9.6%), sceDmaSend chain 13.4% (vector insert 8.1% = payload copy), writeIORegister 14.5%.
+- Verification: replay mem=0 gif=0 on shop (7800/8000 taken), early-run (7479/8000), snow (5543/5956); remaining fallbacks: startPC != 0008 (corpora only) + a few 1EE0. Live VU0 check: 13.0M calls, 0 mismatches. Live VU1 functional 99.7% (1EE0 fallback 0.3%).
+- A/B f4 (3 rounds, silent, AC): all exact (PS2X_VU1_FUNC=0 PS2X_VU0_FAST=0) vs defaults: fps 37.7 -> 55.7 (+48%), p50 26.35 -> 17.67.
+- Next: remaining 1EE0 fallback reasons (count by reason), EE: sceDmaSend payload copy (zero-copy), writeIORegister, codegen plan; then GS thread (13.5 ms) once EE/VU1 are under 16 ms.
