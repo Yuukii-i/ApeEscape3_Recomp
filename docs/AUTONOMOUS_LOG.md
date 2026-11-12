@@ -145,3 +145,8 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 
 - Scramble mask 8 (MAC/STATUS/CLIP incl. clip history) and mask 15 (everything) on the shop corpus: outdiff 0 of 8000 both. Plan written: docs/VU1_DUAL_PLAN.md; Task DA (thread-safety audit for two VU1 instances) sent to Gemini.
 
+
+## 30. Task DB1: dual executor infrastructure (default off, PS2X_VU1_DUAL=1)
+- Gemini added thread Vu1Exec2 (mirrors VIF writes into a shadow VU1 copy, own ring cursors), second VU1 instance s_vu1B + g_vu1MscalCallbackB, ps2_vu1_set_capture, ordered PATH1 submit of captured XGKICK output on X0. Small fix by me: the extern of g_vu1MscalCallbackB was inside the anonymous namespace (would not link once used).
+- Shop, silent: picture correct (logs\shot_db1_1.png), MSCNT=0, X1 mirroring 235 ms vs X0 busy 1632 ms per stat window.
+- A/B db1 (3 rounds, B = DUAL=1): fps 45.0 -> 42.7, p50 21.80 -> 22.87, Vif1 9.64 -> 13.74 ms. Expected cost of capture+ordered submit with no parallel run yet; DB2 must pay it back. Next: Task DB2 (X1 runs odd MSCALs, predicted W + verify/rerun).
