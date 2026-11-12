@@ -202,3 +202,9 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - Handlers (inclusive): 1EE0 1761 ms/770k (~70% of VU1 native time: skinned-mesh pipeline = 1FE0 skin + 2440 vertex/clip + 2900+ clipping), 00A8 281 ms/129k (matrix setup + 0158 loop), 0C80 84 ms/1.1M (copy), 15E0 59 ms/14k, 0088 45/241k, 0050 43/241k, 0070 38/750k, 1C48 22/13k, 0B40 7.7/1.1k, 3160 0.7/449.
 - Programs per signature (handler set): {70,C80,1EE0} 63%, {50,88,C80} 11%, {A8,C80} 11%, {50,88} 9%, {C80} 1.8%, {C80,1EE0} 1.7%, {15E0} 1.2%, {70,C80,1C48,1EE0} 1.0%, {70,B40,C80,1C48,1EE0} 0.1%, {C80,1EE0,3160} 0.04%.
 - => Functional engine scope: dispatcher + 0050/0070/0088/0C80/00A8 + 1EE0 covers ~96% of programs and ~95% of time; then 15E0, 1C48, 0B40, 3160 for ~100%.
+
+## 39. Task F1: functional VU1 engine skeleton (Sonnet subagent; PS2X_VU1_FUNC=1, default off)
+- vu/vu1_func.inc (included by ps2_vu1_core.cpp): whole-program functional run for image 86503d39 (startPC 0008): dispatcher + handlers 0000/0050/0060/0070/0088/0C80/00A8 (00A8 via the verified closed forms, fmacV mirrors lbFmac), immediate XGKICK snapshots, undo log for fallback (no 16 KB snapshot), exact path on any unknown handler.
+- Replay harness PS2X_VU1_REPLAY_FUNC=1 (mismatch = mem/gif only), shop corpus: taken 2494 / fallback 5506 (1EE0 5175, startPC!=8 184, 15E0 74, 1C48 64, 0B40 6, 3160 3), mem=0 gif=0.
+- Live (logs\shot_f1_2.png): picture correct, ~36% of programs functional. A/B f1 (2 rounds): fps 45.0 vs 44.8 (neutral: covered handlers are cheap ones). A first-command skip memo lost good programs -> behind PS2X_VU1_FUNC_MEMO (off).
+- Next: Task F2 = functional 1EE0 (skinned 1FE0 path from lbFull, rigid 2440 path from lbVert), docs\NEXT_TASK_F2.md.
