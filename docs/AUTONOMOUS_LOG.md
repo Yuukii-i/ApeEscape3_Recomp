@@ -279,3 +279,14 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - A/B el (3 rounds, silent, AC, exe A = ps2EntryRunner_preEL.exe): GameThread 15.02 -> 14.80 ms/frame (-1.4%), fps 56.0 -> 57.7, p99 53.6 -> 45.1, GS 14.78 -> 14.34. Small, near noise; kept (no observable risk: pc still stored before every slow path, branch and non-whitelisted op).
 - Picture correct (logs\shot_el_1.png, shop street).
 - Conclusion: pc stores were not the EE bottleneck (MSVC already sank many). Dispatcher already lean (PERF-LL). Next EE lever: register caching (Phase 3) or hot-function hand optimisation driven by a per-function profile.
+
+## 54. PERF-DC (lean DMA chain copy: probe-span gating + memcpy growth) - REVERTED, unexplained "heavy mode"
+- Profile (sampler, 12 windows, silent): EE = ~27% guest code self, ~14% vsync wait, 8.6% vif1_fence in sceGsSyncPath (~1.7 ms/frame tail wait, must stay: section 9), 7.8% DMA chain copy (appendData).
+- PERF-DC builds land in a "heavy mode" in 6/7 rounds (A/B dc, dc2, dc3): vu1/frame 176-196 vs 155-167, fps 49-51, p99 120-220 ms, every thread +10-25%. The unchanged el exe: 0/13 rounds (A/A aa). Bisect (copy reverted, gating kept) still 1/2. No consumer of the gated data is reachable with probes off; cause unknown (timing-sensitive game state?). Reverted; note: a heavy game state with long hitches exists and is reachable - candidate bug for phase 3.
+
+## 55. VU0 fast path covers every program (Tasks V0D/V0E/V0F, Gemini 4 Hydrogen) + PROBE-V0P
+- PROBE-V0P (Sonnet): PS2X_VU0_PCPROF=1 no longer disables the fast path and times it (F/G marker per program). Earlier [v0prof] numbers for 088/cd0 (630 ns) were the generic interpreter.
+- V0D: resolved-path executor (branches, JALR/JR, CLIP + FCGET with the 4-cycle FlgRing, DIV/RSQRT/WAITQ). V0E: classifier bug (IADDIU/IAND/IOR results not marked known -> JALR rejected) fixed, static timing precomputed per path. V0F: FMAC in AVX double (mul then add, RZ), bit-identical to the scalar long double(=double) reference by construction; scalar only for out-of-range lanes.
+- Check mode: 16.2M calls, 100% fast, 0 mismatches. [v0prof] per 5 s: total 888 -> 350 ms (088 205 ns, cd0 222 ns, 0f0 774 ns, 348/4b0 ~1.1 us).
+- A/B v0f2 (3 rounds, silent, vs el exe): GameThread 14.59 -> 14.33 ms/frame (-1.8%), fps 57.7 vs 57.2, same work/frame. Picture correct (logs\shot_v0f_1.png).
+- Note: p50 is pinned at 16.70 in both; the missing ~2 fps are long frames (p99 ~35 ms), not average EE time. Next: find what the long frames are.
