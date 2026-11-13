@@ -268,3 +268,8 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - Replay mem/gif: shop 7999/8000 taken (1 = end marker record), early-run 7999/8000, snow 5955/5956 (44 other-image skipped), fallback 0, mem=0 gif=0.
 - Live shop route: [vfunc] fallback=0 (100% functional), picture correct (logs\shot_skn_1.png).
 - Recompiler facts (Haiku read): per-instruction ctx->pc store at ps2xRecomp function_emitter.cpp:203; JAL/J/JALR via runtime->dispatchGuestBranch (control_flow_emitter.cpp 187-248); backward branches call runtime->eeCheckpointDue(); regeneration overwrites recomp_source completely (no override mechanism; hand fixes re-applied by tools\fix_*.py).
+
+## 52. Power throttling opt-out (PERF-PT, PS2X_NO_THROTTLE=1, Sonnet) - NO EFFECT, stays off
+- A/B thr2 (3 rounds, silent): fps 58.3 vs 58.3, p50 16.70 both ([throttle] opt-out ok=1). Silent mode limits clocks, not scheduling. (First A/B thr was VOID: build had failed on windows.h vs raylib in ps2_runtime.cpp; helper moved to probe_prof.cpp.)
+- Sampler: high-resolution waitable timer + TIME_CRITICAL did not restore the sample rate (40-150 per window); EE profiling via the sampler stays unreliable in silent mode.
+- Next: EE codegen via post-processing recomp_source (tools\elide_pc_stores.py: drop ctx->pc stores before provably pure SET_GPR arithmetic) instead of regenerating (regeneration loses hand fixes).
