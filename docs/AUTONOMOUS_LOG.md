@@ -290,3 +290,12 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - Check mode: 16.2M calls, 100% fast, 0 mismatches. [v0prof] per 5 s: total 888 -> 350 ms (088 205 ns, cd0 222 ns, 0f0 774 ns, 348/4b0 ~1.1 us).
 - A/B v0f2 (3 rounds, silent, vs el exe): GameThread 14.59 -> 14.33 ms/frame (-1.8%), fps 57.7 vs 57.2, same work/frame. Picture correct (logs\shot_v0f_1.png).
 - Note: p50 is pinned at 16.70 in both; the missing ~2 fps are long frames (p99 ~35 ms), not average EE time. Next: find what the long frames are.
+
+## 56. Vu1Exec split (PROBE-VX) and Task V1G (Gemini 4 Hydrogen + Sonnet compile fix)
+- Critical path (PROBE-TL): one VIF1 job per frame, dur 13.2 ms; EE kicks it, works 11.3 ms (lead), waits ~2 ms (fwait) at sceGsSyncPath. [vpipe]: Vu1Exec busy 13.1 ms/job, Vif1Worker drain-waits ~2.3 ms.
+- PROBE-VX (PS2X_VX=1, [vx]) per frame: busy 12.6 = w 2.0 + mscal 9.8 (func compute 7.2, gifsubmit 1.0, ~1.6 per-program overhead) + gif 0.7. Handlers: 1ee0 skinned 3.45 (3741 calls), 00a8 1.74 (677 calls, 2.6 us), 1ee0 rigid 0.56, clip 0.50.
+- V1G: hoisted per-call flags/statics in vpExecThreadFunc + VU1Interpreter::execute, std::function hop -> fn pointer, no 560-byte Regs memset, UndoLog clear = size 0; handler00A8 8-wide (fv8Op) for vi2<=80 with one logRange per range; logRange+stqRaw in rigid2440/clipPolygon/0C80.
+- Replay: shop 7999/8000, early 7999/8000, snow 5955/5956 taken, fallback 0, mem=0 gif=0.
+- [vx] after: busy 11.7 (mscal 8.4: 00a8 0.86, clip 0.34, overhead ~1.2); w 2.0 -> 2.65 (unexplained). TL A/B (2 rounds each): VIF job dur 13.43 -> 12.69 ms, fwait 2.30 -> 2.08. fps A/B inconclusive (57-58 both; within noise).
+- Benchmark noise source found: "heavy mode" rounds (vu1/frame >= 170, fps 49-52, p99 > 100 ms) also hit the unchanged build (A/B spin A1, B2); most likely the pad replay desyncing into a busier camera/position (screenshots show different hero poses). Treat rounds with vu1/f >= 170 as different-work and exclude them. PERF-DC (section 54) may have been rejected on this noise; re-test later.
+- PS2X_VPIPE_SPIN=300 vs 4000: no difference outside heavy rounds.
