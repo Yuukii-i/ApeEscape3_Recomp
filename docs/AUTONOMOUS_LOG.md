@@ -273,3 +273,9 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - A/B thr2 (3 rounds, silent): fps 58.3 vs 58.3, p50 16.70 both ([throttle] opt-out ok=1). Silent mode limits clocks, not scheduling. (First A/B thr was VOID: build had failed on windows.h vs raylib in ps2_runtime.cpp; helper moved to probe_prof.cpp.)
 - Sampler: high-resolution waitable timer + TIME_CRITICAL did not restore the sample rate (40-150 per window); EE profiling via the sampler stays unreliable in silent mode.
 - Next: EE codegen via post-processing recomp_source (tools\elide_pc_stores.py: drop ctx->pc stores before provably pure SET_GPR arithmetic) instead of regenerating (regeneration loses hand fixes).
+
+## 53. EE codegen step 1: pc-store elision by post-processing recomp_source (tools\elide_pc_stores.py, user ran it)
+- Removed 441,701 `ctx->pc = X` stores before provably pure SET_GPR arithmetic; moved 278,287 into the slow (special-address) branch of loads/stores via new READnP/WRITEnP macros (ps2_runtime_macros.h). 20,589 files; recomp_source git repo commit on top of d2e5a85.
+- A/B el (3 rounds, silent, AC, exe A = ps2EntryRunner_preEL.exe): GameThread 15.02 -> 14.80 ms/frame (-1.4%), fps 56.0 -> 57.7, p99 53.6 -> 45.1, GS 14.78 -> 14.34. Small, near noise; kept (no observable risk: pc still stored before every slow path, branch and non-whitelisted op).
+- Picture correct (logs\shot_el_1.png, shop street).
+- Conclusion: pc stores were not the EE bottleneck (MSVC already sank many). Dispatcher already lean (PERF-LL). Next EE lever: register caching (Phase 3) or hot-function hand optimisation driven by a per-function profile.
