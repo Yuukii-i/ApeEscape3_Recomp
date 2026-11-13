@@ -263,3 +263,8 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - A/B acct (3 rounds): PS2X_ACCT_BATCH=1: EE 15.86 -> 14.61 ms/frame (-7.8%), p50 16.97 -> 16.70, fps 56.5 -> 57.7 -> default ON (REVERSAL_MEMO). Boot, both movies, title and the route to the shop still run (pad replay reaches the shop, screenshot logs\shot_acctd_1.png, 59 fps on screen).
 - [jm] VU0 calls that still take the generic path (0x0F0/0x4B0/0x348 with branches): ~26k/s at ~1.6 us = ~0.5 ms/frame.
 - 1EE0 fallback reasons (Sonnet probe): 100% skinN_range (skinned N outside 4..67, a limit inherited from lbFull), ~0.3% of programs.
+
+## 51. VU1 fully functional: skinned N 1..255 with bounds checks (was 4..67 from lbFull) + startPC 0x0040 one-command entry (Sonnet)
+- Replay mem/gif: shop 7999/8000 taken (1 = end marker record), early-run 7999/8000, snow 5955/5956 (44 other-image skipped), fallback 0, mem=0 gif=0.
+- Live shop route: [vfunc] fallback=0 (100% functional), picture correct (logs\shot_skn_1.png).
+- Recompiler facts (Haiku read): per-instruction ctx->pc store at ps2xRecomp function_emitter.cpp:203; JAL/J/JALR via runtime->dispatchGuestBranch (control_flow_emitter.cpp 187-248); backward branches call runtime->eeCheckpointDue(); regeneration overwrites recomp_source completely (no override mechanism; hand fixes re-applied by tools\fix_*.py).
