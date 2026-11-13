@@ -256,3 +256,10 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - Verification: replay mem=0 gif=0 on shop (7800/8000 taken), early-run (7479/8000), snow (5543/5956); remaining fallbacks: startPC != 0008 (corpora only) + a few 1EE0. Live VU0 check: 13.0M calls, 0 mismatches. Live VU1 functional 99.7% (1EE0 fallback 0.3%).
 - A/B f4 (3 rounds, silent, AC): all exact (PS2X_VU1_FUNC=0 PS2X_VU0_FAST=0) vs defaults: fps 37.7 -> 55.7 (+48%), p50 26.35 -> 17.67.
 - Next: remaining 1EE0 fallback reasons (count by reason), EE: sceDmaSend payload copy (zero-copy), writeIORegister, codegen plan; then GS thread (13.5 ms) once EE/VU1 are under 16 ms.
+
+## 50. EE now the limiter; PERF-LM accountCycles batching DEFAULT ON; 1EE0 fallback reasons
+- PROBE-TL (silent, all defaults): frame ~17.3 ms (611 jobs/10.6 s), VIF job 13.5 ms, fence wait ~1.1 ms/frame, EE work ~16.2 ms/frame.
+- Sampler in silent mode now gets only 15-200 samples per 5 s window (was ~1070): EE profiles unreliable; use A/B thread columns.
+- A/B acct (3 rounds): PS2X_ACCT_BATCH=1: EE 15.86 -> 14.61 ms/frame (-7.8%), p50 16.97 -> 16.70, fps 56.5 -> 57.7 -> default ON (REVERSAL_MEMO). Boot, both movies, title and the route to the shop still run (pad replay reaches the shop, screenshot logs\shot_acctd_1.png, 59 fps on screen).
+- [jm] VU0 calls that still take the generic path (0x0F0/0x4B0/0x348 with branches): ~26k/s at ~1.6 us = ~0.5 ms/frame.
+- 1EE0 fallback reasons (Sonnet probe): 100% skinN_range (skinned N outside 4..67, a limit inherited from lbFull), ~0.3% of programs.
