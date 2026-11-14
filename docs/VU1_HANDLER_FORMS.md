@@ -260,3 +260,67 @@ where $n = (vi3 - vi2) \ \& \ \text{0xFFFF}$.
 | `0x16C0` | 40 | 5,104 | 5,104 | 0 | 0 | 0 |
 | `0x1708` | 40 | 0 | 0 | 0 | 0 | 0 |
 | **Total** | **200** | **50,100** | **50,100** | **0** | **0** | **0** |
+
+
+---
+
+## 6. Handler 0x0840 (Point Specular Light, Image 86503d39) // PERF-V1M
+
+- **Inputs**:
+  - Command stream at `vi13` (2 qwords, advances `vi13 += 2`):
+    - `cmd[0].xyz`: light position (world/input space).
+    - `cmd[1].xyzw`: light RGBA color.
+  - VU memory constants:
+    - `982..985` (`.xyz`): 4x3 affine matrix transforming `cmd[0].xyz` to local light position $L$.
+    - `989..991` (`.xyz`): 3x3 matrix transforming `1017.xyz` (view/half-vector offset) to $H_{\text{off}}$.
+    - `1015.xyzw`: 4-term specular polynomial coefficients $(c_0, c_1, c_2, c_3)$.
+    - `1011.x`: vertex buffer base `base`; `1011.w`: vertex count $N$.
+  - Vertex streams: positions $P_j = \text{mem}[476 + \text{base} + j].xyz$, normals $N_j = \text{mem}[556 + \text{base} + j].xyz$, colors $C_j = \text{mem}[716 + \text{base} + j].xyzw$.
+- **Math**:
+  - For each vertex $j \in [0, N)$:
+    - $d_j = \|L - P_j\|$, $\hat{l}_j = (L - P_j) / d_j$ (via `ERLENG`/`MFP`; `ESIN vf0` is an EFU stall dummy).
+    - $\hat{h}_j = \text{normalize}(H_{\text{off}} + \hat{l}_j)$ (via `RSQRT`).
+    - $s_j = N_j \cdot \hat{h}_j$, $\text{spec}_j = \max(0,\ c_0 s_j + c_1 s_j^2 + c_2 s_j^4 + c_3 s_j^8)$.
+    - $C_j \mathrel{+}= \text{cmd}[1] \cdot (\text{spec}_j / d_j)$.
+- **Outputs**: Updates `mem[716 + base + j].xyzw` in place for $j \in [0, N)$; no GIF packet emitted.
+
+---
+
+## 7. Handler 0x0CC0 (Diffuse Spotlight with Cone Cull, Image 86503d39) // PERF-V1M
+
+- **Inputs**:
+  - Command stream at `vi13` (4 qwords, advances `vi13 += 4`):
+    - `cmd[0].xyz`: light position.
+    - `cmd[1].xyzw`: light RGBA color.
+    - `cmd[2].xyz`: spotlight forward direction (negated to $D = M_{3\times 3} (-\text{cmd}[2])$).
+    - `cmd[3].xyzw`: `.x` = outer-cone cosine cutoff, `.y` = angular falloff scale, `.z` = $\cos^2(\text{bounding cone})$ for early-out, `.w` = bounding-sphere offset scale.
+  - VU memory constants: `989..991` (3x3 matrix), `985.xyz` (translation for $L$), `1010.xyzw` (bounding-sphere center `.xyz` & radius `.w`), `1011.x` (`base`), `1011.w` ($N$).
+  - Vertex streams: $P_j$ at `476 + base + j`, $N_j$ at `556 + base + j`, $C_j$ at `716 + base + j`.
+- **Math**:
+  - Bounding-sphere cone cull (`FMAND` on `Sx`, bit 7 of MAC flags):
+    1. $\Delta = L - (\text{mem}[1010].xyz - D \cdot (\text{mem}[1010].w \cdot \text{cmd}[3].w))$. If $\Delta \cdot D < 0$, early exit (no stores).
+    2. If $(\Delta \cdot D)^2 < \|\Delta\|^2 \cdot \text{cmd}[3].z$, early exit (no stores).
+  - Otherwise, for each vertex $j \in [0, N)$:
+    - $d_j = \|L - P_j\|$, $\hat{l}_j = (L - P_j) / d_j$ (via `RSQRT`).
+    - $\text{spot}_j = \text{clamp}((\hat{l}_j \cdot D - \text{cmd}[3].x) \cdot \text{cmd}[3].y,\ 0,\ 1)$.
+    - $\text{diff}_j = \text{clamp}(\hat{l}_j \cdot N_j,\ 0,\ 1)$.
+    - $C_j \mathrel{+}= \text{cmd}[1] \cdot (\text{spot}_j \cdot \text{diff}_j / d_j)$.
+- **Outputs**: Updates `mem[716 + base + j].xyzw` in place for $j \in [0, N)$ when not culled; no GIF packet emitted.
+
+---
+
+## 8. Handler 0x1090 (Specular Spotlight, Image 86503d39) // PERF-V1M
+
+- **Inputs**:
+  - Command stream at `vi13` (4 qwords, advances `vi13 += 4`):
+    - `cmd[0].xyz`: light position; `cmd[1].xyzw`: light RGBA color; `cmd[2].xyz`: spotlight direction; `cmd[3].xy`: cone cutoff & falloff scale.
+  - VU memory constants: `989..991` (3x3 matrix), `985.xyz` (translation for $L$), `1017.xyz` (half-vector offset), `1015.xyzw` (4-term specular polynomial), `1011.x` (`base`), `1011.w` ($N$).
+  - Vertex streams: $P_j$ at `476 + base + j`, $N_j$ at `556 + base + j`, $C_j$ at `716 + base + j`.
+- **Math**:
+  - For each vertex $j \in [0, N)$:
+    - $d_j = \|L - P_j\|$, $\hat{l}_j = (L - P_j) / d_j$ (via `ERLENG`/`MFP`; `ESIN vf0` is an EFU stall dummy).
+    - $\text{spot}_j = \min(1,\ \max(0,\ D \cdot \hat{l}_j - \text{cmd}[3].x) \cdot \text{cmd}[3].y)$ where $D = M_{3\times 3}(-\text{cmd}[2])$.
+    - $\hat{h}_j = \text{normalize}(H_{\text{off}} + \hat{l}_j)$ (via `RSQRT`).
+    - $x_j = (N_j \cdot \hat{h}_j) \cdot \text{spot}_j$, $\text{spec}_j = \max(0,\ c_0 x_j + c_1 x_j^2 + c_2 x_j^4 + c_3 x_j^8)$.
+    - $C_j \mathrel{+}= \text{cmd}[1] \cdot (\text{spec}_j / d_j)$.
+- **Outputs**: Updates `mem[716 + base + j].xyzw` in place for $j \in [0, N)$; no GIF packet emitted.

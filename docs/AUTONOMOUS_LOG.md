@@ -394,3 +394,19 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - A/B gd2 (3 rounds, vs gc exe): fps 60 on all; GsWorker 9.14 -> 7.10 ms/frame; TOTAL 44.8 -> 41.4. Picture correct
   (logs\shot_gd_1.png, window 60 fps).
 - Thread budget (silent, shop, ms/frame): GameThread ~11.3, Vu1Exec ~10, Vif1Worker ~8.8, GsWorker ~7.1.
+
+## 65. Task V1M: VU1 fuzz harness + first 3 missing handlers decompiled (lighting: 0840, 0CC0, 1090)
+- Gemini 4 Hydrogen wrote handler0840 (point specular light: ERLENG 1/d, RSQRT half-vector, 4-term polynomial from 1015,
+  C += col * max(0, P4(n.h)) / d), handler0CC0 (diffuse spotlight with two bounding-sphere cone-cull early-outs via FMAND),
+  handler1090 (specular spotlight), semantic forms in docs/VU1_HANDLER_FORMS.md, and a fuzz mode in the replay harness:
+  PS2X_VU1_FUZZ=<hex pcs> PS2X_VU1_FUZZ_N: base record from the corpus, startPC 0x40, command at TOP = handler, inputs
+  randomised (30% corpus values, 45% normal range, 25% 0/-0/denormal/+-FLT_MAX/near-overflow), exact vs functional on mem+GIF.
+- Sonnet fixed the harness (record header offset 32 -> 40 so no test ran; pc-list parser read past NUL; ended detection
+  inverted; replay re-entry) and proved it with a deliberately corrupted store (0CC0 mismatches 1080/2000, reverted).
+- Real mismatches found in 1090/0840 (5-11%): root cause = the interpreter's x*x+y*y+z*z (ERLENG) is compiled with FMA
+  contraction; handlers now fold the same way (std::fma). Note: the reference interpreter's float results depend on MSVC
+  contraction of that expression.
+- Results: Sonnet N=20000 per handler, 0 mismatches; Claude re-check on a different base corpus (snow) N=5000 each:
+  exactEnded=taken=5000, mismatches 0 for 0CC0/1090/0840. Shop replay unchanged (mem=0 gif=0, fallback 0).
+- Default OFF (PS2X_VU1_FUNC_NEW=1 enables): never reached in captured play; enable after PROBE-FB real data confirms.
+  Inventory now: 16 handlers (677 pairs) left.
