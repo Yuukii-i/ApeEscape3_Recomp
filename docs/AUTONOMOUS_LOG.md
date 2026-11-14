@@ -450,3 +450,15 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - Shop route: no new handler used (no [vnc] lines); A/B vnc vs gd exe: fps 59.5/60 vs 59/60, GameThread 11.85 vs 11.6, same
   work (vu1/f ~6350); [vfunc] fallback 0.
 - When the user plays other levels: grep [vnc] in the .err (or run with output kept) - mismatches must stay 0.
+
+## 70. Task V1Q: last 4 entries resolved
+- 2E20 and 2E88 are internal clipPolygon continuation/subroutines (vertex emit + edge interpolator, entered via BAL/JR from the
+  2900..2F68 clip code), already covered by the decompiled clipPolygon -> documented, nothing to implement.
+- 0560 (command: linear scale+bias on top+1018.y..w; live-in vi4, vf15..18 from 02E0) and 0C38 (command: MINIi/FTOI0 spill +
+  0C80-style copy loop; live-in I, vi3, vi4, vf11..14) implemented with valid-bit checks; R.I/iValid tracking added to
+  0560, 15E0, 1A68, 1EE0/1EF0, 3160; 02E0 now publishes vf15..18, 0198 vf14.
+- Checks: 13 single handlers + 1900+1910 / 0628 sequences 0 mismatches; shop, snow, vu1corpus replays mem=0 gif=0 fallback 0
+  (live handlers touched by the I tracking stay exact). BUT 0560/0C38 sequences I tried (02E0+0560, 0198+0C38, ...) were never
+  taken (all fall back, safe) -> predecessor chain / valid bits to be fixed next.
+- Decompiled coverage of image 86503d39: 30 of 32 entries functional (2 of them by clipPolygon), 0560/0C38 implemented but not
+  yet proven taken.

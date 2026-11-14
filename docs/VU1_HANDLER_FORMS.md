@@ -542,3 +542,17 @@ where $n = (vi3 - vi2) \ \& \ \text{0xFFFF}$.
 
 - **`0x0628`**: Now executes using `R.vi[4]` and `R.vf[11..13]` whenever `R.viValid` bit 4 and `R.vfValid` bits 11..13 are set (e.g., after `0AF0+0198`, `0AE0+0198`, `32A0+0198`, `1CC0+0198`, `1CD8+0198`); falls back otherwise.
 - **`0x1910`**: Now executes using `R.vf[9]` (populated in `handler1900` from `0(vi2).xyz`) whenever `R.vfValid` bit 9 is set (e.g., after `1900`); transforms `mem[476 + base + j].xyz` by `(978..981) * T` into `mem[796 + base + j].xyz` (preserving `.w`) and sets `R.vi[4] = 476`; falls back if `vf9` is not valid.
+
+
+---
+
+## 25. Task V1Q Entry Analysis & Final Live-In Completion (`0x0560`, `0x0C38`, `0x2E20`, `0x2E88`) // PERF-V1Q
+
+- **`0x0560` — (a) Command (`JR vi1`)**:
+  - **Live-ins**: `vi4` (set by `0AF0`/`0AE0`/`0B40`/`0CC0`/`1900`/`1910`/`1CC0`/`1CD8`/`32A0`) and `vf15..18` (only `02E0` leaves clean `vf15 = d_{n+2}^8`, `vf16 = max(poly4Spec(d_{n+1}), 0)`, `vf17 = d_{n+2}^2`, `vf18 = d_{n+2}^4` at `0520..0538`; `1090` clobbers `vf15..19` with scratch).
+  - **Implementation**: `handler02E0` now populates `R.vf[15..18]` and sets `R.vfValid` bits `15..18`, enabling `handler0560` natively (e.g. `0AF0+02E0+0560`); `handler0560` also sets `R.I = 0.5f`, `R.iValid = true` (`05A0`).
+- **`0x0C38` — (a) Command (`JR vi1`)**:
+  - **Live-ins**: `I` (set by `0560`/`15E0`/`1A68` to `0.5f`, `3160` to `1.0f`, `1EE0`/`1EF0` to `255.0f`), `vi4`, and `vf11..14` (e.g. `0198`, where `02A8` leaves `vf14 = lastCol`).
+  - **Implementation**: Added `R.I` / `R.iValid` tracking to `Regs` and the `I`-writing handlers, added `R.vf[14]` to `handler0198`, and implemented `handler0C38` (`MINIi` on `vf12..14`, `FTOI0` on `vf11..14`, `SQ vf11/12 -> 9/11(vi4)`, followed by the `0C80` copy loop).
+- **`0x2E20` & `0x2E88` — (b) Internal `clipPolygon` (`2900..2F68`) Subroutines**:
+  - **Call sites**: `2A50..2C68` call `BAL -> 2DB8` (edge loop containing `2E20..2E80` vertex-emit / `BAL 14 -> 2EC8`); `2DD8` sets `vi15 = 1489` (`0x2E88/8`) so `2E40`/`2E78` (`JR vi15`) enter `2E88` (wrap-around `JR vi12`, or `IBEQ vi11, vi0, -40 -> 2D50` all-clipped exit), while `2E50` calls `BAL 14 -> 2EC8..2F68` (returning via `JR vi1` to `2E60`). Neither is ever dispatched via `JR vi1`, and both are already covered by `clipPolygon` inside `handler1EE0`.
