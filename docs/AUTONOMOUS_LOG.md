@@ -530,3 +530,12 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
   later 0 voices / 0 key-ons -> music/ambience must be STREAMED (sceSdBlockTrans never called): Task AU3.
 - EE GameThread 15.1 ms/frame with LLE vs 11.5 without - different scene (pad desync, vu1/f 4452 vs 6435), so the IOP
   interpreter cost is not isolated yet.
+
+## 78. Per-level route + EE wait found and removed (GF / GG / GH)
+- F7 route markers (PROBE-MK) + tools\route_bench.ps1 (per-marker thread table). Baseline route levels_run (silent,
+  user studying in background): EE 12-15 ms/frame in levels (title 16-19), graphics threads <= 8.5 -> EE is the limiter.
+- PROBE-EX: C++ dispatcher exceptions ~0.06 ms/frame -> refuted. PROBE-EP (EE-only sampler, ~940 samples/s, wait chains):
+  ~11% of EE wall time in L1 = waitDma1CopyDone <- readIORegister <- submitDmaSend (HLE sceDmaSend polls CHCR right
+  after the VIF1 kick -> waits until the worker copied the 2-5 MB, 8-20k-tag chain).
+- GF (copier thread, default off), GG (lean walk, exact, default on), GH (no post-kick poll, default ON): EE wait gone;
+  EE is now CPU-bound (idle 3.7% in L1). Next: EE CPU (dispatch ~9%, vu0fast ~9%, checkpointDue ~4% of EE samples).

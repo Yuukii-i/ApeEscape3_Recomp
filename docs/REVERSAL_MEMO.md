@@ -19,3 +19,15 @@ Every risky change made during the silent-mode 60 fps push. Each line: what, swi
 | 2026-11-14 | VIF1 DMA chain walk+copy on the Vif1Worker; guest D1/D_STAT accesses wait for copy done; SPR chains stay synchronous | PS2X_DMA1_WORKER_COPY=0 | AUTONOMOUS_LOG 63 commit |
 | 2026-11-14 | SIMD block swizzle for host->local uploads (PSMT8/T4/CT32/CT24) | git revert of the PERF-GD commit; PS2X_IU_CHECK=1 compares against the old path | AUTONOMOUS_LOG 64 commit |
 | 2026-11-14 | 15 fuzz-verified VU1 handlers (lighting, UV, cull, shadow volume, ...) live by default; 1/128 sampled live self-check | PS2X_VU1_FUNC_NEW=0 | AUTONOMOUS_LOG 69 commit |
+
+## GH: sceDmaSend (VIF1 chain) no longer polls CHCR after the kick (PS2X_DMASEND_NOPOLL, default ON, 2026-11-14)
+- What: Support.h submitDmaSend skipped-read for ch1 chain sends; the DMA-end cause now comes only from the async
+  copy path (s_vif1QueueDmacCause -> drainCompletedDmacHandlers). Before, the post-kick read blocked the EE until the
+  worker had copied the whole 2-5 MB chain (~11% of EE wall time in level 1) and synthesised an extra cause 1
+  (channel-1 DMAC handler probably dispatched twice per send [INFERRED]).
+- Evidence: route levels_run to mark 9: identical 283-file load sequence; PROBE-EP: waitDma1CopyDone gone, EE idle in
+  L1 only vsync waits (3.7%); L1 fps median 58-59 -> 59-60; screenshot logs\shot_gh_1.png correct.
+- Undo: $env:PS2X_DMASEND_NOPOLL = "0". Symptoms that would point here: anything waiting on VIF1 DMA-end interrupts
+  (missing/late model draws, hangs after a scene change).
+- Also built (default OFF): PERF-GF Dma1Copier thread (PS2X_DMA1_COPIER=1), PERF-GG lean chain walk (default ON,
+  PS2X_GG=0 old walk, PS2X_GG_CHECK=1 compares: 0 mismatches over the route).
