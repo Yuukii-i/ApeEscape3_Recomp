@@ -484,3 +484,11 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - Shop frame dump (logs/scene_1500.*): 6384 MSCALs, 4292 draws (skinned 3774 / rigid 308 / clipped 210), 75.8k vertices, 5.0 MB
   GIF; re-projection check: 0 mismatches over ~62k verts/frame for the whole run.
 - Cost when ON: fps 44 (writes ~5 MB/frame); OFF: unchanged (A/B side A 60 fps). To trim before a renderer depends on it.
+
+## 73. Task GE (fused GIF PACKED -> draw-run path) - PARKED on PS2Recomp branch wip/ge-fused (d7bb58a)
+- Gemini 4 Hydrogen: for the dominant PACKED shape (0x512A/0x412A) decode the whole loop and append GSRunPrim directly (strip/
+  fan/triangle/sprite queue logic mirrored, ADC gating, run-serial/512-cap flushes). PS2X_GE_CHECK=1: 71.6M prims, 0 mismatches.
+- Measurements contradictory: with PS2X_GW on both sides GsWorker busy 12.5 -> 10.3 ms (but the probe taxes every vertexKick
+  of the old path); probe-OFF A/B ge2 (3 rounds) GsWorker 8.23 -> 9.65 ms (B worse in all rounds). During these runs the machine
+  had heavy background load from user apps (brave ~2 cores, steam ~0.9 core; total load 45%): both sides 55-56 fps, p50 17.7
+  (the old exe did 60 before). Not committed; re-measure on a quiet machine, look for per-packet overhead in the fused path.
