@@ -539,3 +539,12 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
   after the VIF1 kick -> waits until the worker copied the 2-5 MB, 8-20k-tag chain).
 - GF (copier thread, default off), GG (lean walk, exact, default on), GH (no post-kick poll, default ON): EE wait gone;
   EE is now CPU-bound (idle 3.7% in L1). Next: EE CPU (dispatch ~9%, vu0fast ~9%, checkpointDue ~4% of EE samples).
+
+## 79. Task V0G: decompiled VU0 programs (000/088/0F0/348/4B0/CD0) - exact, but no speed gain; stays OFF
+- Gemini 4 Hydrogen: hard-coded handlers (vu/vu0_func.inc), PS2X_VU0_FUNC=1, check PS2X_VU0_FUNC_CHECK=1:
+  ~30M calls over the route to level 4, 0 mismatches.
+- [v0prof] per call: 088 211-243 ns (was 216-249), cd0 214-244 (238-274), 4b0 904-989 (1268-1467), 348 921-989 (1154-1301).
+  The cost is the exact PS2 FMAC emulation (AVX double + RZ + MAC/status flags per op), not decode. Total VU0 ~85 ms/s
+  (~1.4 ms/frame). Further gain would need flag-liveness proof (skip unread MAC/status) - parked.
+- GH verified default ON (route to L1: [gh] skips, identical behaviour). Next: /arch:AVX2 full rebuild experiment
+  (build_avx2 dir, low priority) - CMake has no /arch for x64 today.
