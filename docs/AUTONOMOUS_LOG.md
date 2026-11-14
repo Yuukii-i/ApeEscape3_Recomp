@@ -330,3 +330,13 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
   Needs a user play check (MARK callback timing changed; closer to real HW, where the handler sees the MARK at the interrupt).
 - Heavy rounds appear exactly in the vsync-locked regime (never in the 18 ms regime). In heavy rounds GsWorker ~15.4 ms/frame
   and present times jitter (10-26 ms): the GS backend CPU side is the next limiter.
+
+## 60. PROBE-GW (GsWorker split, PS2X_GW=1, [gw]) - the GS worker is the limiter in heavy scenes
+- Heavy round (46 fps): GsWorker busy 21.7 ms/frame, idle 0.00 (saturated). Per frame: vkrec (SubmitRun) 6.8 for ~52k prims,
+  image 3.7 (2.9 MB/frame uploads), vertex kicks 3.3, primbuild 2.75, other 2.6, statechg 1.2 (~5000 runs/frame, ~4300 state
+  breaks -> ~10 prims per run), sync 0.6. Present latch 4.7 ms wall (other thread).
+- SubmitRun calls gpuDraw() PER PRIMITIVE (~280-line function: full state validation, CLUT check, UV math, 2-3 pagesForRect
+  page-set computations per prim for dirty tracking). ~130 ns/prim there, ~250 ns/prim across kick+build+draw.
+- Next (not started): restructure the GS draw path per run instead of per prim (validate state once per run, page sets from
+  the run's bounding box, SoA prim records straight from the vertex kick), then fewer state breaks (texture arrays/bindless).
+  This is also the layer the lighting work needs (semantic draw records).
