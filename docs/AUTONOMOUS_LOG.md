@@ -462,3 +462,15 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
   taken (all fall back, safe) -> predecessor chain / valid bits to be fixed next.
 - Decompiled coverage of image 86503d39: 30 of 32 entries functional (2 of them by clipPolygon), 0560/0C38 implemented but not
   yet proven taken.
+
+## 71. VU1 image 86503d39 fully decompiled (all 32 handler entries)
+- Sonnet: 0560/0C38 were correct; the test sequences lacked the producer of vi4 (the lighting pointer, set only by 0AE0:
+  vi4 = outBase + vi2). Realistic sequences: AE0+02E0+0560, AE0+02E0+0560+0198+0C38, AE0+1A68+0198+0C38: taken=1000/1000,
+  mismatches 0. 0198+0C38 alone falls back correctly (I comes from 0560 or 1A68). Regression: 13 single fuzzes 0, shop replay
+  mem=0 gif=0 fallback 0.
+- Coverage: 13 handlers verified on captured gameplay + 17 fuzz-verified (incl. 0560/0C38) + 2 clipper-internal entries
+  (2E20/2E88) covered by clipPolygon = 32/32. Semantic forms for all in docs/VU1_HANDLER_FORMS.md.
+- docs/LIGHTING_PLAN.md: design for the final lighting objective (semantic scene buffer from the decompiled handlers ->
+  G-buffer -> bloom/DoF/shadow maps/god rays, everything off = bit-exact PS2 output).
+- Remaining graphics-decompilation items: a second, rarely used VU1 image (44 of 6000 programs in the snow corpus), VU0 is an
+  exact fast executor (not semantic), the GS stage is our Vulkan emulation layer.
