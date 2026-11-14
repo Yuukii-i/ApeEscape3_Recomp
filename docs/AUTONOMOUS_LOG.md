@@ -499,3 +499,5 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
   PS2X_GE_CHECK=1: 82.4M prims, 0 mismatches; picture correct.
 - A/B ge5 (3 rounds, vs vnc exe = committed main): GsWorker 7.33 vs 7.24 ms/frame, fps 59.5 vs 59.8: no measurable gain ->
   not merged (the old lean path was already cheap; ~640 extra lines not worth it). Main branch unchanged.
+- Soak (2026-11-14, current main build, all default-on changes): 6 min with pad replay + hold: alive, last 30 s fps
+  min/avg/max 57 / 59.5 / 60 (357 samples), no fatal/exception/assert/mismatch lines.
