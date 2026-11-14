@@ -311,3 +311,22 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - V1I: Vu1Exec appends complete PACKED/REGLIST PATH1 packets into a 256 KB per-thread batch, flushed before MSCNT/GIF2/FLUSH/default events, on fallback, non-batchable packets (IMAGE, image-setup tags) and the cap; arbiter routes big batches straight to the pending queue and notifies once per batch. Why gifsubmit doubled after V1H (Gemini): denser MSCAL bursts -> PacketPool mutex contention with GsWorker's recycle + shared atomics.
 - [vx]: busy 11.3 -> 10.2 ms/frame, gifsubmit 2.1 -> 1.15. Picture correct (logs\shot_v1i_1.png). A/B v1i: heavy rounds A 3/4, B 1/4 -> not resolvable; non-heavy fps 57 vs 57-58. Kept on the deterministic metric.
 - Tooling debt: ab.ps1 vu1/frame mean wrong when a side has 1 non-heavy round (83.1); heavy rounds now ~50% -> the replay benchmark needs a deterministic scene.
+
+## 59. Task V1J (fast UNPACK in the parser) + Task V1K (VIF1 MARK/STC without full fence), Gemini 4 Hydrogen
+- PROBE-VW (PS2X_VW=1, [vw]): parser busy 13.6 ms/frame, unpack 9.0 ms for ~320k qw/frame (~28 ns/qw), other 2.7, direct 1.0.
+- V1J: vpReserveRecs bulk record reservation + vifUnpackToRec SIMD decode straight into vpRecRing (V2-16/V2-32/V3-32/V4-32,
+  masks as precomputed blends), per-code probe checks hoisted; check mode PS2X_V1J_CHECK=1: 66M unpacks, 0 mismatches;
+  PS2X_V1J_PATH=0 = old path. [vw]: busy 13.6 -> 7.9, unpack 9.0 -> 3.8.
+- V1J alone REGRESSED (p50 18.1, fps 54): bisect (PS2X_V1J_PATH=0) proved timing: guest 0x2843D4 is the INTC cause-5 (VIF1)
+  handler (reads VIF1_MARK, calls 0x4369A8 if MARK&0x4000, counter++, writes FBRST.STC). The parser raises cause 5 on IRQ-bit
+  codes and MARK without stalling; the handler's MARK read / FBRST write fenced the whole pipeline (all queued VU1 work). The
+  fast parser reaches the IRQ ~6 ms into the job -> 4.3 ms EE stall per frame (previously the slow parser hid it).
+- V1K (PS2X_MARK_NOFENCE, default ON after A/B): parser publishes mark + stat bits atomically before raising cause 5; EE MARK
+  read returns the published value without fence; FBRST write of only STC sets a pending flag applied by the parser (clears
+  VSS/VFS/VIS/INT/ER0/ER1 as before). VIF1_STAT and other VIF1 regs keep the fence. Unconditional "[vif1:mark]" stderr print
+  per MARK gated behind PS2X_TRACE_VIF.
+- A/B v1k (same exe, nofence off vs on): p50 18-19 -> 16.7, fps (non-heavy) 52-54.5 -> 57.5. A/B v1k2 (vs v1i exe): fps 55 vs
+  56.5/58, TOTAL CPU 60 -> 50 ms/frame, Vif1Worker 11.7 -> 6.2. Picture correct (logs\shot_v1j_1.png, shot_v1k_1.png).
+  Needs a user play check (MARK callback timing changed; closer to real HW, where the handler sees the MARK at the interrupt).
+- Heavy rounds appear exactly in the vsync-locked regime (never in the 18 ms regime). In heavy rounds GsWorker ~15.4 ms/frame
+  and present times jitter (10-26 ms): the GS backend CPU side is the next limiter.
