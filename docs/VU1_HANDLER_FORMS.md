@@ -324,3 +324,69 @@ where $n = (vi3 - vi2) \ \& \ \text{0xFFFF}$.
     - $x_j = (N_j \cdot \hat{h}_j) \cdot \text{spot}_j$, $\text{spec}_j = \max(0,\ c_0 x_j + c_1 x_j^2 + c_2 x_j^4 + c_3 x_j^8)$.
     - $C_j \mathrel{+}= \text{cmd}[1] \cdot (\text{spec}_j / d_j)$.
 - **Outputs**: Updates `mem[716 + base + j].xyzw` in place for $j \in [0, N)$; no GIF packet emitted.
+
+---
+
+## 9. Handler 0x02E0 (4-Directional Specular Light, Image 86503d39) // PERF-V1N
+
+- **Inputs**:
+  - Command stream at `vi13` (7 qwords, advances `vi13 += 7`):
+    - `cmd[0..2].xyzw`: 3x4 light-direction rows (4 directional lights packed across lanes `x, y, z, w`).
+    - `cmd[3..6].xyzw`: 4x4 RGBA color matrix (one RGBA color per directional light).
+  - VU memory constants: `986..988.xyz` (3x3 model-space transform), `1015.xyzw` (4-term specular polynomial $(c_0, c_1, c_2, c_3)$), `1011.x` (`base`), `1011.w` ($N$).
+  - Vertex streams: normals $N_j = \text{mem}[556 + \text{base} + j].xyz$, colors $C_j = \text{mem}[716 + \text{base} + j].xyzw$.
+  - (`02E0..0328` are dead prologue ops whose outputs are overwritten before any read or store.)
+- **Math**:
+  - Transform light directions: $L_x = \sum_{k=0}^2 \text{cmd}[k] \cdot \text{mem}[986][k]$, $L_y$ from `987`, $L_z$ from `988` (4-wide SIMD across the 4 lights).
+  - For each vertex $j \in [0, N)$:
+    - $d_j = L_x N_j.x + L_y N_j.y + L_z N_j.z$ (4 dot products in parallel).
+    - $\text{spec}_j = \max(0,\ c_0 d_j + c_1 d_j^2 + c_2 d_j^4 + c_3 d_j^8)$ per lane.
+    - $C_j \mathrel{+}= \sum_{i=0}^3 \text{cmd}[3 + i] \cdot \text{spec}_j[i]$.
+- **Outputs**: Updates `mem[716 + base + j].xyzw` in place for $j \in [0, N)$; no GIF packet emitted.
+
+---
+
+## 10. Handler 0x0628 (Point Diffuse Light + Live-In Prologue Stores, Image 86503d39) // PERF-V1N
+
+- **Inputs**:
+  - Live-in registers at entry (`0628..0638`): `vi4`, `vf11`, `vf12`, `vf13` (unconditionally stored before the light body).
+  - Command stream at `vi13` (2 qwords, advances `vi13 += 2`): `cmd[0].xyz` (light position), `cmd[1].xyzw` (light RGBA color).
+  - VU memory constants: `982..985.xyz` (4x3 affine matrix), `1011.x` (`base`), `1011.w` ($N$).
+  - Vertex streams: positions $P_j$ at `476 + base + j`, normals $N_j$ at `556 + base + j`, colors $C_j$ at `716 + base + j`.
+- **Math**:
+  - Prologue (`0628..0638`): stores `vf11 -> 17(vi4)`, `vf12 -> 19(vi4)`, `vf13 -> 21(vi4)`. (Because `vu1FuncExec` does not receive entry `vi4/vf11..13`, `handler0628` returns `false` to fall back to the exact interpreter.)
+  - Body (`0640..0830`): $L = M_{4\times 3} \cdot \text{cmd}[0]$; for each $j \in [0, N)$, $\Delta_j = L - P_j$, $q_j = \text{RSQRT}(1, \|\Delta_j\|^2)$, $C_j \mathrel{+}= \text{cmd}[1] \cdot (\max(0, \Delta_j \cdot N_j) \cdot q_j^2)$.
+- **Outputs**: Stores `17(vi4)`, `19(vi4)`, `21(vi4)` and updates `mem[716 + base + j].xyzw`; no GIF packet emitted.
+
+---
+
+## 11. Handler 0x1720 (Quadratic-Falloff Point Light, Image 86503d39) // PERF-V1N
+
+- **Inputs**:
+  - Command stream at `vi13` (3 qwords, advances `vi13 += 3`):
+    - `cmd[0].xyz`: light position; `cmd[1].xyzw`: light RGBA color; `cmd[2].xyzw`: $(a, b, c, \text{cap})$ quadratic distance falloff coefficients and clamp ceiling.
+  - VU memory constants: `982..985.xyz` (4x3 affine matrix), `1011.x` (`base`), `1011.w` ($N$).
+  - Vertex streams: positions $P_j$ at `476 + base + j`, colors $C_j$ at `716 + base + j`.
+- **Math**:
+  - $L = M_{4\times 3} \cdot \text{cmd}[0]$.
+  - For each vertex $j \in [0, N)$:
+    - $d_j^2 = \|L - P_j\|^2$, $d_j = \sqrt{d_j^2}$ (via `SQRT`).
+    - $\text{atten}_j = \min(\text{cap},\ \max(0,\ a \cdot d_j^2 + b \cdot d_j + c))$.
+    - $C_j \mathrel{+}= \text{cmd}[1] \cdot \text{atten}_j$.
+- **Outputs**: Updates `mem[716 + base + j].xyzw` in place for $j \in [0, N)$; no GIF packet emitted.
+
+---
+
+## 12. Handler 0x1A68 (Spherical/Hemispherical UV Generator, Image 86503d39) // PERF-V1N
+
+- **Inputs**:
+  - Command stream at `vi13` (2 qwords, advances `vi13 += 2`):
+    - `cmd[0].xyz`: light/projection center; `cmd[1].xyz`: reference axis direction.
+  - VU memory constants: `982..985.xyz` (4x3 affine matrix for $L$), `989..991.xyz` (3x3 matrix for $V$), `1011.x` (`base`), `1011.w` ($N$).
+  - Vertex streams: positions $P_j$ at `476 + base + j`, normals $N_j$ at `556 + base + j`, output UV stream at `796 + base + j`.
+- **Math**:
+  - $L = M_{4\times 3} \cdot \text{cmd}[0]$, $V = M_{3\times 3} \cdot \text{cmd}[1]$.
+  - For each vertex $j \in [0, N)$:
+    - $\hat{l}_j = (L - P_j) / \|L - P_j\|$ (via `RSQRT`).
+    - $u_j = 0.5 + 0.5 \cdot (V \cdot N_j)$, $v_j = 0.5 + 0.5 \cdot (\hat{l}_j \cdot N_j)$, $q_j = 1.0$.
+- **Outputs**: Updates `mem[796 + base + j].xyz` in place (preserving `.w`) for $j \in [0, N)$; no GIF packet emitted.

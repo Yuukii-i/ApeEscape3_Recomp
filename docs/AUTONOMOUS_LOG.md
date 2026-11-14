@@ -410,3 +410,12 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
   exactEnded=taken=5000, mismatches 0 for 0CC0/1090/0840. Shop replay unchanged (mem=0 gif=0, fallback 0).
 - Default OFF (PS2X_VU1_FUNC_NEW=1 enables): never reached in captured play; enable after PROBE-FB real data confirms.
   Inventory now: 16 handlers (677 pairs) left.
+
+## 66. Task V1N: handlers 02E0 / 1720 / 1A68 decompiled (0628 deferred)
+- 02E0: 4-directional specular light (poly4Spec over 4 packed light directions, 4x4 colour matrix -> 716+base+j).
+  1720: point light with quadratic falloff clamp(a*d^2+b*d+c, 0, cap). 1A68: spherical/hemispherical UV generator
+  (u = 0.5+0.5*(V.N), v = 0.5+0.5*(dir.N), q = 1 -> 796+base+j.xyz) - environment-map style texture coordinates.
+- 0628 (point diffuse light) left as always-fallback: it stores registers carried over from earlier handlers of the same MSCAL
+  (vi4, vf11..13); the engine's Regs R carries them, but the fuzz entry state (one-command 0x40) does not model them - later.
+- Fuzz (shop base, N=3000 each, FUNC_NEW=1): 02E0/1720/1A68 exactEnded=taken=3000 mismatches 0 first try; 0CC0/1090/0840 still 0.
+- Inventory: 13 handlers left (0198, 0560, 0628, 0AE0, 0B38, 0C38, 1910, 1CC0, 1CD8, 1E50, 2E20, 2E88, 32A0; 415 pairs).
