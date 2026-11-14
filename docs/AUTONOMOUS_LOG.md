@@ -520,3 +520,13 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
   RAM (VoiceTrans), 39 key-ons, status block partly non-zero; no hang, 60 fps. With LLE on the pad replay desyncs (game ends
   in the Monkepedia menu instead of the shop street - real audio changes load/wait timing): benchmarks with audio need a new
   pad recording. No sound output yet (AU2).
+
+## 77. Task AU2: SPU2 voice synthesis + host output (Gemini 4 Hydrogen)
+- spu2_mixer (ps2xIOP/src/spu2): ADPCM (5 filters, loop start/repeat/end, ENDX/NAX/LSAX), 14-bit pitch with LINEAR interpolation,
+  ADSR, voice + master volumes (sweep treated as fixed, logged), core0+core1 summed, reverb/noise/PMON bypassed. Mixer thread:
+  256-frame blocks, register snapshot under a short mutex, SPSC ring (~53 ms) -> raylib AudioStream callback (48 kHz s16 stereo)
+  in ps2xRuntime/src/lib/ps2_spu2_audio.cpp. PS2X_AUDIO_OUT=0 mutes but keeps synthesis.
+- Run (PS2X_SG2_LLE=1): mixer started, produced ~= consumed (5.04M frames), underruns 0, early peak 35% with 2 active voices,
+  later 0 voices / 0 key-ons -> music/ambience must be STREAMED (sceSdBlockTrans never called): Task AU3.
+- EE GameThread 15.1 ms/frame with LLE vs 11.5 without - different scene (pad desync, vu1/f 4452 vs 6435), so the IOP
+  interpreter cost is not isolated yet.
