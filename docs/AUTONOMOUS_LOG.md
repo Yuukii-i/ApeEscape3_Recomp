@@ -501,3 +501,10 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
   not merged (the old lean path was already cheap; ~640 extra lines not worth it). Main branch unchanged.
 - Soak (2026-11-14, current main build, all default-on changes): 6 min with pad replay + hold: alive, last 30 s fps
   min/avg/max 57 / 59.5 / 60 (357 samples), no fatal/exception/assert/mismatch lines.
+
+## 75. Task V1R: skinned 1EE0 path trims (Gemini 4 Hydrogen) - small gain
+- Per-vertex alias checks -> range overlap checks per call (exact hits() only on bbox overlap); bone/matrix constants cached
+  (thread_local, keyed on raw vf1..vf4,vf16 bits); 8 vertices gathered straight into Fv8V; clamp/ftoi vectorised; output
+  writes fused into the 8-wide loop (scalar fallback per block kept).
+- Replay shop/snow/vu1corpus/v1: mem=0 gif=0 fallback 0. [vx] 1ee0s 3.38 -> 3.18 ms/frame; Vu1Exec busy 10.22 -> 10.10; fps 60.
+  The remaining skinned cost is the exact per-op FMAC math itself (~42 ns/vertex 8-wide).
