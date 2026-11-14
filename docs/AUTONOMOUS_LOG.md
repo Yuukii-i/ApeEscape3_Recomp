@@ -440,3 +440,13 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
   FUNC_NEW=1 and without: mem=0 gif=0, fallback 0.
 - Coverage of image 86503d39: 28 of 32 handler entries decompiled (13 live by default + 15 behind PS2X_VU1_FUNC_NEW=1);
   0560, 0C38, 2E20, 2E88 still fall back (need live-in state from preceding commands / the clipper's subroutine context).
+
+## 69. New VU1 handlers default ON + live sampled self-check (PERF-VNC, Sonnet)
+- PS2X_VU1_FUNC_NEW default ON (=0 disables): the 15 fuzz-verified handlers run live wherever the game uses them.
+- PERF-VNC: programs that executed a new handler are counted; every PS2X_VU1_NEWCHECK_EVERY-th (default 128, 0 = off) is
+  verified live: 16 KB VU data snapshot before the functional run, then the exact interpreter on the snapshot (replay-style
+  state setup, GIF captured), compare VU memory + GIF; functional result is the one used. `[vnc] checked=N mismatches=M pcs=`
+  via ps2xSafeLog when checked > 0. Programs without new handlers pay one branch.
+- Shop route: no new handler used (no [vnc] lines); A/B vnc vs gd exe: fps 59.5/60 vs 59/60, GameThread 11.85 vs 11.6, same
+  work (vu1/f ~6350); [vfunc] fallback 0.
+- When the user plays other levels: grep [vnc] in the .err (or run with output kept) - mismatches must stay 0.
