@@ -362,3 +362,16 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
   TOTAL CPU 46.4 -> 44.1 ms/frame. Picture correct (logs\shot_gb_1.png, window 61 fps).
 - Thread budget now (silent, normal scene): GameThread ~14.3, GsWorker ~9.1, Vu1Exec ~10, Vif1Worker ~5.9 ms/frame.
   Room-to-spare work left: EE (~14.3, tightest), heavy-scene GS, image uploads (~2.5 MB/frame, ~3 ms).
+
+## 63. Task GC: VIF1 DMA source-chain walk + copy on the Vif1Worker (Gemini 4 Hydrogen + Sonnet SPR pre-scan) - EE -20%
+- EE profile (silent, 60 fps): guest code ~32% self, vsync wait ~15%, DMA1 kick chain copy ~8% (vcruntime memcpy shows as
+  _NLG_Return2) + tag walk; NtWriteFile/NtClose ~2.6% (stdout logging, benchmark only).
+- GC (PS2X_DMA1_WORKER_COPY, default ON after A/B): the EE enqueues {TADR, CHCR, ASR, MADR/QWC}; the worker runs the same
+  walk+copy (shared s_vif1WalkChain) and then publishes D1 TADR/MADR/QWC/CHCR(ASP, TAG, STR clear)/ASR0/1, D_STAT ch1 and the
+  DMAC cause 1, advancing copyDoneSeq. EE reads/writes of D1 regs or D_STAT wait for copy done only (spin + cv). Any kick
+  whose tag/ASR or (EE-side tag-only pre-scan) any tag/payload address is scratchpad stays synchronous. FT2 event COPY_DONE.
+- [gc] shop route: worker=3245 / 5 s, spr_init=0, spr_scan=0.
+- A/B gc (env off vs on, 3 rounds): GameThread 14.20 -> 11.43 ms/frame, Vif1Worker 5.84 -> 9.15, fps 60/60. gc2 with pre-scan:
+  EE 11.05-11.38. gc3 (default on vs gb exe): EE 14.45 -> 11.32, total CPU 44.2 -> 43.5, fps 60/60. Picture correct
+  (logs\shot_gc_1.png).
+- Thread budget now (silent, normal scene, ms/frame): GameThread ~11.3, Vu1Exec ~10, GsWorker ~9, Vif1Worker ~9. All under 12.
