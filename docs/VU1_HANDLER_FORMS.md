@@ -390,3 +390,81 @@ where $n = (vi3 - vi2) \ \& \ \text{0xFFFF}$.
     - $\hat{l}_j = (L - P_j) / \|L - P_j\|$ (via `RSQRT`).
     - $u_j = 0.5 + 0.5 \cdot (V \cdot N_j)$, $v_j = 0.5 + 0.5 \cdot (\hat{l}_j \cdot N_j)$, $q_j = 1.0$.
 - **Outputs**: Updates `mem[796 + base + j].xyz` in place (preserving `.w`) for $j \in [0, N)$; no GIF packet emitted.
+
+---
+
+## 13. Handler 0x0198 (4-Directional Diffuse Light, Image 86503d39) // PERF-V1O
+
+- **Inputs**:
+  - Command stream at `vi13` (7 qwords, advances `vi13 += 7`):
+    - `cmd[0..2].xyzw`: 3x4 light-direction rows (4 directional lights packed across lanes `x, y, z, w`).
+    - `cmd[3..6].xyzw`: 4x4 RGBA color matrix (one RGBA color per directional light).
+  - VU memory constants: `986..988.xyz` (3x3 model-space transform), `1011.x` (`base`), `1011.w` ($N$).
+  - Vertex streams: normals $N_j = \text{mem}[556 + \text{base} + j].xyz$, colors $C_j = \text{mem}[716 + \text{base} + j].xyzw$.
+  - (`0198..01C0` are dead prologue ops whose outputs are overwritten before any read or store.)
+- **Math**:
+  - Transform light directions: $L_x = \sum_{k=0}^2 \text{cmd}[k] \cdot \text{mem}[986][k]$, $L_y$ from `987`, $L_z$ from `988` (4-wide SIMD across the 4 lights).
+  - For each vertex $j \in [0, N)$:
+    - $d_j = L_x N_j.x + L_y N_j.y + L_z N_j.z$, $\text{diff}_j = \max(0, d_j)$ per lane.
+    - $C_j \mathrel{+}= \sum_{i=0}^3 \text{cmd}[3 + i] \cdot \text{diff}_j[i]$.
+- **Outputs**: Updates `mem[716 + base + j].xyzw` in place for $j \in [0, N)$; no GIF packet emitted.
+
+---
+
+## 14. Handler 0x0B38 (Triangle Strip Backface Cull, Image 86503d39) // PERF-V1O
+
+- **Inputs**:
+  - Command header at `top` (`-1(vi13)`): `.y` = winding sign multiplier `wind` (`LQ.y vf1, -1(vi13)`).
+  - VU memory constants: `1018.z` (strip offset relative to `top`, so `stripBase = top + mem[1018].z`), `1018.w` (strip length $N$).
+  - Index/flag strip: `mem[stripBase + k].x` (vertex index $\text{idx}_k$) and `mem[stripBase + k].y` (ADC/flag bits $f_k$) for $k \in [0, N + 2]$.
+  - Transformed vertices: $V_i = \text{mem}[636 + i].xyw$ (`z` replaced by `w`).
+- **Math**:
+  - For each $k \in [0, N)$:
+    - For $k = 0$, $S_x = 0$; for $k = 1$, $S_x = \text{signbit}(1.0 \cdot \text{wind})$; for $k \ge 2$, $S_x = \text{signbit}(\text{dot}(V_{\text{idx}_{k-2}} \times V_{\text{idx}_{k-1}}, V_{\text{idx}_k}) \cdot \text{wind})$.
+    - $\text{adc}_k = (f_k + (S_x ? \text{0x80} : 0) + \text{0x7FFF}) \ \& \ \text{0x8000}$.
+    - Updates `mem[stripBase + k].x` to $\text{idx}_k \mid \text{adc}_k$.
+- **Outputs**: Updates `mem[stripBase + k].x` in place for $k \in [0, N)$; no GIF packet emitted.
+
+---
+
+## 15. Handler 0x1910 (Position Transform with Live-In `vf9`, Image 86503d39) // PERF-V1O
+
+- **Inputs**:
+  - Live-in register at entry: `vf9` (loaded at `1908` in `1900`'s delay slot, not by `1910`).
+  - Command header `.y`: `vi2` (base of 4x3 transform matrix $T$ at `0(vi2)..3(vi2).xyz`).
+  - VU memory constants: `978..981.xyzw` (4x4 matrix $B$), `1011.x` (`base`), `1011.w` ($N$).
+  - Vertex stream: positions $P_j = \text{mem}[476 + \text{base} + j].xyz$.
+- **Math**:
+  - Computes $M = B \cdot T$ (using live-in `vf9` for row 0 of $T$) and transforms $P_j$ to `mem[796 + base + j].xyz` (preserving `.w`).
+  - Because `vu1FuncExec` does not receive entry `vf9`, `handler1910` returns `false` to fall back to the exact interpreter.
+- **Outputs**: Updates `mem[796 + base + j].xyz` in place (via fallback); no GIF packet emitted.
+
+---
+
+## 16. Handler 0x1CD8 (Projective UV Transform, Image 86503d39) // PERF-V1O
+
+- **Inputs**:
+  - Command header `.y`: `vi2` (base of 4x3 matrix $T$ at `0(vi2)..3(vi2).xyz`).
+  - VU memory constants: `978..981.xyzw` (4x4 matrix $B$), `1011.x` (`base`), `1011.w` ($N$).
+  - Vertex streams: positions $P_j = \text{mem}[476 + \text{base} + j].xyz$, UVs $(u_j, v_j, q_j) = \text{mem}[796 + \text{base} + j].xyz$.
+- **Math**:
+  - $M = B \cdot T$ (4x3 matrix in `.xyz`).
+  - For each vertex $j \in [0, N)$:
+    - $(x', y', w') = M \cdot (P_j, 1)$.
+    - $(u'_j, v'_j, q'_j) = (u_j w' + x' q_j,\ v_j w' + y' q_j,\ w' q_j)$.
+- **Outputs**: Updates `mem[796 + base + j].xyz` in place (preserving `.w`) for $j \in [0, N)$; no GIF packet emitted.
+
+---
+
+## 17. Handler 0x32A0 (Silhouette Shadow-Volume Extrusion, Image 86503d39) // PERF-V1O
+
+- **Inputs**:
+  - Command stream at `vi13` (1 qword, advances `vi13 += 1`): `cmd[0].xyz` = light position, `cmd[0].w` = extrusion scale.
+  - VU memory constants: `989..991.xyz` (3x3 matrix) + `985.xyz` (translation) for $L = M_{4\times 3} \cdot \text{cmd}[0]$, `1011.x` (`base`), `1011.w` ($N$).
+  - Vertex streams: positions $P_j = \text{mem}[476 + \text{base} + j].xyz$, normals $N_j = \text{mem}[556 + \text{base} + j].xyz$.
+- **Math**:
+  - For each vertex $j \in [0, N)$:
+    - $\Delta_j = L - P_j$, $\hat{l}_j = \Delta_j / \|\Delta_j\|$ (via `RSQRT`).
+    - $\text{dot}_j = N_j \cdot \Delta_j$; `FMAND` tests `Zx | Sx` (`0x88`) on $\text{dot}_j$ to form `vi2` $\in \{0, \text{0x8}, \text{0x80}, \text{0x88}\}$.
+    - $\text{scale}_j = (\text{vi2} / 16.0) \cdot \text{cmd}[0].w$ (`ITOF4` + `MUL.w`), $P_j.\text{xyz} \mathrel{+}= \hat{l}_j \cdot \text{scale}_j$.
+- **Outputs**: Updates `mem[476 + base + j].xyz` in place (preserving `.w`) for $j \in [0, N)$; no GIF packet emitted.

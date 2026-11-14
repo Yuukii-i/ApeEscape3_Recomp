@@ -419,3 +419,13 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
   (vi4, vf11..13); the engine's Regs R carries them, but the fuzz entry state (one-command 0x40) does not model them - later.
 - Fuzz (shop base, N=3000 each, FUNC_NEW=1): 02E0/1720/1A68 exactEnded=taken=3000 mismatches 0 first try; 0CC0/1090/0840 still 0.
 - Inventory: 13 handlers left (0198, 0560, 0628, 0AE0, 0B38, 0C38, 1910, 1CC0, 1CD8, 1E50, 2E20, 2E88, 32A0; 415 pairs).
+
+## 67. Task V1O: handlers 0198 / 0B38 / 1CD8 / 32A0 decompiled (1910 deferred)
+- 0198: 4-directional diffuse light (max(dot,0) x 4x4 colour matrix -> 716+base+j). 0B38: triangle-strip backface cull (FMAND
+  Sx winding test -> sets the ADC bit 15 per vertex). 1CD8: projective UV transform (matrix 978..981 x 0..3(vi2) on 476+base+j,
+  .w preserved). 32A0: silhouette SHADOW-VOLUME extrusion (989..991/985, RSQRT, FMAND Zx|Sx, ITOF4; updates positions) -
+  the game computes shadow geometry on VU1 (relevant for the lighting goal).
+- 1910 (position transform) always falls back: reads vf9 loaded in 1900's delay slot (live-in from the previous command).
+- Fuzz (shop base, N=3000, FUNC_NEW=1): 0198/0B38/1CD8/32A0 exactEnded=taken=3000 mismatches 0; 02E0/0CC0 still 0.
+- Done so far: 10 of 19 missing (0840 0CC0 1090 02E0 1720 1A68 0198 0B38 1CD8 32A0). Left: 0560 0AE0 0C38 1CC0 1E50 2E20
+  2E88 (small, some with BAL/JR subroutine calls) + 0628 / 1910 (live-in registers from the previous command).
