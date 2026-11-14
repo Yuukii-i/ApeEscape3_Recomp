@@ -492,3 +492,10 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
   of the old path); probe-OFF A/B ge2 (3 rounds) GsWorker 8.23 -> 9.65 ms (B worse in all rounds). During these runs the machine
   had heavy background load from user apps (brave ~2 cores, steam ~0.9 core; total load 45%): both sides 55-56 fps, p50 17.7
   (the old exe did 60 before). Not committed; re-measure on a quiet machine, look for per-packet overhead in the fused path.
+
+## 74. Task GE2 (overheads removed from the fused path) - no gain, GE/GE2 stay parked (wip/ge-fused c9f2aa2)
+- Sonnet code review of GE found 3 hot-path costs (check scaffolding built per packet, eager double state compare, triple
+  vertex copies + per-vertex prim switch); Gemini 4 Hydrogen fixed them (templated per-prim loops, lazy state resolve).
+  PS2X_GE_CHECK=1: 82.4M prims, 0 mismatches; picture correct.
+- A/B ge5 (3 rounds, vs vnc exe = committed main): GsWorker 7.33 vs 7.24 ms/frame, fps 59.5 vs 59.8: no measurable gain ->
+  not merged (the old lean path was already cheap; ~640 extra lines not worth it). Main branch unchanged.
