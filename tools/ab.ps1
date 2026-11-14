@@ -10,7 +10,7 @@ param(
     [int]$Rounds = 2,
     [string]$Tag = "bench",
     [double]$Fps = 60,
-    [double]$HeavyVu1 = 170
+    [double]$HeavyVu1 = 0  # 0 = auto: heavy if vu1/f > 1.07 x median of all rounds
 )
 
 $ErrorActionPreference = "Continue"
@@ -201,7 +201,31 @@ function Run-Side {
         }
         # vu1 calls per frame: last 5 '[probe] ge vu1 calls=N' lines of the .out
         $vu1PerFrame = 0.0
-        if (Test-Path $outPath) {
+        # Preferred: [vfunc] taken/fallback deltas (cumulative; printed ~every 5 s). Check .err (with [fps] lines as 1 s ticks) and .out.
+        $vfDone = $false
+        foreach ($pth in @($errPath, $outPath)) {
+            if ($vfDone -or -not (Test-Path $pth)) { continue }
+            try {
+                $ll = [System.IO.File]::ReadAllLines($pth)
+                $b0 = -1
+                for ($i = 0; $i -lt $ll.Count; $i++) { if ($ll[$i] -match "\[bench\] START") { $b0 = $i; break } }
+                $vfIdx = [System.Collections.Generic.List[int]]::new()
+                $vfTot = [System.Collections.Generic.List[double]]::new()
+                $fpsIdx = [System.Collections.Generic.List[int]]::new()
+                for ($i = ($b0 + 1); $i -lt $ll.Count; $i++) {
+                    if ($ll[$i] -match "\[vfunc\] taken=(\d+) fallback=(\d+)") {
+                        $vfIdx.Add($i); $vfTot.Add([double]$Matches[1] + [double]$Matches[2])
+                    } elseif ($ll[$i] -match "\[fps\] FPS:") { $fpsIdx.Add($i) }
+                }
+                if ($vfIdx.Count -ge 2) {
+                    $secs = @($fpsIdx | Where-Object { $_ -gt $vfIdx[0] -and $_ -le $vfIdx[$vfIdx.Count - 1] }).Count
+                    if ($secs -lt 1) { $secs = 5.0 * ($vfIdx.Count - 1) }  # no [fps] ticks in this file: ~5 s print interval
+                    $vu1PerFrame = (($vfTot[$vfTot.Count - 1] - $vfTot[0]) / $secs) / $effectiveFps
+                    $vfDone = $true
+                }
+            } catch {}
+        }
+        if (-not $vfDone -and (Test-Path $outPath)) {
             try {
                 $vl = [System.Collections.Generic.List[double]]::new()
                 foreach ($ol in [System.IO.File]::ReadAllLines($outPath)) {
@@ -316,6 +340,15 @@ function Mean-Val($items, [string]$prop) {
 
 $aAll = @($results | Where-Object { $_.Side -eq "A" })
 $bAll = @($results | Where-Object { $_.Side -eq "B" })
+if ($HeavyVu1 -le 0) {
+    $allV = @($results | Where-Object { $_.Status -eq "OK" } | ForEach-Object { [double]$_.'vu1/f' } | Sort-Object)
+    if ($allV.Count -gt 0) {
+        $mid = [int][math]::Floor($allV.Count / 2)
+        $med = if ($allV.Count % 2) { $allV[$mid] } else { ($allV[$mid - 1] + $allV[$mid]) / 2 }
+        $HeavyVu1 = 1.07 * $med
+    } else { $HeavyVu1 = [double]::MaxValue }
+    Write-Host ("[ab] auto heavy threshold vu1/f = {0:F1}" -f $HeavyVu1)
+}
 function Test-Heavy($r) { return ($r.Status -eq "OK" -and [double]$r.'vu1/f' -ge $HeavyVu1) }
 $aOk = @($aAll | Where-Object { $_.Status -eq "OK" })
 $bOk = @($bAll | Where-Object { $_.Status -eq "OK" })
