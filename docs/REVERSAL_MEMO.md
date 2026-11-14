@@ -15,3 +15,4 @@ Every risky change made during the silent-mode 60 fps push. Each line: what, swi
 | 2026-11-13 | VU0 fast path extended to branchy programs + AVX-double FMAC (V0D/V0E/V0F), check mode 16.2M calls 0 mismatches | PS2X_VU0_FAST=0 (whole fast path) | AUTONOMOUS_LOG 55 commit |
 | 2026-11-14 | VIF1 MARK read / FBRST.STC write from the EE without the full VIF1 pipeline fence (published mark/stat at interrupt time) | PS2X_MARK_NOFENCE=0 | AUTONOMOUS_LOG 59 commit |
 | 2026-11-14 | GS Vulkan backend: per-run draw path (state once per run, page sets from union bbox) | git revert of the PERF-GA commit (no env switch yet) | AUTONOMOUS_LOG 61 commit |
+| 2026-11-14 | GS frontend: skip run breaks when the rewritten draw state is identical | PS2X_GS_REDUND=0 | AUTONOMOUS_LOG 62 commit |

@@ -351,3 +351,14 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - [gw] heavy round: vkrec 6.8 -> 4.65 ms/frame (~80 ns/prim from ~130).
 - A/B ga2 (3 rounds, silent, vs v1k exe): B fps 60 / 58 / 60, p99 22.5 / 29.0 / 25.7 (A 35 / 118* / 83*), GsWorker 11.4-12.8 vs
   13.6 (A non-heavy), B heavy rounds 0/3. Picture correct (logs\shot_ga_1.png, window 59 fps).
+
+## 62. Task GB: skip redundant GS state breaks + single-copy vertices (Gemini 4 Hydrogen) - all rounds 60 fps in silent
+- refreshDrawBatch compares the new GSDrawState field by field (drawStateEqual: context incl. tex0/tex1/clamp/alpha/test/frame/
+  zbuf/scissor/xyoffset/fba, prim, texa, texclut, pabe, scanmsk, dimx, dthe, colclamp, fog, texture size, linearFilter) and
+  only bumps the serial when it differs. Real breaks kept: LoadClut, transfers, UploadImage, TEXFLUSH, FINISH/flush, clears,
+  VRAM reads/writes, packet end, deferred display copy, 512-prim cap. PS2X_GS_REDUND=0 disables. Vertices copied once.
+- [gw] normal scene: runs ~720/frame, real breaks 108, redundant skipped ~3580 (97% of breaks were redundant); vkrec ~3.0 ms.
+- A/B gb2 (3 rounds each, silent, vs ga exe): fps 60.0 on all 6 rounds; GsWorker 11.32 -> 9.06 ms/frame; p99 ~22 -> 18.1-21.6;
+  TOTAL CPU 46.4 -> 44.1 ms/frame. Picture correct (logs\shot_gb_1.png, window 61 fps).
+- Thread budget now (silent, normal scene): GameThread ~14.3, GsWorker ~9.1, Vu1Exec ~10, Vif1Worker ~5.9 ms/frame.
+  Room-to-spare work left: EE (~14.3, tightest), heavy-scene GS, image uploads (~2.5 MB/frame, ~3 ms).
