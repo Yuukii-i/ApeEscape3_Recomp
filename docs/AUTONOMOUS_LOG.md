@@ -508,3 +508,15 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
   writes fused into the 8-wide loop (scalar fallback per block kept).
 - Replay shop/snow/vu1corpus/v1: mem=0 gif=0 fallback 0. [vx] 1ee0s 3.38 -> 3.18 ms/frame; Vu1Exec busy 10.22 -> 10.10; fps 60.
   The remaining skinned cost is the exact per-op FMAC math itself (~42 ns/vertex 8-wide).
+
+## 76. Audio phase started: AUDIO_PLAN.md + Task AU1 (real sg2iopm1.irx on the IOP interpreter, libsd HLE, SPU2 model)
+- Survey (Haiku): sound driver = game's own sg2iopm1.irx (SIF RPC 0x11223344, 16-byte op packets, 448-byte status block);
+  runtime answered it with an HLE tracker returning a zeroed status block -> no sound, streams never advance. The ps2xIOP
+  R3000A interpreter IS compiled and linked (docs CAPABILITY_AUDIT/PLAN stale), loads relocatable IRX, HLEs the IOP kernel.
+- AU1 (Gemini 4 Hydrogen), PS2X_SG2_LLE=1 (default OFF): on SifBindRpc(0x11223344) loads tools/iop/sg2iopm1.irx into the
+  IOP emulator and routes SifCallRpc to it; new libsd import HLE (13 ordinals the IRX imports + 8/12/21/24/25) onto a new SPU2
+  model (ps2xIOP/src/spu2: 2 MB SPU RAM, 2x24 voice + core regs); [sg2lle] diagnostics.
+- Run (shop route): driver loads, ~300 RPC calls / 5 s handled by the IRX, sceSdInit, ~2.5 MB of sound banks uploaded to SPU
+  RAM (VoiceTrans), 39 key-ons, status block partly non-zero; no hang, 60 fps. With LLE on the pad replay desyncs (game ends
+  in the Monkepedia menu instead of the shop street - real audio changes load/wait timing): benchmarks with audio need a new
+  pad recording. No sound output yet (AU2).
