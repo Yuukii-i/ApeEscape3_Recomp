@@ -36,3 +36,16 @@ Precondition (done or nearly): the VU1 microcode is decompiled into C++ handlers
 
 ## Order (after audio and bug fixing per the roadmap)
 scene buffer + mapping (with a debug view of normals/depth) -> G-buffer -> bloom -> DoF -> shadow maps -> god rays.
+
+## Scene buffer v1 (PERF-SA)
+Implemented in `PS2Recomp/ps2xRuntime/src/lib/vu/vu1_func.inc` under `vu1func::scene` (enabled by `PS2X_SCENE=1`, default OFF; `PS2X_SCENE_CHECK=1` verifies projection; `PS2X_SCENE_DUMP=<frame>` writes `logs/scene_<n>.bin` and `logs/scene_<n>.txt`). Double-buffered per `Vu1Exec` thread, swapped at `ps2xVu1FlushPath1()` (`VP_FLUSH` / VIF1 drain boundary).
+
+- **Recording handlers**: `0x1EE0` (skinned 8-wide/scalar), `0x1EF0` (skinned with `796+idx` UV), `0x2440` (`rigid2440`), and `0x2900` (`clipPolygon`). (`0050`/`0088` kick pre-built/inline GIF packets without vertex transforms; `00A8`, `15E0`, `1900`, `1910`, `1C48`, `3160`, `0B40`, `0AF0` write VU memory without calling `kick()`.)
+- **Coordinate spaces**:
+  - `SceneDraw::objMatrix[16]`: `local -> clip` 4x4 row-major matrix (`R0..R3` computed by `00A8` from `998..1001` * `978..981`, or from `978..981` & `998..1001` at MSCAL entry).
+  - `SceneVertex::pos[4]`: pre-projection **clip-space** `(x, y, z, w)` before viewport scale/offset (`1002`/`1003`) and perspective divide (`1 / Tv.w`).
+  - `SceneVertex::normal[4]`: local-space normal from VU data `556 + idx` (`0` for `clipPolygon`).
+- **Binary layout (`logs/scene_<n>.bin`)**:
+  - `SceneBinHeader` (32 bytes): `magic` (`0x314E4353` `'SCN1'`), `version` (`1`), `frameIndex`, `drawCount`, `vertexCount`, `reserved[3]`.
+  - `SceneDraw[drawCount]` (128 bytes each): `handlerPc`, `mscalIndex`, `gifOffset`, `gifLength`, `firstVertex`, `vertexCount`, `boneCount` (`00A8` count in MSCAL for skinned, `0` for rigid/clip), `flags` (`1`=skinned, `2`=`vi10/copyS`, `4`=clipped), `objMatrix[16]`, `vpScale[4]` (`1002`), `vpOffset[4]` (`1003`).
+  - `SceneVertex[vertexCount]` (80 bytes each): `pos[4]`, `normal[4]`, `stq[4]`, `rgba[4]` (clamped `0..255`), `screenXyz[3]` (12.4 fixed-point integers emitted to GIF), `adc` (fog/ADC word).

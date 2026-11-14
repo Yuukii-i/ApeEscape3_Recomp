@@ -474,3 +474,13 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
   G-buffer -> bloom/DoF/shadow maps/god rays, everything off = bit-exact PS2 output).
 - Remaining graphics-decompilation items: a second, rarely used VU1 image (44 of 6000 programs in the snow corpus), VU0 is an
   exact fast executor (not semantic), the GS stage is our Vulkan emulation layer.
+
+## 72. Task SA: semantic scene buffer v1 (LIGHTING_PLAN step 1) - Gemini 4 Hydrogen + Sonnet frame-boundary fix
+- PS2X_SCENE=1 (default OFF), PS2X_SCENE_CHECK=1, PS2X_SCENE_DUMP=<frame>: geometry handlers 1EE0 (skinned), 1EF0 (skinned+UV),
+  2440 (rigid), 2900 (clipPolygon) record per draw {handler, MSCAL index, GIF offset/len, local->clip matrix, viewport
+  scale/offset, bone count, flags} and per vertex {clip-space pos before divide, local normal, STQ, RGBA, emitted screen XYZ,
+  ADC}. Layout in docs/LIGHTING_PLAN.md "Scene buffer v1". Double-buffered per presented frame (g_hostPresentSeq; Sonnet fixed
+  the first version that swapped per VIF drain).
+- Shop frame dump (logs/scene_1500.*): 6384 MSCALs, 4292 draws (skinned 3774 / rigid 308 / clipped 210), 75.8k vertices, 5.0 MB
+  GIF; re-projection check: 0 mismatches over ~62k verts/frame for the whole run.
+- Cost when ON: fps 44 (writes ~5 MB/frame); OFF: unchanged (A/B side A 60 fps). To trim before a renderer depends on it.
