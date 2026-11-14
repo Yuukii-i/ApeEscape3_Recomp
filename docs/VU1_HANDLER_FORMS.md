@@ -468,3 +468,77 @@ where $n = (vi3 - vi2) \ \& \ \text{0xFFFF}$.
     - $\text{dot}_j = N_j \cdot \Delta_j$; `FMAND` tests `Zx | Sx` (`0x88`) on $\text{dot}_j$ to form `vi2` $\in \{0, \text{0x8}, \text{0x80}, \text{0x88}\}$.
     - $\text{scale}_j = (\text{vi2} / 16.0) \cdot \text{cmd}[0].w$ (`ITOF4` + `MUL.w`), $P_j.\text{xyz} \mathrel{+}= \hat{l}_j \cdot \text{scale}_j$.
 - **Outputs**: Updates `mem[476 + base + j].xyz` in place (preserving `.w`) for $j \in [0, N)$; no GIF packet emitted.
+
+---
+
+## 18. Handler 0x0560 (Scale+Bias Stream with Live-In `vi4, vf15..18`, Image 86503d39) // PERF-V1P
+
+- **Inputs**:
+  - Live-in registers at entry (`0560..0578`): `vi4`, `vf15`, `vf16`, `vf17`, `vf18` (falls back if not valid in `R`).
+  - Command stream at `vi13` (2 qwords, advances `vi13 += 2`): `cmd[0].xyzw` (scale), `cmd[1].xyzw` (bias).
+  - VU memory constants: `1018.y` (offset relative to `top`), `1018.w` (count $N \ge 2$).
+- **Math**:
+  - Prologue stores `vf15..18` to `18(vi4), 20(vi4), 22(vi4), 24(vi4)`.
+  - For each $k \in [0, N)$: $\text{mem}[\text{top} + \text{off} + k] = \text{cmd}[1] + \text{mem}[\text{top} + \text{off} + k] \cdot \text{cmd}[0]$.
+- **Outputs**: Stores `18(vi4)..24(vi4)` and updates `mem[top + off + k].xyzw` in place; no GIF packet emitted.
+
+---
+
+## 19. Handler 0x0AE0 (Zero-Fill Color Stream, Image 86503d39) // PERF-V1P
+
+- **Inputs**:
+  - VU memory constants: `1011.x` (`base`), `1011.w` ($N$).
+- **Math**:
+  - Entry before `0AF0` (`0AE0..0AE8` are dead `ACC` / `vf15.x` ops). Zeroes $N + 1$ qwords (`0..N`) at `716 + base`, and sets `vi4 = 716 + base + N`.
+- **Outputs**: Zeroes `mem[716 + base + j].xyzw` for $j \in [0, N]$; no GIF packet emitted.
+
+---
+
+## 20. Handler 0x0C38 (Live-In Spill + Copy Loop, Image 86503d39) // PERF-V1P
+
+- **Inputs**:
+  - Live-in registers at entry (`0C38..0C78`): `vi4`, `vi3`, `vf11..14`, `I` (not tracked in `R`, so `handler0C38` falls back to the exact interpreter).
+- **Math**:
+  - Clamps/converts `vf11..14` with `I`, loads `vf1..4`, stores `vf11, vf12` to `9(vi4), 11(vi4)`, then falls into the `0C80` copy loop.
+- **Outputs**: Updates `9(vi4), 11(vi4)` and copies command payload to `vi3..vi2` (via fallback); no GIF packet emitted.
+
+---
+
+## 21. Handler 0x1CC0 (Projective UV Transform on Normals, Image 86503d39) // PERF-V1P
+
+- **Inputs**:
+  - Command header `.y`: `vi2` (base of 4x3 matrix $T$ at `0(vi2)..3(vi2).xyz`).
+  - VU memory constants: `986..988.xyz` (3x3 matrix $B$, with row 3 = `vf0` = $(0, 0, 0, 1)$), `1011.x` (`base`), `1011.w` ($N$).
+  - Vertex streams: normals $N_j = \text{mem}[556 + \text{base} + j].xyz$, UVs $(u_j, v_j, q_j) = \text{mem}[796 + \text{base} + j].xyz$.
+- **Math**:
+  - Shares the `1CD8` loop (`1CF0..1E38`) with $M = B \cdot T$ and $(x', y', w') = M \cdot (N_j, 1)$, $(u'_j, v'_j, q'_j) = (u_j w' + x' q_j,\ v_j w' + y' q_j,\ w' q_j)$, and sets `vi4 = 796 + base + N`.
+- **Outputs**: Updates `mem[796 + base + j].xyz` in place (preserving `.w`) for $j \in [0, N)$; no GIF packet emitted.
+
+---
+
+## 22. Handler 0x1E50 (Normal-Extruded Position Offset, Image 86503d39) // PERF-V1P
+
+- **Inputs**:
+  - Command word at `0(vi13).yzw` (does not advance `vi13`).
+  - VU memory constants: `1011.x` (`base`), `1011.w` ($N$).
+  - Vertex streams: positions $P_j = \text{mem}[476 + \text{base} + j].xyz$, normals $N_j = \text{mem}[556 + \text{base} + j].xyz$.
+- **Math**:
+  - For each $j \in [0, N]$ ($N + 1$ vertices): $P_j.\text{xyz} \mathrel{+}= N_j.\text{xyz} \cdot \text{cmd}.\text{yzw}$.
+- **Outputs**: Updates `mem[476 + base + j].xyz` in place (preserving `.w`) for $j \in [0, N]$; no GIF packet emitted.
+
+---
+
+## 23. Handlers 0x2E20 & 0x2E88 (`clipPolygon` Subroutines, Image 86503d39) // PERF-V1P
+
+- **Inputs**:
+  - Internal subroutines of `clipPolygon` (`2900..2F68`) reading live-in clipper registers (`vi7/8/9/11/12/14`, `vf1/2/17..27`); `2E20` calls `BAL 14` (`2EC8..2F60`) and returns via `JR vi15`, `2E88` branches to `2D50` (`IBEQ vi11, vi0, -40`) and returns via `JR vi12` / `JR vi1`.
+- **Math**:
+  - Not standalone command handlers; when entered without valid live-in clipper state in `R`, both fall back to the exact interpreter.
+- **Outputs**: Clip buffer writes (via fallback); no GIF packet emitted.
+
+---
+
+## 24. Updated Live-In Handlers 0x0628 & 0x1910 (Image 86503d39) // PERF-V1P
+
+- **`0x0628`**: Now executes using `R.vi[4]` and `R.vf[11..13]` whenever `R.viValid` bit 4 and `R.vfValid` bits 11..13 are set (e.g., after `0AF0+0198`, `0AE0+0198`, `32A0+0198`, `1CC0+0198`, `1CD8+0198`); falls back otherwise.
+- **`0x1910`**: Now executes using `R.vf[9]` (populated in `handler1900` from `0(vi2).xyz`) whenever `R.vfValid` bit 9 is set (e.g., after `1900`); transforms `mem[476 + base + j].xyz` by `(978..981) * T` into `mem[796 + base + j].xyz` (preserving `.w`) and sets `R.vi[4] = 476`; falls back if `vf9` is not valid.

@@ -429,3 +429,14 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - Fuzz (shop base, N=3000, FUNC_NEW=1): 0198/0B38/1CD8/32A0 exactEnded=taken=3000 mismatches 0; 02E0/0CC0 still 0.
 - Done so far: 10 of 19 missing (0840 0CC0 1090 02E0 1720 1A68 0198 0B38 1CD8 32A0). Left: 0560 0AE0 0C38 1CC0 1E50 2E20
   2E88 (small, some with BAL/JR subroutine calls) + 0628 / 1910 (live-in registers from the previous command).
+
+## 68. Task V1P: last batch (0AE0, 1CC0, 1E50, 0628, 1910 decompiled; 0560/0C38/2E20/2E88 fall back) + sequence fuzz
+- Regs R got per-register valid bits (vfValid/viValid); handlers that read registers left by the previous command (0628: vi4,
+  vf11..13 from 0198; 1910: vf9 from 1900; 0560: vi4, vf15..18) check them and fall back when not valid.
+- PS2X_VU1_FUZZ_SEQ="a+b+c,...": startPC 0x0008 command lists through the real dispatcher. It caught a real bug that single
+  fuzz could not: handler0198 left vf11/vf12 one vertex early (N[n+1]/L*N[n] instead of N[n+2]/L*N[n+1]); fixed by Sonnet.
+- Final suite (snow base, N=2000, FUNC_NEW=1): 13 single handlers (0840 0CC0 1090 02E0 1720 1A68 0198 0B38 1CD8 32A0 0AE0
+  1CC0 1E50) taken=2000 mismatches 0; sequences 1900+1910 and 5 x (...+0198+0628) mismatches 0. Shop and snow replays with
+  FUNC_NEW=1 and without: mem=0 gif=0, fallback 0.
+- Coverage of image 86503d39: 28 of 32 handler entries decompiled (13 live by default + 15 behind PS2X_VU1_FUNC_NEW=1);
+  0560, 0C38, 2E20, 2E88 still fall back (need live-in state from preceding commands / the clipper's subroutine context).
