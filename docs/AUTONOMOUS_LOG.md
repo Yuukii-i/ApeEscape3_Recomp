@@ -548,3 +548,12 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
   (~1.4 ms/frame). Further gain would need flag-liveness proof (skip unread MAC/status) - parked.
 - GH verified default ON (route to L1: [gh] skips, identical behaviour). Next: /arch:AVX2 full rebuild experiment
   (build_avx2 dir, low priority) - CMake has no /arch for x64 today.
+
+## 80. /arch:AVX2 experiment (build_avx2, Release, full rebuild ~45 min at idle priority) - small consistent gain
+- First attempt was accidentally a Debug build (no CMAKE_BUILD_TYPE in the new dir): popped an MSVC assert on the user's
+  screen ("back() called on empty vector", HYPOTHESES C401 - real UB somewhere, kept build_debug\ for hunting it).
+- A/B route levels_run to mark 9, 2 rounds each, silent, user studying in background (A = current dev exe, B = AVX2):
+  GameThread ms/frame  L1 16.3 -> 15.8, L2 14.8 -> 14.4, L4 13.4 -> 13.0, shop 11.3 -> 11.0, title 18.1 -> 17.5 (~-3%)
+  Vu1Exec L1 7.85 -> 6.97 (-11%), GsWorker L1 5.90 -> 5.38 (-9%); fps median L1 55/58 -> 59/59. File-load sequence identical.
+- Conclusion: adopt (flag only, no logic change; needs an AVX2 CPU - fine for the PC build). Switch the main dev build when
+  the next full rebuild happens anyway: combine with Task CG2 (direct calls, staged in tools\dcall, dry run 108k call sites).
