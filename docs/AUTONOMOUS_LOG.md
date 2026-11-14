@@ -299,3 +299,9 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - [vx] after: busy 11.7 (mscal 8.4: 00a8 0.86, clip 0.34, overhead ~1.2); w 2.0 -> 2.65 (unexplained). TL A/B (2 rounds each): VIF job dur 13.43 -> 12.69 ms, fwait 2.30 -> 2.08. fps A/B inconclusive (57-58 both; within noise).
 - Benchmark noise source found: "heavy mode" rounds (vu1/frame >= 170, fps 49-52, p99 > 100 ms) also hit the unchanged build (A/B spin A1, B2); most likely the pad replay desyncing into a busier camera/position (screenshots show different hero poses). Treat rounds with vu1/f >= 170 as different-work and exclude them. PERF-DC (section 54) may have been rejected on this noise; re-test later.
 - PS2X_VPIPE_SPIN=300 vs 4000: no difference outside heavy rounds.
+
+## 57. Task V1H: coalesced VP_WRITES (Gemini 4 Hydrogen)
+- Parser keeps a pending contiguous record run; flushed before any other event, before ring-full waits, at drains/job end (cap 4096 records); bypassed in dual mode. Consumer: s_tlVifWrites (dual/verify only) gated; 16-byte fast copy for mask 0xF.
+- [vpipe]: write events 3.38M -> 0.72M per window (= one per MSCAL). [vx]: w 2.65 -> 1.42 ms/frame, busy 11.7 -> 11.3, drain wait per job ~2.5 -> ~1.1 ms. gifsubmit 1.0 -> 2.1 (unexplained, watch).
+- TL A/B (4 rounds each, heavy rounds excluded): VIF job dur 12.66 -> 11.94 ms, fwait 2.07 -> 2.02 (EE wait unchanged). fps A/B (v1h2): 58.0 vs 57.5, heavy rounds 2/4 on both sides (heavy-mode rate is NOT build-dependent; ~40% of rounds lately). Picture correct (logs\shot_v1h_1.png). Kept (exact by construction, less work).
+- Open: why the EE fence wait does not shrink when the job does (lead shrinks with it?) -> next: per-frame timeline of the EE (kick time, fence time, vsync) to see what the EE does between job end and frame end.
