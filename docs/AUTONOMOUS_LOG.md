@@ -340,3 +340,14 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - Next (not started): restructure the GS draw path per run instead of per prim (validate state once per run, page sets from
   the run's bounding box, SoA prim records straight from the vertex kick), then fewer state breaks (texture arrays/bindless).
   This is also the layer the lighting work needs (semantic draw records).
+
+## 61. Task GA: GS Vulkan backend draws per RUN (Gemini 4 Hydrogen + Sonnet compile fix) - first 60 fps rounds in silent
+- runBegin (state validation, CLUT, texture range, shared 80-uint record template) once per run; fillPrimFields per prim
+  (vertex/UV/bbox only, straight into primMap_); runEnd once per run (barrier check, one pend extension, page sets from the union
+  bbox, or exact per-prim pagesForRects when the union is > 2x the summed area). Per-prim fallback: self-dependent texture,
+  compare_/ref_, capacity edges, per-prim invalid vertex counts, runBegin failure.
+- PS2X_GA_CHECK=1: 63.2M prims / 6.1M runs, recMismatch=0, pageMissing=0, pageSuperset in ~17% of runs (extra pages marked
+  GPU-newer: conservative).
+- [gw] heavy round: vkrec 6.8 -> 4.65 ms/frame (~80 ns/prim from ~130).
+- A/B ga2 (3 rounds, silent, vs v1k exe): B fps 60 / 58 / 60, p99 22.5 / 29.0 / 25.7 (A 35 / 118* / 83*), GsWorker 11.4-12.8 vs
+  13.6 (A non-heavy), B heavy rounds 0/3. Picture correct (logs\shot_ga_1.png, window 59 fps).
