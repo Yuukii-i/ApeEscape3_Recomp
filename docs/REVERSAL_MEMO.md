@@ -17,3 +17,4 @@ Every risky change made during the silent-mode 60 fps push. Each line: what, swi
 | 2026-11-14 | GS Vulkan backend: per-run draw path (state once per run, page sets from union bbox) | git revert of the PERF-GA commit (no env switch yet) | AUTONOMOUS_LOG 61 commit |
 | 2026-11-14 | GS frontend: skip run breaks when the rewritten draw state is identical | PS2X_GS_REDUND=0 | AUTONOMOUS_LOG 62 commit |
 | 2026-11-14 | VIF1 DMA chain walk+copy on the Vif1Worker; guest D1/D_STAT accesses wait for copy done; SPR chains stay synchronous | PS2X_DMA1_WORKER_COPY=0 | AUTONOMOUS_LOG 63 commit |
+| 2026-11-14 | SIMD block swizzle for host->local uploads (PSMT8/T4/CT32/CT24) | git revert of the PERF-GD commit; PS2X_IU_CHECK=1 compares against the old path | AUTONOMOUS_LOG 64 commit |

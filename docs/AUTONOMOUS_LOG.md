@@ -375,3 +375,22 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
   EE 11.05-11.38. gc3 (default on vs gb exe): EE 14.45 -> 11.32, total CPU 44.2 -> 43.5, fps 60/60. Picture correct
   (logs\shot_gc_1.png).
 - Thread budget now (silent, normal scene, ms/frame): GameThread ~11.3, Vu1Exec ~10, GsWorker ~9, Vif1Worker ~9. All under 12.
+
+## 64. VU1 handler inventory, capture-on-fallback, startPC 0x40 live, Task GD (SIMD image swizzle)
+- tools/vu1gen/handler_inventory.py -> docs/VU1_HANDLER_INVENTORY.md: 32 handler entry candidates in image 86503d39 (1093
+  pairs): 13 IMPLEMENTED (167 pairs, all seen in captures), 19 MISSING (926 pairs, never reached in any corpus: shop, early,
+  snow, v1 all 100% taken, 0 fallbacks; 4020/snow2/serial corpora time out - old format). Handlers are chosen by the command
+  data (dispatcher ILW.x vi1 -> JR vi1), so only play in other areas can exercise the missing ones.
+- PROBE-FB (Sonnet): PS2X_VU1_CAPTURE_FB=1 records every functional fallback (replay format, default logs/vu1corpus_fb.bin,
+  300 per handler key, 30000 total, [vu1fb] summary every 10 s). Needs the user to play other levels.
+- PERF-V40 (Sonnet): live functional gate accepts startPC 0x40 (one-command entry) as well as 0x08. [vfunc] live: taken 16.6M,
+  fallback 0. Side effect: ab.ps1 vu1/f (from "[probe] ge vu1 calls", exact-path count) now reads ~4 -> heavy-round detection
+  needs another source.
+- PROBE-IU (Sonnet): per-PSM upload split. Before GD: PSMT8 2.42 MB/frame, 2.2-2.45 ms swizzle (~1 ns/B); PSMT4 66 KB 0.4 ms;
+  GPU page upload 0.45 ms.
+- GD (Gemini 4 Hydrogen): SIMD block writers (AVX2/SSSE3) for PSMT8 16x16, PSMT4 32x16, PSMCT32/Z32 8x8, PSMCT24/Z24 8x8 with
+  permutations derived from the page tables at startup and self-tested; edges keep the old code. PS2X_IU_CHECK=1: 626k
+  transfers, 6.47 GB compared, mismatches=0. [iu]: T8 2.3 -> 0.78 ms, T4 0.4 -> 0.04; [gw] image 3.0 -> 0.93 ms/frame.
+- A/B gd2 (3 rounds, vs gc exe): fps 60 on all; GsWorker 9.14 -> 7.10 ms/frame; TOTAL 44.8 -> 41.4. Picture correct
+  (logs\shot_gd_1.png, window 60 fps).
+- Thread budget (silent, shop, ms/frame): GameThread ~11.3, Vu1Exec ~10, Vif1Worker ~8.8, GsWorker ~7.1.
