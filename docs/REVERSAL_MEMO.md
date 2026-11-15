@@ -31,3 +31,12 @@ Every risky change made during the silent-mode 60 fps push. Each line: what, swi
   (missing/late model draws, hangs after a scene change).
 - Also built (default OFF): PERF-GF Dma1Copier thread (PS2X_DMA1_COPIER=1), PERF-GG lean chain walk (default ON,
   PS2X_GG=0 old walk, PS2X_GG_CHECK=1 compares: 0 mismatches over the route).
+
+## CG2: direct calls for static JAL (PS2_DCALL, default ON, 2026-11-15) + /arch:AVX2 build flags
+- What: tools\dcall\direct_calls.py rewrote 108,003 `dispatchGuestBranch(..., DirectCall, "JAL")` sites in recomp_source
+  (local git 3d09af06) to PS2_DCALL (ps2_dcall.h: call through g_ps2RecompiledFunctionTable[(pc-base)>>2], inline cycle
+  batching, out-of-line continue for non-fallthrough returns). Build flags: /arch:AVX2 (tools\build_dev.bat).
+- Evidence: route levels_run to mark 9, 2 rounds: EE ms/frame vs AVX2-only L1 15.5 -> 14.1, lobby 13.2 -> 12.1,
+  L2 13.7 -> 13.1, L4 13.3 -> 12.8; AVX2 vs SSE2 ~-3% EE, ~-10% VU1/GS. File-load sequence identical; shot_dcall_1.png OK.
+- Undo: $env:PS2X_DCALL = "0" (all sites back through dispatchGuestBranch, same as before). AVX2: rebuild without the flag
+  (needs an AVX2 CPU otherwise). Probes that need dispatch history (PS2X_DISPATCH_PROBES etc.) switch to slow mode by themselves.

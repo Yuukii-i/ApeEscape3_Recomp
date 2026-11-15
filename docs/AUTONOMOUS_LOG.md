@@ -557,3 +557,9 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
   Vu1Exec L1 7.85 -> 6.97 (-11%), GsWorker L1 5.90 -> 5.38 (-9%); fps median L1 55/58 -> 59/59. File-load sequence identical.
 - Conclusion: adopt (flag only, no logic change; needs an AVX2 CPU - fine for the PC build). Switch the main dev build when
   the next full rebuild happens anyway: combine with Task CG2 (direct calls, staged in tools\dcall, dry run 108k call sites).
+
+## 81. CG2 direct calls (Gemini 4 Hydrogen staging, Sonnet apply/fix) - EE -4..-9% on top of AVX2
+- First build crashed at boot: staged header assumed table base 0, runtime base is 0x100000 (fixed: base-relative slot).
+- A/B (AVX2 base vs AVX2+CG2, 2 rounds, route to L4): GameThread L1 15.5 -> 14.1, lobby 13.2 -> 12.1, L2 13.7 -> 13.1,
+  L4 13.3 -> 12.8, title ~17.9 -> 17.8; fps median 59-60 everywhere except the title (54-58). Route identical, picture OK.
+- Main dev build switched to /arch:AVX2 (full rebuild).

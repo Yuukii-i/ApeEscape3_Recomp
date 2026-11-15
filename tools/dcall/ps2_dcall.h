@@ -38,8 +38,11 @@ inline bool ps2Dcall(uint8_t *rdram,
             PS2Runtime::GuestBranchKind::DirectCall, "JAL");
     }
 
-    const uint32_t slot = target >> 2;
-    if (slot >= g_ps2RecompiledFunctionTableSlotCount)
+    const uint32_t off = target - g_ps2RecompiledFunctionTableBase;
+    const uint32_t slot = off >> 2;
+    if (target < g_ps2RecompiledFunctionTableBase ||
+        target >= g_ps2RecompiledFunctionTableEnd ||
+        slot >= g_ps2RecompiledFunctionTableSlotCount)
     {
         return runtime->dispatchGuestBranch(
             rdram, ctx, target, fallthrough - 8u, fallthrough,
