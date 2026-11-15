@@ -631,3 +631,11 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
   started in PS2Recomp silently parsed nothing).
 - Also seen (ep90): every guest IO register write does an unordered_map insert (m_ioRegisters, header type) ~0.5%;
   -> header batch with ps2Dcall slimming.
+
+## 91. PERF-V0I VU0 run_sub_640 fast path (Gemini 4 Hydrogen, vu0_func.inc only) - kept
+- ep92: execFmacFast ~1.4% of busy EE; ~635 samples in run_sub_640 (4x4 transform shared by programs 348 / 4B0).
+  Now V0H-style: v0hTransformVec x4 + new v0hFinalizeSticky (all-lanes-safe -> OR sticky Z/S), else per-op fallback.
+- Exact: PS2X_VU0_FUNC_CHECK=1 over the route to L4: 4b0 1.45M / 348 0.82M calls (all handlers) 0 mismatches
+  (stats print to stdout -> logs\route_v0i_check.out, [v0func] calls/mismatches).
+- ep93: execFmacFast under run_sub_640 635 -> 0 (left: run_4b0 tail 462, run_348 tail 255).
+  A/B 2 rounds vs preV0I: within noise (as expected for ~0.7%); route identical in all 6 runs.
