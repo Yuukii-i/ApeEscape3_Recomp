@@ -66,3 +66,10 @@ docs/*_OPINION.md
 docs/AGENT_REPORT_REVIEW.md
 docs/last log.txt
 docs/last work.txt
+
+# Diffs against generated (Sony-derived) code and game screenshots: never publish
+patches/
+recomp_hand_edits.patch
+*.patch
+tools/gs/*.png
+tools/gs/*.jpg
