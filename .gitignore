@@ -73,3 +73,4 @@ recomp_hand_edits.patch
 *.patch
 tools/gs/*.png
 tools/gs/*.jpg
+docs/vu1_image_*.txt

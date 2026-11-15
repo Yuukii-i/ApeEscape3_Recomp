@@ -1,0 +1,512 @@
+000: MULAx.xyzw ACC, vf4, vf8           | MOVE.- vf0, vf0
+008: MADDAy.xyzw ACC, vf5, vf8          | MOVE.- vf0, vf0
+010: MADDAz.xyzw ACC, vf6, vf8          | MOVE.- vf0, vf0
+018: MADDw.xyzw vf8, vf7, vf8           | MOVE.- vf0, vf0
+020: MULAx.xyzw ACC, vf4, vf9           | MOVE.- vf0, vf0
+028: MADDAy.xyzw ACC, vf5, vf9          | MOVE.- vf0, vf0
+030: MADDAz.xyzw ACC, vf6, vf9          | MOVE.- vf0, vf0
+038: MADDw.xyzw vf9, vf7, vf9           | MOVE.- vf0, vf0
+040: MULAx.xyzw ACC, vf4, vf10          | MOVE.- vf0, vf0
+048: MADDAy.xyzw ACC, vf5, vf10         | MOVE.- vf0, vf0
+050: MADDAz.xyzw ACC, vf6, vf10         | MOVE.- vf0, vf0
+058: MADDw.xyzw vf10, vf7, vf10         | MOVE.- vf0, vf0
+060: MULAx.xyzw ACC, vf4, vf11          | MOVE.- vf0, vf0
+068: MADDAy.xyzw ACC, vf5, vf11         | MOVE.- vf0, vf0
+070: MADDAz.xyzw ACC, vf6, vf11         | MOVE.- vf0, vf0
+078: MADDw.xyzw vf11, vf7, vf11         | MOVE.- vf0, vf0 [E]
+080: NOP                                | MOVE.- vf0, vf0
+088: MULx.xyzw vf4, vf4, vf3            | MOVE.- vf0, vf0
+090: MULx.xyzw vf6, vf6, vf3            | MOVE.- vf0, vf0
+098: NOP                                | MOVE.- vf0, vf0
+0A0: MULAw.xyzw ACC, vf5, vf0           | MOVE.- vf0, vf0
+0A8: MADDAx.xyzw ACC, vf8, vf4          | MOVE.- vf0, vf0
+0B0: MADDAy.xyzw ACC, vf9, vf4          | MOVE.- vf0, vf0
+0B8: MADDAz.xyzw ACC, vf10, vf4         | MOVE.- vf0, vf0
+0C0: MADDw.xyzw vf5, vf11, vf4          | MOVE.- vf0, vf0
+0C8: MULAx.xyzw ACC, vf12, vf6          | MOVE.- vf0, vf0
+0D0: MADDAy.xyzw ACC, vf13, vf6         | MOVE.- vf0, vf0
+0D8: MADDAz.xyzw ACC, vf14, vf6         | MOVE.- vf0, vf0
+0E0: MADDw.xyzw vf7, vf7, vf0           | MOVE.- vf0, vf0 [E]
+0E8: NOP                                | MOVE.- vf0, vf0
+0F0: MULAx.xyzw ACC, vf4, vf8           | MOVE.- vf0, vf0
+0F8: MADDAy.xyzw ACC, vf5, vf8          | MOVE.- vf0, vf0
+100: MADDAz.xyzw ACC, vf6, vf8          | MOVE.- vf0, vf0
+108: MADDw.xyzw vf8, vf7, vf8           | MOVE.- vf0, vf0
+110: MULAx.xyzw ACC, vf4, vf9           | MOVE.- vf0, vf0
+118: MADDAy.xyzw ACC, vf5, vf9          | MOVE.- vf0, vf0
+120: MADDAz.xyzw ACC, vf6, vf9          | MOVE.- vf0, vf0
+128: MUL.xyz vf1, vf8, vf8              | MOVE.- vf0, vf0
+130: MADDw.xyzw vf9, vf7, vf9           | MOVE.- vf0, vf0
+138: MULAx.xyzw ACC, vf4, vf10          | MOVE.- vf0, vf0
+140: MADDAy.xyzw ACC, vf5, vf10         | MOVE.- vf0, vf0
+148: ADDy.x vf1, vf1, vf1               | MOVE.- vf0, vf0
+150: MUL.xyz vf3, vf9, vf9              | MOVE.- vf0, vf0
+158: MADDAz.xyzw ACC, vf6, vf10         | MOVE.- vf0, vf0
+160: MADDw.xyzw vf10, vf7, vf10         | MOVE.- vf0, vf0
+168: ADDz.x vf1, vf1, vf1               | MOVE.- vf0, vf0
+170: ADDy.x vf3, vf3, vf3               | MOVE.- vf0, vf0
+178: MULAx.xyzw ACC, vf4, vf11          | MOVE.- vf0, vf0
+180: MUL.xyz vf2, vf10, vf10            | MOVE.- vf0, vf0
+188: MADDAy.xyzw ACC, vf5, vf11         | RSQRT Q, vf0.w, vf1.x
+190: ADDz.x vf3, vf3, vf3               | MOVE.- vf0, vf0
+198: MADDAz.xyzw ACC, vf6, vf11         | MOVE.- vf0, vf0
+1A0: ADDy.x vf2, vf2, vf2               | MOVE.- vf0, vf0
+1A8: MADDw.xyzw vf11, vf7, vf11         | WAITQ
+1B0: MULq.xyz vf12, vf8, vf0            | RSQRT Q, vf0.w, vf3.x
+1B8: ADDz.x vf2, vf2, vf2               | WAITQ
+1C0: MULq.xyz vf13, vf9, vf0            | RSQRT Q, vf0.w, vf2.x
+1C8: NOP                                | WAITQ
+1D0: MULq.xyz vf14, vf10, vf0           | MOVE.- vf0, vf0 [E]
+1D8: NOP                                | MOVE.- vf0, vf0
+1E0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1E8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1F0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+1F8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+200: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+208: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+210: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+218: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+220: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+228: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+230: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+238: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+240: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+248: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+250: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+258: OPMULA.xyz ACC, vf1, vf2           | MOVE.- vf0, vf0
+260: OPMSUB.xyz vf7, vf2, vf1           | MOVE.- vf0, vf0
+268: ADDw.xyz vf11, vf0, vf0            | MOVE.- vf0, vf0
+270: OPMULA.xyz ACC, vf2, vf3           | MOVE.- vf0, vf0
+278: OPMSUB.xyz vf5, vf3, vf2           | MOVE.- vf0, vf0
+280: MUL.xyzw vf8, vf7, vf3             | MOVE.- vf0, vf0
+288: OPMULA.xyz ACC, vf3, vf1           | MOVE.- vf0, vf0
+290: OPMSUB.xyz vf6, vf1, vf3           | MOVE.- vf0, vf0
+298: SUB.xyz vf4, vf0, vf4              | MOVE.- vf0, vf0
+2A0: ADDAy.x ACC, vf8, vf8              | MOVE.- vf0, vf0
+2A8: MADDz.x vf8, vf11, vf8             | MOVE.- vf0, vf0
+2B0: NOP                                | DIV Q, vf0.w, vf8.x
+2B8: NOP                                | WAITQ
+2C0: ADDq.xyz vf10, vf0, vf0            | MOVE.- vf0, vf0
+2C8: MULx.x vf1, vf10, vf5              | MOVE.- vf0, vf0
+2D0: MULx.y vf1, vf10, vf6              | MOVE.- vf0, vf0
+2D8: MULx.z vf1, vf10, vf7              | MOVE.- vf0, vf0
+2E0: MULy.x vf2, vf10, vf5              | MOVE.- vf0, vf0
+2E8: MULy.y vf2, vf10, vf6              | MOVE.- vf0, vf0
+2F0: MULy.z vf2, vf10, vf7              | MOVE.- vf0, vf0
+2F8: MULz.x vf3, vf10, vf5              | MOVE.- vf0, vf0
+300: MULz.y vf3, vf10, vf6              | MOVE.- vf0, vf0
+308: MULz.z vf3, vf10, vf7              | MOVE.- vf0, vf0
+310: MULAx.xyz ACC, vf1, vf4            | MOVE.- vf0, vf0
+318: MADDAy.xyz ACC, vf2, vf4           | MOVE.- vf0, vf0
+320: MADDz.xyz vf4, vf3, vf4            | MOVE.- vf0, vf0 [E]
+328: NOP                                | MOVE.- vf0, vf0
+330: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+338: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+340: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+348: NOP                                | IADDIU vi14, vi0, 200
+350: NOP                                | MOVE.- vf0, vf0
+358: NOP                                | JALR vi15, vi14
+360: NOP                                | MOVE.- vf0, vf0
+368: MULAw.xyzw ACC, vf15, vf0          | IADDIU vi1, vi0, 63
+370: MSUBAw.xyzw ACC, vf14, vf0         | MOVE.- vf0, vf0
+378: MSUBAw.xyzw ACC, vf13, vf0         | MOVE.- vf0, vf0
+380: MADDw.xyzw vf1, vf12, vf0          | MOVE.- vf0, vf0
+388: MSUBw.xyzw vf2, vf12, vf0          | MOVE.- vf0, vf0
+390: MULAw.xyzw ACC, vf15, vf0          | MOVE.- vf0, vf0
+398: MSUBAw.xyzw ACC, vf14, vf0         | MOVE.- vf0, vf0
+3A0: CLIP.xyz ACC, vf1, vf1             | MOVE.- vf0, vf0
+3A8: CLIP.xyz ACC, vf2, vf2             | MOVE.- vf0, vf0
+3B0: MADDAw.xyzw ACC, vf13, vf0         | MOVE.- vf0, vf0
+3B8: MADDw.xyzw vf1, vf12, vf0          | MOVE.- vf0, vf0
+3C0: MSUBw.xyzw vf2, vf12, vf0          | FCGET vi3
+3C8: MULAw.xyzw ACC, vf15, vf0          | FCGET vi4
+3D0: MADDAw.xyzw ACC, vf14, vf0         | IOR vi3, vi3, vi4
+3D8: CLIP.xyz ACC, vf1, vf1             | IAND vi2, vi3, vi1
+3E0: CLIP.xyz ACC, vf2, vf2             | MOVE.- vf0, vf0
+3E8: MSUBAw.xyzw ACC, vf13, vf0         | IBNE vi0, vi2, 18
+3F0: MADDw.xyzw vf1, vf12, vf0          | MOVE.- vf0, vf0
+3F8: MSUBw.xyzw vf2, vf12, vf0          | FCGET vi3
+400: MULAw.xyzw ACC, vf15, vf0          | FCGET vi4
+408: MADDAw.xyzw ACC, vf14, vf0         | IOR vi3, vi3, vi4
+410: CLIP.xyz ACC, vf1, vf1             | IAND vi2, vi3, vi1
+418: CLIP.xyz ACC, vf2, vf2             | MOVE.- vf0, vf0
+420: MADDAw.xyzw ACC, vf13, vf0         | IBNE vi0, vi2, 11
+428: MADDw.xyzw vf1, vf12, vf0          | MOVE.- vf0, vf0
+430: MSUBw.xyzw vf2, vf12, vf0          | FCGET vi3
+438: NOP                                | FCGET vi4
+440: NOP                                | IOR vi3, vi3, vi4
+448: CLIP.xyz ACC, vf1, vf1             | IAND vi2, vi3, vi1
+450: CLIP.xyz ACC, vf2, vf2             | MOVE.- vf0, vf0
+458: NOP                                | IBNE vi0, vi2, 4
+460: NOP                                | MOVE.- vf0, vf0
+468: NOP                                | FCGET vi3
+470: NOP                                | FCGET vi4
+478: NOP                                | IOR vi3, vi3, vi4
+480: NOP                                | IAND vi2, vi3, vi1 [E]
+488: NOP                                | MOVE.- vf0, vf0
+490: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+498: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+4A0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+4A8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+4B0: NOP                                | IADDIU vi14, vi0, 200
+4B8: NOP                                | MOVE.- vf0, vf0
+4C0: NOP                                | JALR vi15, vi14
+4C8: NOP                                | MOVE.- vf0, vf0
+4D0: MULAw.xyzw ACC, vf15, vf0          | IADDIU vi2, vi0, 63
+4D8: MSUBAw.xyzw ACC, vf14, vf0         | MOVE.- vf0, vf0
+4E0: MSUBAw.xyzw ACC, vf13, vf0         | MOVE.- vf0, vf0
+4E8: MADDw.xyzw vf1, vf12, vf0          | MOVE.- vf0, vf0
+4F0: MSUBw.xyzw vf2, vf12, vf0          | MOVE.- vf0, vf0
+4F8: MULAw.xyzw ACC, vf15, vf0          | MOVE.- vf0, vf0
+500: MSUBAw.xyzw ACC, vf14, vf0         | MOVE.- vf0, vf0
+508: CLIP.xyz ACC, vf1, vf1             | MOVE.- vf0, vf0
+510: CLIP.xyz ACC, vf2, vf2             | MOVE.- vf0, vf0
+518: MADDAw.xyzw ACC, vf13, vf0         | MOVE.- vf0, vf0
+520: MADDw.xyzw vf1, vf12, vf0          | MOVE.- vf0, vf0
+528: MSUBw.xyzw vf2, vf12, vf0          | FCGET vi3
+530: MULAw.xyzw ACC, vf15, vf0          | IAND vi2, vi2, vi3
+538: MADDAw.xyzw ACC, vf14, vf0         | FCGET vi3
+540: CLIP.xyz ACC, vf1, vf1             | IAND vi2, vi2, vi3
+548: CLIP.xyz ACC, vf2, vf2             | MOVE.- vf0, vf0
+550: MSUBAw.xyzw ACC, vf13, vf0         | IBEQ vi0, vi2, 18
+558: MADDw.xyzw vf1, vf12, vf0          | MOVE.- vf0, vf0
+560: MSUBw.xyzw vf2, vf12, vf0          | FCGET vi3
+568: MULAw.xyzw ACC, vf15, vf0          | IAND vi2, vi2, vi3
+570: MADDAw.xyzw ACC, vf14, vf0         | FCGET vi3
+578: CLIP.xyz ACC, vf1, vf1             | IAND vi2, vi2, vi3
+580: CLIP.xyz ACC, vf2, vf2             | MOVE.- vf0, vf0
+588: MADDAw.xyzw ACC, vf13, vf0         | IBEQ vi0, vi2, 11
+590: MADDw.xyzw vf1, vf12, vf0          | MOVE.- vf0, vf0
+598: MSUBw.xyzw vf2, vf12, vf0          | FCGET vi3
+5A0: NOP                                | IAND vi2, vi2, vi3
+5A8: NOP                                | FCGET vi3
+5B0: CLIP.xyz ACC, vf1, vf1             | IAND vi2, vi2, vi3
+5B8: CLIP.xyz ACC, vf2, vf2             | MOVE.- vf0, vf0
+5C0: NOP                                | IBEQ vi0, vi2, 4
+5C8: NOP                                | MOVE.- vf0, vf0
+5D0: NOP                                | FCGET vi3
+5D8: NOP                                | IAND vi2, vi2, vi3
+5E0: NOP                                | FCGET vi3
+5E8: NOP                                | IAND vi2, vi2, vi3 [E]
+5F0: NOP                                | MOVE.- vf0, vf0
+5F8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+600: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+608: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+610: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+618: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+620: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+628: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+630: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+638: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+640: MULAx.xyzw ACC, vf4, vf11          | MOVE.- vf0, vf0
+648: MADDAy.xyzw ACC, vf5, vf11         | MOVE.- vf0, vf0
+650: MADDAz.xyzw ACC, vf6, vf11         | MOVE.- vf0, vf0
+658: MADDw.xyzw vf15, vf7, vf11         | MOVE.- vf0, vf0
+660: MULAx.xyzw ACC, vf4, vf10          | MOVE.- vf0, vf0
+668: MADDAy.xyzw ACC, vf5, vf10         | MOVE.- vf0, vf0
+670: MADDAz.xyzw ACC, vf6, vf10         | MOVE.- vf0, vf0
+678: MADDw.xyzw vf14, vf7, vf10         | MOVE.- vf0, vf0
+680: MULAx.xyzw ACC, vf4, vf9           | MOVE.- vf0, vf0
+688: MADDAy.xyzw ACC, vf5, vf9          | MOVE.- vf0, vf0
+690: MADDAz.xyzw ACC, vf6, vf9          | MOVE.- vf0, vf0
+698: MADDw.xyzw vf13, vf7, vf9          | MOVE.- vf0, vf0
+6A0: MULAx.xyzw ACC, vf4, vf8           | MOVE.- vf0, vf0
+6A8: MADDAy.xyzw ACC, vf5, vf8          | MOVE.- vf0, vf0
+6B0: MADDAz.xyzw ACC, vf6, vf8          | JR vi15
+6B8: MADDw.xyzw vf12, vf7, vf8          | MOVE.- vf0, vf0
+6C0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+6C8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+6D0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+6D8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+6E0: OPMULA.xyz ACC, vf4, vf5           | MOVE.w vf12, vf4
+6E8: OPMSUB.xyz vf10, vf5, vf4          | MOVE.w vf13, vf5
+6F0: ADDw.xyz vf11, vf0, vf0            | MOVE.w vf14, vf6
+6F8: OPMULA.xyz ACC, vf5, vf6           | MOVE.- vf0, vf0
+700: OPMSUB.xyz vf8, vf6, vf5           | MOVE.- vf0, vf0
+708: MUL.xyzw vf1, vf10, vf6            | MOVE.- vf0, vf0
+710: OPMULA.xyz ACC, vf6, vf4           | MOVE.- vf0, vf0
+718: OPMSUB.xyz vf9, vf4, vf6           | MOVE.- vf0, vf0
+720: SUB.xyz vf7, vf0, vf7              | MOVE.- vf0, vf0
+728: ADDAy.x ACC, vf1, vf1              | MOVE.- vf0, vf0
+730: MADDz.x vf11, vf11, vf1            | MOVE.- vf0, vf0
+738: NOP                                | DIV Q, vf0.w, vf11.x
+740: NOP                                | WAITQ
+748: ADDq.xyz vf11, vf0, vf0            | MOVE.- vf0, vf0
+750: MULx.x vf12, vf11, vf8             | MOVE.- vf0, vf0
+758: MULx.y vf12, vf11, vf9             | MOVE.- vf0, vf0
+760: MULx.z vf12, vf11, vf10            | MOVE.- vf0, vf0
+768: MULy.x vf13, vf11, vf8             | MOVE.- vf0, vf0
+770: MULy.y vf13, vf11, vf9             | MOVE.- vf0, vf0
+778: MULy.z vf13, vf11, vf10            | MOVE.- vf0, vf0
+780: MULz.x vf14, vf11, vf8             | MOVE.- vf0, vf0
+788: MULz.y vf14, vf11, vf9             | MOVE.- vf0, vf0
+790: MULz.z vf14, vf11, vf10            | MOVE.- vf0, vf0
+798: MULAx.xyz ACC, vf12, vf7           | MOVE.- vf0, vf0
+7A0: MADDAy.xyz ACC, vf13, vf7          | MOVE.- vf0, vf0 [E]
+7A8: MADDz.xyz vf15, vf14, vf7          | MOVE.- vf0, vf0
+7B0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+7B8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+7C0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+7C8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+7D0: MUL.xyz vf1, vf8, vf8              | MOVE.xyzw vf7, vf11
+7D8: ADDy.x vf1, vf1, vf1               | MOVE.- vf0, vf0
+7E0: ADDz.x vf1, vf1, vf1               | MOVE.- vf0, vf0
+7E8: NOP                                | RSQRT Q, vf0.w, vf1.x
+7F0: SUB.w vf4, vf0, vf0                | MOVE.- vf0, vf0
+7F8: NOP                                | WAITQ
+800: MULq.xyz vf4, vf8, vf0             | MOVE.- vf0, vf0
+808: MUL.xyz vf1, vf9, vf9              | MOVE.- vf0, vf0
+810: ADDy.x vf1, vf1, vf1               | MOVE.- vf0, vf0
+818: ADDz.x vf1, vf1, vf1               | MOVE.- vf0, vf0
+820: NOP                                | RSQRT Q, vf0.w, vf1.x
+828: SUB.w vf5, vf0, vf0                | MOVE.- vf0, vf0
+830: NOP                                | WAITQ
+838: MULq.xyz vf5, vf9, vf0             | MOVE.- vf0, vf0
+840: MUL.xyz vf1, vf10, vf10            | MOVE.- vf0, vf0
+848: ADDy.x vf1, vf1, vf1               | MOVE.- vf0, vf0
+850: ADDz.x vf1, vf1, vf1               | MOVE.- vf0, vf0
+858: NOP                                | RSQRT Q, vf0.w, vf1.x
+860: SUB.w vf6, vf0, vf0                | IADDIU vi15, vi0, 220
+868: NOP                                | WAITQ
+870: MULq.xyz vf6, vf10, vf0            | MOVE.- vf0, vf0
+878: NOP                                | JR vi15
+880: NOP                                | MOVE.- vf0, vf0
+888: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+890: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+898: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+8A0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+8A8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+8B0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+8B8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+8C0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+8C8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+8D0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+8D8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+8E0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+8E8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+8F0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+8F8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+900: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+908: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+910: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+918: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+920: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+928: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+930: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+938: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+940: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+948: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+950: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+958: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+960: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+968: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+970: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+978: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+980: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+988: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+990: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+998: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+9A0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+9A8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+9B0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+9B8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+9C0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+9C8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+9D0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+9D8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+9E0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+9E8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+9F0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+9F8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+A00: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+A08: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+A10: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+A18: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+A20: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+A28: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+A30: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+A38: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+A40: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+A48: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+A50: NOP                                | LQ.xyzw vf4, 0(vi1)
+A58: NOP                                | LQ.xyzw vf6, 128(vi1)
+A60: MULx.xyzw vf4, vf4, vf3            | MOVE.- vf0, vf0
+A68: MULx.xyzw vf6, vf6, vf3            | MOVE.- vf0, vf0
+A70: NOP                                | MOVE.- vf0, vf0
+A78: MULAw.xyzw ACC, vf5, vf0           | MOVE.- vf0, vf0
+A80: MADDAx.xyzw ACC, vf8, vf4          | MOVE.- vf0, vf0
+A88: MADDAy.xyzw ACC, vf9, vf4          | MOVE.- vf0, vf0
+A90: MADDAz.xyzw ACC, vf10, vf4         | MOVE.- vf0, vf0
+A98: MADDw.xyzw vf5, vf11, vf4          | MOVE.- vf0, vf0
+AA0: MULAx.xyzw ACC, vf12, vf6          | MOVE.- vf0, vf0
+AA8: MADDAy.xyzw ACC, vf13, vf6         | MOVE.- vf0, vf0
+AB0: MADDAz.xyzw ACC, vf14, vf6         | MOVE.- vf0, vf0
+AB8: MADDw.xyzw vf7, vf7, vf0           | MOVE.- vf0, vf0 [E]
+AC0: NOP                                | MOVE.- vf0, vf0
+AC8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+AD0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+AD8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+AE0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+AE8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+AF0: MULx.xyzw vf16, vf16, vf2          | MOVE.- vf0, vf0
+AF8: MULx.xyzw vf18, vf18, vf2          | MOVE.- vf0, vf0
+B00: MULAx.xyzw ACC, vf4, vf16          | MOVE.- vf0, vf0
+B08: MADDAy.xyzw ACC, vf5, vf16         | MOVE.- vf0, vf0
+B10: MADDAz.xyzw ACC, vf6, vf16         | MOVE.- vf0, vf0
+B18: MADDAw.xyzw ACC, vf7, vf16         | MOVE.- vf0, vf0
+B20: MADDw.xyzw vf17, vf17, vf0         | MOVE.- vf0, vf0
+B28: MULAx.xyzw ACC, vf8, vf18          | MOVE.- vf0, vf0
+B30: MADDAy.xyzw ACC, vf9, vf18         | MOVE.- vf0, vf0
+B38: MADDAz.xyzw ACC, vf10, vf18        | MOVE.- vf0, vf0
+B40: MADDw.xyzw vf19, vf19, vf0         | MOVE.- vf0, vf0 [E]
+B48: NOP                                | MOVE.- vf0, vf0
+B50: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+B58: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+B60: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+B68: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+B70: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+B78: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+B80: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+B88: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+B90: MULx.xyzw vf12, vf12, vf1          | MOVE.- vf0, vf0
+B98: MULx.xyzw vf14, vf14, vf1          | MOVE.- vf0, vf0
+BA0: MULAx.xyzw ACC, vf4, vf12          | MOVE.- vf0, vf0
+BA8: MADDAy.xyzw ACC, vf5, vf12         | MOVE.- vf0, vf0
+BB0: MADDAz.xyzw ACC, vf6, vf12         | MOVE.- vf0, vf0
+BB8: MADDAw.xyzw ACC, vf7, vf12         | MOVE.- vf0, vf0
+BC0: MADDw.xyzw vf13, vf13, vf0         | MOVE.- vf0, vf0
+BC8: MULAx.xyzw ACC, vf8, vf14          | MOVE.- vf0, vf0
+BD0: MADDAy.xyzw ACC, vf9, vf14         | MOVE.- vf0, vf0
+BD8: MADDAz.xyzw ACC, vf10, vf14        | MOVE.- vf0, vf0
+BE0: MADDw.xyzw vf15, vf15, vf0         | MOVE.- vf0, vf0 [E]
+BE8: NOP                                | MOVE.- vf0, vf0
+BF0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+BF8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+C00: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+C08: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+C10: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+C18: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+C20: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+C28: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+C30: MULx.xyzw vf20, vf20, vf3          | MOVE.- vf0, vf0
+C38: MULx.xyzw vf22, vf22, vf3          | MOVE.- vf0, vf0
+C40: MULAx.xyzw ACC, vf4, vf20          | MOVE.- vf0, vf0
+C48: MADDAy.xyzw ACC, vf5, vf20         | MOVE.- vf0, vf0
+C50: MADDAz.xyzw ACC, vf6, vf20         | MOVE.- vf0, vf0
+C58: MADDAw.xyzw ACC, vf7, vf20         | MOVE.- vf0, vf0
+C60: MADDw.xyzw vf21, vf21, vf0         | MOVE.- vf0, vf0
+C68: MULAx.xyzw ACC, vf8, vf22          | MOVE.- vf0, vf0
+C70: MADDAy.xyzw ACC, vf9, vf22         | MOVE.- vf0, vf0
+C78: MADDAz.xyzw ACC, vf10, vf22        | MOVE.- vf0, vf0
+C80: MADDw.xyzw vf23, vf23, vf0         | MOVE.- vf0, vf0 [E]
+C88: NOP                                | MOVE.- vf0, vf0
+C90: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+C98: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+CA0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+CA8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+CB0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+CB8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+CC0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+CC8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+CD0: MULx.xyzw vf1, vf1, vf3            | MOVE.- vf0, vf0
+CD8: MULx.xyzw vf15, vf15, vf3          | MOVE.- vf0, vf0
+CE0: NOP                                | MOVE.- vf0, vf0
+CE8: MULAw.xyzw ACC, vf2, vf0           | MOVE.- vf0, vf0
+CF0: MADDAx.xyzw ACC, vf8, vf1          | MOVE.- vf0, vf0
+CF8: MADDAy.xyzw ACC, vf9, vf1          | MOVE.- vf0, vf0
+D00: MADDAz.xyzw ACC, vf10, vf1         | MOVE.- vf0, vf0
+D08: MADDw.xyzw vf2, vf11, vf1          | MOVE.- vf0, vf0
+D10: MULAx.xyzw ACC, vf12, vf15         | MOVE.- vf0, vf0
+D18: MADDAy.xyzw ACC, vf13, vf15        | MOVE.- vf0, vf0
+D20: MADDAz.xyzw ACC, vf14, vf15        | MOVE.- vf0, vf0
+D28: MADDw.xyzw vf16, vf16, vf0         | MOVE.- vf0, vf0 [E]
+D30: NOP                                | MOVE.- vf0, vf0
+D38: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+D40: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+D48: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+D50: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+D58: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+D60: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+D68: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+D70: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+D78: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+D80: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+D88: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+D90: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+D98: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+DA0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+DA8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+DB0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+DB8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+DC0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+DC8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+DD0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+DD8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+DE0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+DE8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+DF0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+DF8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+E00: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+E08: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+E10: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+E18: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+E20: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+E28: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+E30: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+E38: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+E40: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+E48: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+E50: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+E58: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+E60: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+E68: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+E70: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+E78: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+E80: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+E88: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+E90: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+E98: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+EA0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+EA8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+EB0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+EB8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+EC0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+EC8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+ED0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+ED8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+EE0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+EE8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+EF0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+EF8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+F00: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+F08: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+F10: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+F18: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+F20: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+F28: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+F30: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+F38: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+F40: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+F48: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+F50: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+F58: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+F60: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+F68: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+F70: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+F78: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+F80: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+F88: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+F90: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+F98: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+FA0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+FA8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+FB0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+FB8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+FC0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+FC8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+FD0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+FD8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+FE0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+FE8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+FF0: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)
+FF8: ADDx.- vf0, vf0, vf0               | LQ.- vf0, 0(vi0)

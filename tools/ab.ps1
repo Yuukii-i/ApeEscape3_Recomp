@@ -9,7 +9,8 @@ param(
     [int]$Seconds = 20,
     [int]$Rounds = 2,
     [string]$Tag = "bench",
-    [double]$Fps = 60
+    [double]$Fps = 60,
+    [double]$HeavyVu1 = 0  # 0 = auto: heavy if vu1/f > 1.07 x median of all rounds
 )
 
 $ErrorActionPreference = "Continue"
@@ -200,7 +201,31 @@ function Run-Side {
         }
         # vu1 calls per frame: last 5 '[probe] ge vu1 calls=N' lines of the .out
         $vu1PerFrame = 0.0
-        if (Test-Path $outPath) {
+        # Preferred: [vfunc] taken/fallback deltas (cumulative; printed ~every 5 s). Check .err (with [fps] lines as 1 s ticks) and .out.
+        $vfDone = $false
+        foreach ($pth in @($errPath, $outPath)) {
+            if ($vfDone -or -not (Test-Path $pth)) { continue }
+            try {
+                $ll = [System.IO.File]::ReadAllLines($pth)
+                $b0 = -1
+                for ($i = 0; $i -lt $ll.Count; $i++) { if ($ll[$i] -match "\[bench\] START") { $b0 = $i; break } }
+                $vfIdx = [System.Collections.Generic.List[int]]::new()
+                $vfTot = [System.Collections.Generic.List[double]]::new()
+                $fpsIdx = [System.Collections.Generic.List[int]]::new()
+                for ($i = ($b0 + 1); $i -lt $ll.Count; $i++) {
+                    if ($ll[$i] -match "\[vfunc\] taken=(\d+) fallback=(\d+)") {
+                        $vfIdx.Add($i); $vfTot.Add([double]$Matches[1] + [double]$Matches[2])
+                    } elseif ($ll[$i] -match "\[fps\] FPS:") { $fpsIdx.Add($i) }
+                }
+                if ($vfIdx.Count -ge 2) {
+                    $secs = @($fpsIdx | Where-Object { $_ -gt $vfIdx[0] -and $_ -le $vfIdx[$vfIdx.Count - 1] }).Count
+                    if ($secs -lt 1) { $secs = 5.0 * ($vfIdx.Count - 1) }  # no [fps] ticks in this file: ~5 s print interval
+                    $vu1PerFrame = (($vfTot[$vfTot.Count - 1] - $vfTot[0]) / $secs) / $effectiveFps
+                    $vfDone = $true
+                }
+            } catch {}
+        }
+        if (-not $vfDone -and (Test-Path $outPath)) {
             try {
                 $vl = [System.Collections.Generic.List[double]]::new()
                 foreach ($ol in [System.IO.File]::ReadAllLines($outPath)) {
@@ -313,8 +338,35 @@ function Mean-Val($items, [string]$prop) {
     return ($sum / $valid.Count)
 }
 
-$aRuns = $results | Where-Object { $_.Side -eq "A" }
-$bRuns = $results | Where-Object { $_.Side -eq "B" }
+$aAll = @($results | Where-Object { $_.Side -eq "A" })
+$bAll = @($results | Where-Object { $_.Side -eq "B" })
+if ($HeavyVu1 -le 0) {
+    $allV = @($results | Where-Object { $_.Status -eq "OK" } | ForEach-Object { [double]$_.'vu1/f' } | Sort-Object)
+    if ($allV.Count -gt 0) {
+        $mid = [int][math]::Floor($allV.Count / 2)
+        $med = if ($allV.Count % 2) { $allV[$mid] } else { ($allV[$mid - 1] + $allV[$mid]) / 2 }
+        $HeavyVu1 = 1.07 * $med
+    } else { $HeavyVu1 = [double]::MaxValue }
+    Write-Host ("[ab] auto heavy threshold vu1/f = {0:F1}" -f $HeavyVu1)
+}
+function Test-Heavy($r) { return ($r.Status -eq "OK" -and [double]$r.'vu1/f' -ge $HeavyVu1) }
+$aOk = @($aAll | Where-Object { $_.Status -eq "OK" })
+$bOk = @($bAll | Where-Object { $_.Status -eq "OK" })
+$aLight = @($aOk | Where-Object { -not (Test-Heavy $_) })
+$bLight = @($bOk | Where-Object { -not (Test-Heavy $_) })
+$fallbackWarn = [System.Collections.Generic.List[string]]::new()
+$aRuns = $aLight
+$bRuns = $bLight
+if ($aLight.Count -eq 0 -and $aOk.Count -gt 0) {
+    $aRuns = $aAll
+    $fallbackWarn.Add("WARNING: side A has no non-heavy rounds (vu1/f >= $HeavyVu1); means use ALL rounds")
+}
+if ($bLight.Count -eq 0 -and $bOk.Count -gt 0) {
+    $bRuns = $bAll
+    $fallbackWarn.Add("WARNING: side B has no non-heavy rounds (vu1/f >= $HeavyVu1); means use ALL rounds")
+}
+$aHeavyN = @($aOk | Where-Object { Test-Heavy $_ }).Count
+$bHeavyN = @($bOk | Where-Object { Test-Heavy $_ }).Count
 
 $metrics = @('p50', 'p99', 'GameThread', 'Vif1Worker', 'GsWorker', 'PresentLatch', 'MainLoop', 'other', 'TOTAL', 'TOTALms/s', 'fps', 'vu1/f')
 
@@ -352,7 +404,7 @@ foreach ($row in $results) {
         $tbl.Add(("{0,-5} {1,-5} {2,8}" -f $row.Side, $row.Round, "FAILED"))
     } else {
         $tbl.Add(("{0,-5} {1,-5} {2,8:F2} {3,8:F2} {4,11:F2} {5,11:F2} {6,11:F2} {7,13:F2} {8,10:F2} {9,9:F2} {10,9:F2} {11,10:F2} {12,7:F1} {13,9:F1}" -f `
-            $row.Side, $row.Round, $row.p50, $row.p99, $row.GameThread, $row.Vif1Worker, $row.GsWorker, $row.PresentLatch, $row.MainLoop, $row.other, $row.TOTAL, $row.'TOTALms/s', $row.fps, $row.'vu1/f'))
+            ($row.Side + $(if (Test-Heavy $row) { "*" } else { "" })), $row.Round, $row.p50, $row.p99, $row.GameThread, $row.Vif1Worker, $row.GsWorker, $row.PresentLatch, $row.MainLoop, $row.other, $row.TOTAL, $row.'TOTALms/s', $row.fps, $row.'vu1/f'))
     }
 }
 
@@ -375,6 +427,8 @@ $tbl.Add("")
 $summaryLine = ("AB {0} p50 A={1:F2} B={2:F2} | vif A={3:F2} B={4:F2} | gs A={5:F2} B={6:F2} | fps A={7:F1} B={8:F1}" -f `
     $Tag, $meanA['p50'], $meanB['p50'], $meanA['Vif1Worker'], $meanB['Vif1Worker'], $meanA['GsWorker'], $meanB['GsWorker'], $meanA['fps'], $meanB['fps'])
 $tbl.Add($summaryLine)
+$tbl.Add(("heavy rounds: A={0}/{1} B={2}/{3}  (* = vu1/f >= {4}, excluded from means)" -f $aHeavyN, $aAll.Count, $bHeavyN, $bAll.Count, $HeavyVu1))
+foreach ($w in $fallbackWarn) { $tbl.Add($w) }
 
 # Work-per-frame validity check
 $vA = $meanA['vu1/f']; $vB = $meanB['vu1/f']
