@@ -47,3 +47,10 @@ Every risky change made during the silent-mode 60 fps push. Each line: what, swi
 - Evidence: PS2X_VU0_FUNC_CHECK=1 over route to L4: ~30M calls, 0 mismatches (full state). A/B 2 rounds:
   EE title 17.7 -> 15.4, lobby 13.8 -> 12.3, L1 15.4 -> 13.8, L4 12.8 -> 12.1 ms/frame; route identical; shot_v0h_1.png OK.
 - Undo: $env:PS2X_VU0_FUNC = "0".
+
+## LG: buffered log output (default ON, 2026-11-15)
+- What: ps2xSafeLog no longer fflushes per line; 256 KB buffer, background flush every 100 ms, flush at exit and in all
+  crash/abort paths (ps2xFlushLog). Up to ~100 ms of log lines can be lost only on a hard kill (Task Manager / power).
+- Evidence: A/B 2 rounds (same exe, PS2X_LOG_SYNC=1 vs default): title fps median 55.5/57 -> 59/59.5, other segments
+  unchanged within noise, route identical.
+- Undo: $env:PS2X_LOG_SYNC = "1" (use it when chasing a hang, so the last lines before the hang are on disk).

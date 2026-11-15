@@ -575,3 +575,9 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
   for the straight-line programs -> per-op flag bookkeeping removed (exact end state).
 - Check: 0 mismatches / ~30M calls. A/B (FUNC off vs on, same exe, 2 rounds): EE title 17.7 -> 15.4, lobby 13.8 -> 12.3,
   L1 15.4 -> 13.8, L2 13.7 -> 13.2, L4 12.8 -> 12.1; fps medians 59-60 in levels, title 56.5.
+
+## 84. PERF-LG buffered logging (Sonnet) - title 55-57 -> 59 fps median
+- PROBE-EP: NtWriteFile 2.8% of EE samples in L1 (per-line fflush under a mutex). Buffered + 100 ms flusher.
+- A/B: title fps median 55.5/57.0 -> 59.0/59.5; EE CPU unchanged (the writes were stalls, not CPU). Default ON.
+- State now (silent, user away, route to L4): fps medians 59-60 in every segment incl. title; EE ms/frame title ~14-16,
+  lobby ~12-13, shop ~10.5, L1 ~13.5-14, L2 ~13, L4 ~12.
