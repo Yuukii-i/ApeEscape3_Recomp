@@ -639,3 +639,14 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
   (stats print to stdout -> logs\route_v0i_check.out, [v0func] calls/mismatches).
 - ep93: execFmacFast under run_sub_640 635 -> 0 (left: run_4b0 tail 462, run_348 tail 255).
   A/B 2 rounds vs preV0I: within noise (as expected for ~0.7%); route identical in all 6 runs.
+
+## 92. Audio phase resumed (user order 2026-11-15: audio -> speed-blocking bugs -> speed -> other bugs)
+- Static disasm of sg2iopm1.irx (Sonnet) + PROBE-AU3C (Gemini 4 Hydrogen): driver queue/thread/stream slots run correctly
+  (C404 refuted). Streams work in LLE: dolby FMV ~86 KB/s, title theme thema30s.x refills 16 KB chunks until the route
+  presses Start (normal). Status block zero at reply time only because no voice is busy then.
+- PROBE-AU3D (Gemini): PS2X_AUDIO_WAV=<file> captures the mixer output (crash-safe header), [spu2rms] meter every 5 s.
+  Route to L1 with PS2X_SG2_LLE=1: audible blocks 14-93% per window, up to 51 key-ons/5 s in shop/L1, clipping <=0.003%,
+  fps unchanged (59-60 medians). Captures: logs\au3d.wav (124 s, to L1), logs\au3e.wav (to mark 9).
+- LLE runs are deterministic but take a different path than the no-audio recording after mark 2 (C407): need a new pad
+  recording made with audio on before LLE can be default and benchmarked. Possible stereo collapse on the title theme (C408).
+- LLE stays default OFF until the user has listened and recorded a new route.
