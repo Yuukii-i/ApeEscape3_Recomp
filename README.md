@@ -4,10 +4,10 @@ A static recompilation of the PlayStation 2 game **Ape Escape 3** (NTSC-U, `SCUS
 
 The game's MIPS R5900 (Emotion Engine) executable is translated ahead of time into native C++ (`recomp_source/`). A custom runtime then provides the rest of the console: kernel and scheduler, GIF/GS/VU0/VU1/VIF/IPU/DMA hardware, and high-level emulation of the IOP services the game talks to (file streaming, memory card, controller, sound).
 
-> ## ⚠️ Early development: playable speed (not full speed), random crashes likely
-> The game now runs at **playable speeds, but not at full speed** (it does not hold 60 fps yet). **Random crashes are very likely.** **It is unknown whether the game can be beaten at this point**: nobody has played it from start to finish on this port.
+> ## ⚠️ Early development: audio works, speed is much better, random crashes still happen
+> **Audio now works**: music, sound effects, voices and movie sound, played by the game's own sound driver (enable it with `PS2X_SG2_LLE=1`, see below). **Speed is much better**: on the test laptop most of the game runs at or near 60 fps, with occasional dips. **The game still crashes at random**, and **it is unknown whether it can be beaten**: nobody has played it from start to finish on this port.
 >
-> It boots, plays the opening movies, shows the title menu and character select in 3D, and the **first tutorial level can be played from start to finish**: walking, camera, the net, capturing the first monkey, the level-complete screen, the cutscene and the hub (lobby). Saving and sound are still unsolved (see below). This is a development snapshot, not a release.
+> It boots, plays the opening movies, shows the title menu and character select in 3D, and the first levels can be played from start to finish: walking, camera, the net, capturing monkeys, the level-complete screen, the cutscenes and the hub (lobby). Saving is still unsolved (see below). This is a development snapshot, not a release.
 
 You need your own legally obtained disc image of the game. **No game files, executables, or assets are included in this repository**, and none should ever be committed.
 
@@ -25,7 +25,12 @@ You need your own legally obtained disc image of the game. **No game files, exec
 
 **Disc and IOP services (HLE)**
 - `DATA.BIN` virtual file index (VFI) reader (`tools/vfi/`), streaming through the game's `CID1` (`file3.irx`) protocol: open, read, seek, stat, directory listing and async job slots.
-- Memory card (mcman/mcserv) backed by a host directory, controller handshake, SIF/RPC plumbing, SoundGroup2 RPC handling (including the playback-position clock the movie streamer uses; no audio output yet).
+- Memory card (mcman/mcserv) backed by a host directory, controller handshake, SIF/RPC plumbing.
+
+**Audio** (`PS2X_SG2_LLE=1`)
+- The game's own sound driver (`sg2iopm1.irx`) runs on an IOP (R3000A) interpreter, with `libsd` emulated on top of a software SPU2: ADPCM voices, ADSR envelopes, pitch, volumes, streamed BGM and movie audio, output through Raylib at 48 kHz.
+- Sequenced music (the game's MIDI player on the EE), sound effects, voices, the title theme and movie sound all play. Reverb is not emulated yet.
+- `PS2X_AUDIO_WAV=<file>` records the mixed output to a WAV file.
 
 **Graphics**
 - GIF arbiter, VU1 micro-mode interpreter plus a native hot-block path, VIF1 UNPACK, a software GS rasteriser and an optional Vulkan GS backend (`PS2X_GS_VULKAN=1`), with a Raylib presentation window.
@@ -39,19 +44,19 @@ You need your own legally obtained disc image of the game. **No game files, exec
 
 ## Known issues
 
-- **Performance**: playable, but not full speed. On the test laptop the hub runs at roughly 40 to 50 fps depending on the power mode (a locked 60 is the goal). VU1 work, now on its own pipeline thread, is the current limit.
-- **Stability**: random crashes are very likely.
+- **Performance**: much better than before. On the test laptop (Ryzen 7 7435HS, silent power mode) the median frame rate is 58 to 60 fps in every part of the test route (title, hub, shop, first levels), with occasional dips in heavy scenes. A locked 60 with headroom is the goal.
+- **Stability**: the game still crashes at random. Known crash spots include the castle, the recording studio door and the Halloween water area.
+- **Audio**: off by default for now; enable it with `PS2X_SG2_LLE=1`. With audio on, the Dolby logo movie at boot sometimes dies (skip it with a button press). Reverb is not emulated.
 - **Saving**: using the save station in the hub soft-locks (the game asks for its save folder, gets "no entry" from the blank card, then waits forever).
-- **Sound**: the audio clock exists, but there is no ADPCM decoding, mixing or output.
 - The gadget menu's Select button can soft-lock.
 - Widescreen UI scaling, display filtering and other display options are not finished.
-- Only the tutorial level and the hub have been played; later levels are untested, and it is unknown whether the game can be beaten.
+- Only the first levels and the hub have been played; later levels are mostly untested, and it is unknown whether the game can be beaten.
 
 ---
 
 ## Not done yet
 
-- Sound, saving and loading.
+- Fixing the random crashes, saving and loading, audio on by default (with reverb).
 - Performance work (guest-code overhead, VU0/VU1 plumbing).
 - Testing and fixing everything beyond the hub: the other levels, bosses and modes.
 - Enhancements: high frame rates, widescreen UI, resolution scaling.
@@ -65,7 +70,7 @@ Requirements: Windows, Visual Studio (MSVC, C++20), CMake, the Vulkan SDK (for t
 The game-derived sources are **not** in this repository and must be generated locally from your own copy of the executable:
 
 1. Generate `recomp_source/` from `SCUS_975.01` with the recompiler (`docs/REGEN.md`).
-2. The generator has not been re-run for several fixes, so apply these in-place patch scripts to `recomp_source/` (all are idempotent): `tools/fix_vu0_flags.py`, `tools/fix_sqrt_s.py`, `tools/fix_vu0_q.py`, `tools/fix_vu0_r.py`, `tools/fix_delay_slots.py`.
+2. The generator has not been re-run for several fixes, so apply these in-place patch scripts to `recomp_source/` (all are idempotent): `tools/fix_vu0_flags.py`, `tools/fix_sqrt_s.py`, `tools/fix_vu0_q.py`, `tools/fix_vu0_r.py`, `tools/fix_delay_slots.py`, `tools/fix_branch_s64.py` (64-bit sign tests in branches; without it the music never plays).
 3. Generate the VU native code into `PS2Recomp/ps2xRuntime/src/lib/vu/generated/` with `tools/vu1gen/gen_vu1_native.py` and `tools/vu1gen/gen_vu1_hot.py` (these files are Sony-derived and are not tracked).
 
 ```
@@ -82,6 +87,7 @@ Run (the usual set of switches):
 set PS2X_GS_ASYNC=1
 set PS2X_VIF1_ASYNC=1
 set PS2X_GS_VULKAN=1
+set PS2X_SG2_LLE=1
 .\build\PS2Recomp\ps2xRuntime\ps2EntryRunner.exe SCUS_975.01
 ```
 
@@ -94,6 +100,8 @@ Useful switches (environment variables):
 | `PS2X_ISO` | Path to the game disc image. |
 | `PS2X_GS_VULKAN=1` | Use the Vulkan GS backend. |
 | `PS2X_GS_ASYNC=1`, `PS2X_VIF1_ASYNC=1` | Asynchronous GS and VIF1 processing (faster). |
+| `PS2X_SG2_LLE=1` | Turn audio on (runs the game's own sound driver). |
+| `PS2X_AUDIO_WAV=<file>` | Record the audio output to a WAV file. |
 | `PS2X_ASPECT=16:9` | Display aspect (`16:9`, `16:10`, `4:3`, `fill`); use with the game's widescreen option. |
 | `PS2X_EE_RTZ=0` | Disable the EE round-toward-zero default (debugging only; breaks animation). |
 | `PS2X_VU0_HWQ=0` | Disable the hardware divide/sqrt semantics for VU0 (debugging only). |
@@ -105,7 +113,7 @@ Useful switches (environment variables):
 
 ## Repository layout
 
-- `PS2Recomp/` : the recompiler and runtime (fork of PS2Recomp), included as a submodule (branch `task/KW` has the current state).
+- `PS2Recomp/` : the recompiler and runtime (fork of PS2Recomp), included as a submodule (branch `perf/aggressive` has the current state).
 - `recomp_source/` : generated game code (not in the repository, regenerate locally).
 - `docs/` : specs and findings (CID1, DBC, SG2 protocols, memory map audit, `golden_pcsx2.md`, `HYPOTHESES.md`).
 - `tools/` : VFI archive tool, IOP module analysis, in-place patch scripts for the generated code, VU1 generators, build scripts, log digest and comparison scripts.
