@@ -614,3 +614,9 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
   L4 12.7->12.5, title/hub noisy. Exact, small; kept.
 - Remaining EE glue (ep87): ps2Dcall 5.4% (not inlined by MSVC), checkpointDue 4.4%, isSpecialAddress 1.6%,
   dispatchGuestBranch 1.5%. Inlining needs a header change -> batch it into the next full rebuild.
+
+## 89. PGO retrained with CG4 + PERF-SA - installed
+- build_pgo GEN (idle) -> route training to mark 11 (pgc 2.3 MB) -> USE (163 s). Installed as
+  build\PS2Recomp\ps2xRuntime\ps2EntryRunner_pgo.exe; previous kept as ps2EntryRunner_pgo_preSA.exe.
+- A/B 2 rounds to L4 vs pgo_preSA, route identical: EE ms/frame title 16.5->15.1, lobby 12.6->12.5, L1 14.2->13.6,
+  L2 13.6->13.0, L4 12.4->11.9; fps medians 58-60 everywhere.
