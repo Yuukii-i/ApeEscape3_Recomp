@@ -40,3 +40,10 @@ Every risky change made during the silent-mode 60 fps push. Each line: what, swi
   L2 13.7 -> 13.1, L4 13.3 -> 12.8; AVX2 vs SSE2 ~-3% EE, ~-10% VU1/GS. File-load sequence identical; shot_dcall_1.png OK.
 - Undo: $env:PS2X_DCALL = "0" (all sites back through dispatchGuestBranch, same as before). AVX2: rebuild without the flag
   (needs an AVX2 CPU otherwise). Probes that need dispatch history (PS2X_DISPATCH_PROBES etc.) switch to slow mode by themselves.
+
+## V0H: decompiled VU0 programs 000/088/0F0/CD0/348/4B0 default ON (PS2X_VU0_FUNC, 2026-11-15)
+- What: vu/vu0_func.inc handlers replace the generic VU0 fast path for the 6 hot entries of image d985722524327b89;
+  straight-line programs compute exact results with SIMD sticky-flag accumulation and exact final MAC/status.
+- Evidence: PS2X_VU0_FUNC_CHECK=1 over route to L4: ~30M calls, 0 mismatches (full state). A/B 2 rounds:
+  EE title 17.7 -> 15.4, lobby 13.8 -> 12.3, L1 15.4 -> 13.8, L4 12.8 -> 12.1 ms/frame; route identical; shot_v0h_1.png OK.
+- Undo: $env:PS2X_VU0_FUNC = "0".

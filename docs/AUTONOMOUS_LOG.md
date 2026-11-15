@@ -569,3 +569,9 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
   (processDueDeadlines/processPendingEvents/completeVSync/publishSnapshot), ~0.6% NtWriteFile from per-RPC logs.
 - A/B 2 rounds to L4: EE differences within noise (+-1 ms per segment). The log gating also hid [CID1:ReadPath] lines
   (route-identity check). Reverted (git checkout), dev exe restored to the pre-EH build.
+
+## 83. Task V0H (Gemini 4 Hydrogen): cheap flags in the VU0 handlers - EE -6..-13%, default ON
+- Title profile: sub_003BA2A0 (VU0 caller) 22% of EE, vu0fast ~17%. Only sticky status + final MAC/status are observable
+  for the straight-line programs -> per-op flag bookkeeping removed (exact end state).
+- Check: 0 mismatches / ~30M calls. A/B (FUNC off vs on, same exe, 2 rounds): EE title 17.7 -> 15.4, lobby 13.8 -> 12.3,
+  L1 15.4 -> 13.8, L2 13.7 -> 13.2, L4 12.8 -> 12.1; fps medians 59-60 in levels, title 56.5.
