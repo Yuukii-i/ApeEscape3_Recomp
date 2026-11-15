@@ -563,3 +563,9 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - A/B (AVX2 base vs AVX2+CG2, 2 rounds, route to L4): GameThread L1 15.5 -> 14.1, lobby 13.2 -> 12.1, L2 13.7 -> 13.1,
   L4 13.3 -> 12.8, title ~17.9 -> 17.8; fps median 59-60 everywhere except the title (54-58). Route identical, picture OK.
 - Main dev build switched to /arch:AVX2 (full rebuild).
+
+## 82. Task EH (scheduler scratch buffers, RPC log rate-limit) - no measurable gain, REVERTED
+- PROBE-EP caller chains (PS2X_PROF_EE_CHAIN, kept): ~2.2% of EE samples in EeScheduler heap churn
+  (processDueDeadlines/processPendingEvents/completeVSync/publishSnapshot), ~0.6% NtWriteFile from per-RPC logs.
+- A/B 2 rounds to L4: EE differences within noise (+-1 ms per segment). The log gating also hid [CID1:ReadPath] lines
+  (route-identity check). Reverted (git checkout), dev exe restored to the pre-EH build.
