@@ -650,3 +650,13 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - LLE runs are deterministic but take a different path than the no-audio recording after mark 2 (C407): need a new pad
   recording made with audio on before LLE can be default and benchmarked. Possible stereo collapse on the title theme (C408).
 - LLE stays default OFF until the user has listened and recorded a new route.
+
+## 93. BGM found and fixed: 64-bit branch sign tests (FIX-B64)
+- User (live LLE run + new route levels_run_audio): all sound except sequenced BGM; Dolby FMV dies at random with LLE (C410).
+- Driver has no sequencer; EE sequencer = 60 Hz INTC callback slot 0x401950 (table 0x746E40). PCSX2 (real lobby) vs ours:
+  song object state=2 in both, MIDI bytes identical, but ours never passes the event check: cmp(0, cur-next) = +1 instead
+  of -1 (soft-float __subdf3 path). Cause: generated BLTZ/BGEZ/BLEZ/BGTZ used GPR_S32 (old generator; current emits S64).
+- tools/fix_branch_s64.py (Gemini) rewrote 3762 branches in 2227 files (recomp_source local commit). Rebuild 35 min.
+  Result: sequencer advances, 538 key-ons in the BGM sample region (none before), route identical to mark 4 (138 reads),
+  louder capture everywhere. Waiting for user's ears (logs\b64a.wav).
+- TODO audit: regenerate recomp_source to a temp dir with the current generator and diff for other stale codegen.
