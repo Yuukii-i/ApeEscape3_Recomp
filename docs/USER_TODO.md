@@ -1,5 +1,19 @@
 # Things only the user can do (paste-ready)
 
+## 0. Play the fastest build (2026-11-15: AVX2 + direct calls + VU0 handlers + PGO, no logging)
+```powershell
+cd C:\ApeEscape3_Recomp
+Get-ChildItem env:PS2X_* -ErrorAction SilentlyContinue | ForEach-Object { Remove-Item "env:$($_.Name)" }
+$env:PS2X_GS_ASYNC = "1"
+$env:PS2X_VIF1_ASYNC = "1"
+$env:PS2X_GS_VULKAN = "1"
+$env:PS2X_VU1_KERNEL = "1"
+$env:PS2X_PRESENT_ASYNC = "1"
+$env:PS2X_PRESENT_GPU = "1"
+.\build\PS2Recomp\ps2xRuntime\ps2EntryRunner_pgo.exe SCUS_975.01 2> $null > $null
+```
+If anything looks wrong compared with ps2EntryRunner_dev.exe, tell me (and which off switch helps: docs/REVERSAL_MEMO.md).
+
 ## 1. Play other levels with VU1 verification + capture (helps the graphics decompilation)
 Plays normally (60 fps where possible). While you play:
 - every 128th VU1 program that uses one of the 17 newly decompiled handlers is re-checked against the exact interpreter

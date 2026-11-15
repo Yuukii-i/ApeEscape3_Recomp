@@ -581,3 +581,11 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - A/B: title fps median 55.5/57.0 -> 59.0/59.5; EE CPU unchanged (the writes were stalls, not CPU). Default ON.
 - State now (silent, user away, route to L4): fps medians 59-60 in every segment incl. title; EE ms/frame title ~14-16,
   lobby ~12-13, shop ~10.5, L1 ~13.5-14, L2 ~13, L4 ~12.
+
+## 85. PGO build (AVX2 + /GL + LTCG + route-trained profile) - best exe so far
+- build_pgo: Release, PS2X_DEV_BUILD=OFF (/GL + LTCG), /arch:AVX2, PS2X_PGO=GEN (~1 h idle) -> trained by
+  route_bench on levels_run to mark 11 (pgc 2.4 MB, ~6 min) -> PS2X_PGO=USE (link ~1 min).
+- A/B vs dev exe (AVX2+CG2+V0H+LG, no /GL), 2 rounds to L4: EE L1 16.6 -> 14.4, lobby 16.8 -> 13.0, shop 11.2 -> 10.1,
+  L2 15.0 -> 13.0 ms/frame; VIF L1 7.4 -> 5.7, VU1 8.4 -> 7.4; fps medians 58-60. Route identical; shot_pgo_1.png OK.
+- Installed as build\PS2Recomp\ps2xRuntime\ps2EntryRunner_pgo.exe (old Nov-4 pgo kept as _pgo_old20261104.exe).
+  Retrain after source changes: tools steps in memory project_pgo_build_workflow.
