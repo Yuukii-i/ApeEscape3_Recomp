@@ -14,6 +14,12 @@ $env:PS2X_PRESENT_GPU = "1"
 ```
 If anything looks wrong compared with ps2EntryRunner_dev.exe, tell me (and which off switch helps: docs/REVERSAL_MEMO.md).
 
+## 0b. (graphics decompilation) City level (level 4) SECOND area, with capture
+The monkeys run hit an un-decompiled VU1 program (entry 0x01C8, ~100k fallbacks) right after the city level's second
+area (stage ciscocity_b; your no-monkeys route never entered it). Please play the city level into its second area for
+a minute or two (catching a monkey or two there helps) using the block in section 1 below (it has PS2X_VU1_CAPTURE_FB=1),
+then close the game normally.
+
 ## 1. Play other levels with VU1 verification + capture (helps the graphics decompilation)
 Plays normally (60 fps where possible). While you play:
 - every 128th VU1 program that uses one of the 17 newly decompiled handlers is re-checked against the exact interpreter

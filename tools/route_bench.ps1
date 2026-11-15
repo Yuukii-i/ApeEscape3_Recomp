@@ -6,7 +6,8 @@ param(
     [hashtable]$Env = @{},
     [string]$Tag = "route",
     [string]$Names = "",
-    [int]$TimeoutS = 400
+    [int]$TimeoutS = 400,
+    [switch]$PerSecond
 )
 $ErrorActionPreference = "Continue"
 Set-Location C:\ApeEscape3_Recomp
@@ -57,6 +58,20 @@ $segs = New-Object System.Collections.Generic.List[object]
 $segStartT = 0.0
 $fpsCur = New-Object System.Collections.Generic.List[double]
 $offset = 0L; $partial = ""; $stopped = $false
+$secRows = New-Object System.Collections.Generic.List[object]; $secBase = @{}; $secFps = ""; $nextSec = 1.0
+function Add-Sec {
+    $d = @{}
+    foreach ($id in $cum.Keys) {
+        $b = 0.0; if ($secBase.ContainsKey($id)) { $b = $secBase[$id] }
+        $v = $cum[$id] - $b
+        if ($v -gt 0) { $n = $tname[$id]; if (-not $n) { $n = "other" }; if ($d.ContainsKey($n)) { $d[$n] += $v } else { $d[$n] = $v } }
+    }
+    $si = $segs.Count
+    $sn = if ($si -lt $nameList.Count) { $nameList[$si] } else { "seg$($si+1)" }
+    $script:secRows.Add([pscustomobject]@{ T=[math]::Round($sw.Elapsed.TotalSeconds,1); Seg="$si`:$sn"; Fps=$script:secFps; Cpu=$d })
+    $script:secBase = $cum.Clone(); $script:secFps = ""
+    $script:nextSec = [math]::Floor($sw.Elapsed.TotalSeconds) + 1.0
+}
 
 function Poll-Cpu {
     try { $proc.Refresh() } catch { return }
@@ -105,7 +120,7 @@ function Read-New {
     for ($i = 0; $i -lt $lines.Count - 1; $i++) {
         $l = $lines[$i]
         if ($l -match '\[fps\] FPS:\s*([0-9.]+)') {
-            $script:fpsCur.Add([double]::Parse($Matches[1], $inv))
+            $script:fpsCur.Add([double]::Parse($Matches[1], $inv)); $script:secFps = $Matches[1]
         } elseif ($l -match '\[padplay\] mark (\d+) reached') {
             $k = [int]$Matches[1]
             $lab = if ($k -le $nameList.Count) { $nameList[$k-1] } else { "seg$k" }
@@ -121,6 +136,7 @@ $timedOut = $false
 while (-not $proc.HasExited) {
     Poll-Cpu
     Read-New
+    if ($PerSecond -and $sw.Elapsed.TotalSeconds -ge $nextSec) { Add-Sec }
     if ($sw.Elapsed.TotalSeconds -gt $TimeoutS) {
         $timedOut = $true
         Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
@@ -176,3 +192,19 @@ foreach ($s in $segs) {
 }
 $out | ForEach-Object { Write-Host $_ }
 $out | Set-Content -Path $txtPath -Encoding UTF8
+
+if ($PerSecond) {
+    $sl = New-Object System.Collections.Generic.List[string]
+    $sl.Add("t,seg,fps," + (($cols | ForEach-Object { $_ + "_ms" }) -join ","))
+    foreach ($r in $secRows) {
+        $other = 0.0
+        foreach ($n in $r.Cpu.Keys) { if (-not $allThr.ContainsKey($n)) { $other += $r.Cpu[$n] } }
+        $vals = foreach ($c in $cols) {
+            $ms = if ($c -eq "other") { $other } elseif ($r.Cpu.ContainsKey($c)) { $r.Cpu[$c] } else { 0.0 }
+            $ms.ToString("F0", $inv)
+        }
+        $sl.Add(("{0},{1},{2},{3}" -f $r.T.ToString("F1",$inv), $r.Seg, $r.Fps, ($vals -join ",")))
+    }
+    $sl | Set-Content -Path "logs\route_${Tag}_sec.csv" -Encoding UTF8
+}
+
