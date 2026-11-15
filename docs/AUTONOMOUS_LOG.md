@@ -597,3 +597,20 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
 - PROBE-EP bad vs good L4 windows: same EE idle (12%), no function stands out -> the EE frame sits near 16.7 ms and timing
   jitter pushes single frames past a vblank (the real PS2 also hitches here). Fix = more EE headroom.
 - Next: CG4 (__restrict ctx/rdram locals in generated code, staged in tools/restrict).
+
+## 87. CG4 __restrict ctx/rdram (Sonnet applied + 63 min full build) - neutral, kept
+- recomp_source 5c3a730d6: 23347 functions get `__restrict` locals for ctx/rdram. Smoke to mark 3 OK.
+- A/B vs ps2EntryRunner_preCG4.exe, alternating, 2 rounds to L4 (logs\route_cg4ab_*.txt), route identical:
+  EE ms/frame pre vs new: title 16.7/17.8, lobby 15.9/13.5, shop 10.6/10.6, L1 15.9/15.9, L2 14.4/13.8, L4 12.9/13.2
+  -> noise. MSVC does not use the aliasing info (C403 refuted). Left in the source (harmless; reverting = 2 h rebuilds).
+- PGO exe unchanged (pre-CG4 objects, equivalent). Next EE lever must remove work, not hint the compiler.
+
+## 88. PERF-SA scheduler scratch reuse (Gemini 4 Hydrogen, EeScheduler.cpp only) - kept
+- PROBE-EP chains (ep88): ~1.8% of busy EE was heap alloc/free (ntdll shows it as RtlSizeHeap) from per-pass
+  std::vector/deque in processDueDeadlines / processPendingEvents / completeVSync. Now thread_local scratch with a
+  depth guard (guest IRQ handlers re-enter the scheduler).
+- ep89: heap chain samples 1925 -> 1058 (left: publishSnapshot per vblank 581, DMA cause queue 189).
+  A/B 2 rounds vs ps2EntryRunner_preSA.exe, route identical (283 reads): EE L1 15.0->14.6, L2 13.2->12.8,
+  L4 12.7->12.5, title/hub noisy. Exact, small; kept.
+- Remaining EE glue (ep87): ps2Dcall 5.4% (not inlined by MSVC), checkpointDue 4.4%, isSpecialAddress 1.6%,
+  dispatchGuestBranch 1.5%. Inlining needs a header change -> batch it into the next full rebuild.
