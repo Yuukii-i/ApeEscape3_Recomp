@@ -30,3 +30,6 @@ marks: 1 1508, 2 2828, 3 3954, 4 5980, 5 13710, 6 20916, 7 29873 (locations: ask
 
 ## Perf notes from the user
 Slowdowns sit where the real PS2 also hitches (level 2 part 2, level 4, level 5 gymnastics zone).
+
+## levels_run_audio (user, 2026-11-15, recorded WITH PS2X_SG2_LLE=1; replay only with LLE on)
+Marks: 1 menu, 2 lobby, 3 L1 start, 4 L1 end, 5 L2 start, 6 L2 end (recording ends at 6). Dolby FMV skipped early (it dies randomly with LLE).
