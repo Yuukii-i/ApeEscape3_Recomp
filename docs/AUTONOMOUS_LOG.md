@@ -589,3 +589,11 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
   L2 15.0 -> 13.0 ms/frame; VIF L1 7.4 -> 5.7, VU1 8.4 -> 7.4; fps medians 58-60. Route identical; shot_pgo_1.png OK.
 - Installed as build\PS2Recomp\ps2xRuntime\ps2EntryRunner_pgo.exe (old Nov-4 pgo kept as _pgo_old20261104.exe).
   Retrain after source changes: tools steps in memory project_pgo_build_workflow.
+
+## 86. Level-4 dips explained (PROBE-GT, Gemini 4 Hydrogen + Sonnet compile fix)
+- L4 (city) has seconds at 34-47 fps while the game still kicks ~60 frames/s. PROBE-GT: every lost frame is
+  `skip_nokick` (a vblank arrives before the next GS kick, so nothing new is latched; the next vblank then shows only the
+  latest of two kicks). GPU present ~0.8 ms, no coalescing elsewhere -> not GPU/present-bound.
+- PROBE-EP bad vs good L4 windows: same EE idle (12%), no function stands out -> the EE frame sits near 16.7 ms and timing
+  jitter pushes single frames past a vblank (the real PS2 also hitches here). Fix = more EE headroom.
+- Next: CG4 (__restrict ctx/rdram locals in generated code, staged in tools/restrict).

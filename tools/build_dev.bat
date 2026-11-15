@@ -30,7 +30,7 @@ for /f "delims=" %%i in ('powershell -NoProfile -Command "$s = [Math]::Round(((G
 if %BUILD_ERR% equ 0 (
     if not exist build\PS2Recomp\ps2xRuntime mkdir build\PS2Recomp\ps2xRuntime
     copy /Y build_avx2\PS2Recomp\ps2xRuntime\ps2EntryRunner_dev.exe build\PS2Recomp\ps2xRuntime\ps2EntryRunner_dev.exe >nul
-    echo BUILD OK %DURATION%s build\PS2Recomp\ps2xRuntime\ps2EntryRunner_dev.exe (avx2)
+    echo BUILD OK %DURATION%s build\PS2Recomp\ps2xRuntime\ps2EntryRunner_dev.exe ^(avx2^)
     del build_dev_output.tmp 2>nul
     exit /b 0
 ) else (
