@@ -620,3 +620,14 @@ Consequence: an exact two-thread VU1 executor is possible: alternate MSCALs, per
   build\PS2Recomp\ps2xRuntime\ps2EntryRunner_pgo.exe; previous kept as ps2EntryRunner_pgo_preSA.exe.
 - A/B 2 rounds to L4 vs pgo_preSA, route identical: EE ms/frame title 16.5->15.1, lobby 12.6->12.5, L1 14.2->13.6,
   L2 13.6->13.0, L4 12.4->11.9; fps medians 58-60 everywhere.
+
+## 90. PERF-CF crash-handler flush (Sonnet) - neutral, kept; route_bench cwd fix
+- PROBE-EP chains (ep90): NtWriteFile on the EE came from ps2xCrashHandler (vectored handler) calling ps2xFlushLog()
+  on EVERY exception, incl. ~120/s EeDispatcherTransfer throws in blockCurrent (SleepThread/WaitVSync).
+  Now flushes only for error-severity codes (0xC...). ep91: EE NtWriteFile samples 2123 -> 126.
+- Alternating A/B vs ps2EntryRunner_preCF.exe, 2 rounds, route identical: EE title -0.9, lobby +1.9 (both rounds),
+  L2 +0.6, shop/L1/hub/L4 +-0.3 -> neutral; fps medians equal. Play runs log to NUL, so no PGO retrain for this.
+- route_bench.ps1: sets [Environment]::CurrentDirectory (.NET FileStream used the process cwd; a background run
+  started in PS2Recomp silently parsed nothing).
+- Also seen (ep90): every guest IO register write does an unordered_map insert (m_ioRegisters, header type) ~0.5%;
+  -> header batch with ps2Dcall slimming.

@@ -11,6 +11,7 @@ param(
 )
 $ErrorActionPreference = "Continue"
 Set-Location C:\ApeEscape3_Recomp
+[Environment]::CurrentDirectory = (Get-Location).ProviderPath  # fix: .NET relative paths
 $inv = [System.Globalization.CultureInfo]::InvariantCulture
 
 if (-not ([System.Management.Automation.PSTypeName]'Win.Thr').Type) {
