@@ -23,7 +23,9 @@ marks: 1 1508, 2 2828, 3 3954, 4 5980, 5 13710, 6 20916, 7 29873 (locations: ask
 ## Known crashes (bug phase, all pre-existing per user)
 - Level 3 (castle): crashes on enter. Boss 1 (monkey in mecha dragon) reuses its assets: untested.
 - Level 5 (studio): the door to the gymnastics studio crashes (PS2 also stutters there).
-- Level 6 (halloween): falling into water crashes (since first gameplay).
+- Level 6 (halloween): falling into water crashed (since first gameplay). FIXED 2026-11-16 (C423, FIX-CR2): split
+  function at a jal delay slot left the return address unregistered. Repro: logs\water_fwd.padrec (stick forward after mark 1).
+- Unmorph (manual R1+R2 or timer): crashed, same cause (C423). FIXED. Repro: logs\morph_r1r2.padrec (R1+R2 after mark 1).
 - Monkeys route: a crash ~30 s after mark 7 (level unknown); a second run crashed in the same level (logs\crash2.*).
 - Bunny-costume monkeys: ear physics randomly explode (spikes) then recover.
 - Sound effects: occasional random glitches (with PS2X_SG2_LLE=1).
