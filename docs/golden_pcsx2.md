@@ -237,3 +237,34 @@ Chunk ring read per group: audio 16 KB (cmd1 flags=1) then video (cmd1 flags=0);
 - 8/25 in 0x3ABA20-0x3AEF78 (float compare loop at 0x3AC0F0-0x3AC150: lhu index, lwc1, c.le.s; a sort/sift), rest spread
   (0x239D20, 0x23CC40, 0x2422D8, 0x244F14, 0x3B8098, 0x3C1F00, 0x441F68, 0x4FCC20).
 - => real EE is ~85-90% busy per frame at the menu (coarse; pause lands on block boundaries). Backtrace tool returned stale frames.
+
+## 29 Movie stream start: refill vs read issue vs read latency (PCSX2, 2026-11-15, dolby + intro)
+ 3F7BA8 refill (obj 0x1900E00) uses voice-0 pos only; enqueues cmd1 (a3=consumed=0x4000) on every pos step. Stream start: pos 0->0x4000 then 0x4000->0x8000 only ~3.3 vblanks later (dolby 904.32M/920.31M cyc; intro 2370.51M/2386.83M), then ~18 vblanks per step. L/R pos also skew in the real game (0xC000/0x8000 seen).
+ Read issue 0x24CA3C: intro E1 read issued 487 cyc after E1 (frame 0); E2 (frame 2, dev30=2) read deferred to the frame-0x12 group boundary (2462.21M, dev30=0 at issue); dolby same (999M at frame 0x12, 1089M at 0x24). Exactly ONE audio+video pair per boundary; backlog drains one per group.
+ CID1 slot while in flight: word2=0x0E000000 word3=0 (slots 0x771BBC/0x771BCC); done: word2=0x8E00<size> word3=<size> (audio 0x4000, video 0x1800). Pair issued 2462.21M, first poll (1DA880 from 0x24CC54) seeing done = 2472.05M = next F tick (~2 vblanks). Recomp HLE sets the done bit synchronously inside the request (RPC.cpp ~2470-2481).
+
+## 30 Dolby movie end-of-stream (PCSX2, 2026-11-16, total 0xFB)
+Read pair = audio read at 24CA3C (a2=0x4000) then video read at 24CB10; [ctx+0x58]=video size, +0x74=group.
+| frame | +0x6C | group | video size | notes |
+| 0xA6 | 0xA2 | 0xA | 0x1D800 | pair; dev30 1 during video issue |
+| 0xB4 | 0xB4 | 0xB | 0x24800 | pair; refill (3F7C28) right after, a3=0x4000, s3=-0x18000, [+0x248]=0x3C000, [+0x244]=0x58000 |
+| 0xC4 | - | - | - | refill only |
+| 0xC6 | 0xC5 | 0xC | 0x17000 | pair |
+| 0xD6 | - | - | - | refill only |
+| 0xD8 | 0xD7 | 0xD | 0x800 | pair (tiny last video chunk) |
+| 0xE8 | - | - | - | refill only |
+| 0xEA | 0xE9 | 0xE | 0 | AUDIO ONLY (no 24CB10 hit); slot done 0x8E000000 = 0-byte reply |
+| 0xFA | - | - | - | refill; state still 9, movie plays to the end |
+Every [+0x58] value differs per group (never reused). One pair per group, about 18 frames apart, to the end.
+
+## 31 Movie frame clock (PCSX2, 2026-11-16, intro)
+- Movie update 24C164(ctx, step) is called from wrapper 24CE28(step) <- 4E2DF8. step = [0x696FD8] delta (31A514 returns [0x696FD8], latched from [0x696FD0] = game vblank count). Intro: step=2 (30 Hz loop).
+- 24C4D4 (state 9): audio pos = 3F7780(stream, voice 0) compared with [ctx+0x84]; 24C52C-24C558 gates the frame advance against [[ctx+0x4C]+0x10]. Frame = f([ctx+0x60] += step) via 24B840 when [0x635480]==1.
+- Read pairs (24CA3C) are issued from the SG2 stream callback dispatcher 24CD04 (event switch at 0x6EB008), i.e. driven by AUDIO consumption, not by video frames.
+
+## 32 SG2 stream event queue drives movie reads (PCSX2, 2026-11-16, dolby start)
+- Stream obj 0x1900E00 has a 32-entry FIFO: head [+0x228], tail [+0x22C], entry i at +0xA8+12*i = {event, a2, a3}.
+- Push 3F7850(obj, ev, a2, a3): append; if ev==1 and ([obj+8] & 8) also append ev 8 (a2=a3=0). Refill 3F7BA8 pushes ev 1 at 3F7C28, so every refill queues [1, 8].
+- Drain 3F7A18 (called from 3F7E38 every movie update = every 2 vblanks, before refill 3F7BA8, and again after it if the tail moved): calls callback [gp-0x7A60]=24CD04(ctx, ev, a2, a3) for the head entry; result -2 keeps the entry and stops the drain (strict FIFO), else pops.
+- 24CD04 jump table 0x6EB008: ev1 -> 24CD58: busy (24CBFC: audio job [ctx+0x10] or video job [ctx+0xC] not done) -> -2, else 24CA3C pair. ev8 -> 24CDAC: busy -> -2; state 8 -> -2; frame [ctx+0x64] > 0 and < [ctx+0x6C] + [[ctx+0x48]] (group len 18) -> -2; else 24C7DC (take chunk: [ctx+0x6C]=frame, new [ctx+0x58] size), clear +0x7D.
+- Observed: refill at frame 2, its ev1 delivered at 0x12; at 0x24: ev1 -> pair (v0 0), ev8 -> -2 (reads in flight), refill push [1,8], ev8 -> -2 again; 0x26 ev8 -> -2; at 0x36 [ctx+0x6C]=0x36 (ev8 taken), then refill pushes 1 then 8. One pair per 18-frame boundary.
