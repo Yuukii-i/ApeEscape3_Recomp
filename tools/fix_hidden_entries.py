@@ -8,7 +8,7 @@ j/jr (+ delay slot) or starts with an `addiu sp,sp,-N` prologue, this script
   1. adds `label_<pc>:` before that instruction's block if the function has no such label,
   2. adds `case 0x<pc>u: goto label_<pc>;` to the entry switch,
   3. registers the pc in register_functions.cpp.
-Idempotent. Patches recomp_source in place. Usage: python tools/fix_hidden_entries.py [--dry] [--from-logs] [--logs-only] [--split-returns] [--addrs <path>]"""  # FIX-CR4
+Idempotent. Patches recomp_source in place. Usage: python tools/fix_hidden_entries.py [--dry] [--from-logs] [--logs-only] [--split-returns] [--split-jumps] [--addrs <path>]"""  # FIX-CR5
 import bisect, pathlib, re, struct, sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -18,6 +18,7 @@ DRY = "--dry" in sys.argv
 LOGS_ONLY = "--logs-only" in sys.argv  # FIX-CR1
 FROM_LOGS = "--from-logs" in sys.argv or LOGS_ONLY  # FIX-CR1
 SPLIT_RETURNS = "--split-returns" in sys.argv  # FIX-CR2
+SPLIT_JUMPS = "--split-jumps" in sys.argv  # FIX-CR5
 ADDRS_PATH = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--addrs=")), None)  # FIX-CR4
 if ADDRS_PATH is None and "--addrs" in sys.argv:  # FIX-CR4
     ADDRS_PATH = sys.argv[sys.argv.index("--addrs") + 1]  # FIX-CR4
@@ -121,15 +122,39 @@ if SPLIT_RETURNS:  # FIX-CR2
     split_lines = ["0x%x (in 0x%x)" % (w, c[0]) for w, c in split_sorted]  # FIX-CR2
     (ROOT / "tools" / "split_returns.txt").write_text("\n".join(split_lines) + ("\n" if split_lines else ""), encoding="utf-8")  # FIX-CR2
 
+jump_cands = {}  # FIX-CR5
+if SPLIT_JUMPS:  # FIX-CR5
+    for j in range(code_lo, code_hi, 4):  # FIX-CR5
+        ins = word(j)  # FIX-CR5
+        op = ins >> 26  # FIX-CR5
+        target = None  # FIX-CR5
+        if op == 2:  # FIX-CR5
+            target = ((j + 4) & 0xF0000000) | ((ins & 0x03FFFFFF) << 2)  # FIX-CR5
+        elif op in (4, 5, 6, 7, 20, 21, 22, 23) or (op == 1 and ((ins >> 16) & 0x1F) in {0, 1, 2, 3, 16, 17, 18, 19}):  # FIX-CR5
+            imm16 = ins & 0xFFFF  # FIX-CR5
+            if imm16 & 0x8000:  # FIX-CR5
+                imm16 -= 0x10000  # FIX-CR5
+            target = j + 4 + (imm16 << 2)  # FIX-CR5
+        if target is not None:  # FIX-CR5
+            c = containing(target)  # FIX-CR5
+            if c and c[0] != target and containing(j) != c and target not in registered:  # FIX-CR5
+                jump_cands.setdefault(target, j)  # FIX-CR5
+    jump_sorted = [(w, containing(w), jump_cands[w]) for w in sorted(jump_cands)]  # FIX-CR5
+    print("split-jumps candidates:", len(jump_sorted))  # FIX-CR5
+    for w, (fstart, _fend, _fpath), src in jump_sorted[:30]:  # FIX-CR5
+        print("  0x%x (in 0x%x, from 0x%x)" % (w, fstart, src))  # FIX-CR5
+    jump_lines = ["0x%x (in 0x%x, from 0x%x)" % (w, c[0], src) for w, c, src in jump_sorted]  # FIX-CR5
+    (ROOT / "tools" / "split_jumps.txt").write_text("\n".join(jump_lines) + ("\n" if jump_lines else ""), encoding="utf-8")  # FIX-CR5
+
 todo = []
 base_cands = (log_cands | addr_cands) if (LOGS_ONLY or ADDRS_PATH is not None) else (set(cands) | log_cands)  # FIX-CR4
-for w in sorted(base_cands | split_cands):  # FIX-CR2
+for w in sorted(base_cands | split_cands | set(jump_cands)):  # FIX-CR5
     if (w & 3) != 0:  # FIX-CR1
         continue  # FIX-CR1
     c = containing(w)
     if not c or c[0] == w or w in registered:
         continue
-    if w in log_cands or w in addr_cands or w in split_cands or uncond(word(w - 8)) or ((word(w) >> 16) == 0x27BD and (word(w) & 0x8000)):  # FIX-CR4
+    if w in log_cands or w in addr_cands or w in split_cands or w in jump_cands or uncond(word(w - 8)) or ((word(w) >> 16) == 0x27BD and (word(w) & 0x8000)):  # FIX-CR5
         todo.append((w, c))
 print("hidden entries to patch:", len(todo))
 for w, (fstart, _fend, _fpath) in todo:  # FIX-CR1
