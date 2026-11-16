@@ -284,3 +284,8 @@ Every [+0x58] value differs per group (never reused). One pair per group, about 
 - 0xA1550C / 0xB8550C: `11000000` FLUSH, then `87002000` MARK 0x2000 WITH i-bit.
 - No `87004000` anywhere in RAM. Real VIF raises the interrupt only for the i-bit; MARK alone never interrupts.
 
+
+## §35 Load-screen display (PCSX2 slot 5 = save load fade)
+- sceGsPutDispEnv-like 0x51E3D4 copies env at 0x784700 to GS each frame, same values in play AND ~3 s into the load: PMODE 0x8063 (EN1+EN2, MMOD, AMOD, ALP 0x80), DISPFB1=DISPFB2=0x1070 (fbp 0x70, fbw 8, psm 0), DISPLAY1 0x001BF9FF_0203228C / DISPLAY2 ..0203328C (1-line offset).
+- Frame draw 0x3B3A90 (from main loop 0x1037E8) keeps running during the load.
+
