@@ -70,7 +70,7 @@ Requirements: Windows, Visual Studio (MSVC, C++20), CMake, the Vulkan SDK (for t
 The game-derived sources are **not** in this repository and must be generated locally from your own copy of the executable:
 
 1. Generate `recomp_source/` from `SCUS_975.01` with the recompiler (`docs/REGEN.md`).
-2. The generator has not been re-run for several fixes, so apply these in-place patch scripts to `recomp_source/` (all are idempotent): `tools/fix_vu0_flags.py`, `tools/fix_sqrt_s.py`, `tools/fix_vu0_q.py`, `tools/fix_vu0_r.py`, `tools/fix_delay_slots.py`, `tools/fix_branch_s64.py` (64-bit sign tests in branches; without it the music never plays).
+2. The generator has not been re-run for several fixes, so apply these in-place patch scripts to `recomp_source/` (all are idempotent): `tools/fix_vu0_flags.py`, `tools/fix_sqrt_s.py`, `tools/fix_vu0_q.py`, `tools/fix_vu0_r.py`, `tools/fix_delay_slots.py`, `tools/fix_branch_s64.py` (64-bit sign tests in branches; without it the music never plays), and `tools/fix_hidden_entries.py --addrs tools/hidden_entries.txt --split-returns` (registers functions and call-return points the splitter hid; without it entering water and un-morphing crash).
 3. Generate the VU native code into `PS2Recomp/ps2xRuntime/src/lib/vu/generated/` with `tools/vu1gen/gen_vu1_native.py` and `tools/vu1gen/gen_vu1_hot.py` (these files are Sony-derived and are not tracked).
 
 ```

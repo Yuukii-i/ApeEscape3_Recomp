@@ -8,7 +8,7 @@ j/jr (+ delay slot) or starts with an `addiu sp,sp,-N` prologue, this script
   1. adds `label_<pc>:` before that instruction's block if the function has no such label,
   2. adds `case 0x<pc>u: goto label_<pc>;` to the entry switch,
   3. registers the pc in register_functions.cpp.
-Idempotent. Patches recomp_source in place. Usage: python tools/fix_hidden_entries.py [--dry] [--from-logs] [--logs-only] [--split-returns]"""  # FIX-CR2
+Idempotent. Patches recomp_source in place. Usage: python tools/fix_hidden_entries.py [--dry] [--from-logs] [--logs-only] [--split-returns] [--addrs <path>]"""  # FIX-CR4
 import bisect, pathlib, re, struct, sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -18,6 +18,9 @@ DRY = "--dry" in sys.argv
 LOGS_ONLY = "--logs-only" in sys.argv  # FIX-CR1
 FROM_LOGS = "--from-logs" in sys.argv or LOGS_ONLY  # FIX-CR1
 SPLIT_RETURNS = "--split-returns" in sys.argv  # FIX-CR2
+ADDRS_PATH = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--addrs=")), None)  # FIX-CR4
+if ADDRS_PATH is None and "--addrs" in sys.argv:  # FIX-CR4
+    ADDRS_PATH = sys.argv[sys.argv.index("--addrs") + 1]  # FIX-CR4
 TAG = "// C334"
 
 elf = ELF.read_bytes()
@@ -93,6 +96,14 @@ if FROM_LOGS:  # FIX-CR1
                     if m:  # FIX-CR1
                         log_cands.add(int(m.group(1), 16))  # FIX-CR1
 
+addr_cands = set()  # FIX-CR4
+if ADDRS_PATH is not None:  # FIX-CR4
+    with open(ADDRS_PATH, encoding="utf-8", errors="replace") as fh:  # FIX-CR4
+        for line in fh:  # FIX-CR4
+            line = line.split("#", 1)[0].strip()  # FIX-CR4
+            if line:  # FIX-CR4
+                addr_cands.add(int(line, 16))  # FIX-CR4
+
 split_cands = set()  # FIX-CR2
 if SPLIT_RETURNS:  # FIX-CR2
     for j in range(code_lo, code_hi, 4):  # FIX-CR2
@@ -111,14 +122,14 @@ if SPLIT_RETURNS:  # FIX-CR2
     (ROOT / "tools" / "split_returns.txt").write_text("\n".join(split_lines) + ("\n" if split_lines else ""), encoding="utf-8")  # FIX-CR2
 
 todo = []
-base_cands = log_cands if LOGS_ONLY else (set(cands) | log_cands)  # FIX-CR2
+base_cands = (log_cands | addr_cands) if (LOGS_ONLY or ADDRS_PATH is not None) else (set(cands) | log_cands)  # FIX-CR4
 for w in sorted(base_cands | split_cands):  # FIX-CR2
     if (w & 3) != 0:  # FIX-CR1
         continue  # FIX-CR1
     c = containing(w)
     if not c or c[0] == w or w in registered:
         continue
-    if w in log_cands or w in split_cands or uncond(word(w - 8)) or ((word(w) >> 16) == 0x27BD and (word(w) & 0x8000)):  # FIX-CR2
+    if w in log_cands or w in addr_cands or w in split_cands or uncond(word(w - 8)) or ((word(w) >> 16) == 0x27BD and (word(w) & 0x8000)):  # FIX-CR4
         todo.append((w, c))
 print("hidden entries to patch:", len(todo))
 for w, (fstart, _fend, _fpath) in todo:  # FIX-CR1

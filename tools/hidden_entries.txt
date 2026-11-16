@@ -1,0 +1,9 @@
+# Real functions hidden inside another generated range, reached only through pointers (HYPOTHESES C422).
+# Found as [guest-fallback-interp] targets; without registration they run in the fallback interpreter, which skips
+# LDL/LDR/SDL/SDR, LWC1/SWC1, MMI, ... Use: python tools/fix_hidden_entries.py --addrs tools/hidden_entries.txt --split-returns
+0x5576ac
+0x580190
+0x582ae4
+0x599e4c
+0x59a188
+0x5ae620
