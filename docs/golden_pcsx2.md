@@ -268,3 +268,19 @@ Every [+0x58] value differs per group (never reused). One pair per group, about 
 - Drain 3F7A18 (called from 3F7E38 every movie update = every 2 vblanks, before refill 3F7BA8, and again after it if the tail moved): calls callback [gp-0x7A60]=24CD04(ctx, ev, a2, a3) for the head entry; result -2 keeps the entry and stops the drain (strict FIFO), else pops.
 - 24CD04 jump table 0x6EB008: ev1 -> 24CD58: busy (24CBFC: audio job [ctx+0x10] or video job [ctx+0xC] not done) -> -2, else 24CA3C pair. ev8 -> 24CDAC: busy -> -2; state 8 -> -2; frame [ctx+0x64] > 0 and < [ctx+0x6C] + [[ctx+0x48]] (group len 18) -> -2; else 24C7DC (take chunk: [ctx+0x6C]=frame, new [ctx+0x58] size), clear +0x7D.
 - Observed: refill at frame 2, its ev1 delivered at 0x12; at 0x24: ev1 -> pair (v0 0), ev8 -> -2 (reads in flight), refill push [1,8], ev8 -> -2 again; 0x26 ev8 -> -2; at 0x36 [ctx+0x6C]=0x36 (ev8 taken), then refill pushes 1 then 8. One pair per 18-frame boundary.
+
+## 33 VIF1 interrupt protocol per frame (PCSX2, 2026-11-16, level 5 after the upper-left door, savestate slot 4)
+- Two VIF1 (INTC cause 5) interrupts per frame, one frame per vblank (~4.9M cyc): handler 2843D4 reads VIF1_MARK
+  (0x10003C30) at 2843F8: first MARK=0x4000 (-> iSignalSema [0x649DE0] = sema 3, NO STC), ~0.5M cyc later MARK=0x2000
+  (-> [0x649DE4]++, FBRST=8 STC at 284450).
+- Sema 3 wakes the VIF1 service thread (fn 284268, own stack sp=0x64AD90): loop { wait (435A00); t7=[VIF1_MARK];
+  [VIF1_MARK]=0; s2=t7&0xFFFF; if !(t7&0x4000) continue; FBRST=8 (STC, write at 2842B8 seen by watchpoint right after
+  the 0x4000 IRQ); 2845DC(s2); 2845F8(s2) -> per-mark job object, virtual call [[obj]+0xC]; s1=0x10009000 (D1) }.
+- So VIF1 STALLS on the IRQ-bit VIFcode until STC; the service thread restarts it after reading MARK 0x4000.
+- Setup 2844C4..: CreateSema -> [0x649DE0]; AddIntcHandler(5, 2843D4); EnableIntc(5).
+
+## §34 Level 5 door: which VIFcodes carry the IRQ bit (PCSX2 slot 4, RAM pattern search)
+- 0xA6FD08 / 0xBDFD08 (double buffer): `07004000` MARK 0x4000 WITHOUT i-bit, then `91000000` FLUSH WITH i-bit.
+- 0xA1550C / 0xB8550C: `11000000` FLUSH, then `87002000` MARK 0x2000 WITH i-bit.
+- No `87004000` anywhere in RAM. Real VIF raises the interrupt only for the i-bit; MARK alone never interrupts.
+
