@@ -245,3 +245,27 @@ Note: runtime image hash = FNV-1a64 with the non-standard basis 1469598103934665
   3A2D98 (1448 calls) and 3A2558 (3) never checkable: every call yields at a checkpoint -> needs targeted no-yield checks
   (PS2X_EEDC_NOYIELD, uses the CM g_ps2xSuppressCheckpoint hook only for listed entries; CM rejected only as global).
 - verE (sampled, all entries, 5 stages): 398 entries 10945 checks 0 mismatches (confirms DK thunk refactor). 3A4750/3A47F8 exact. verF/G/H/I: 3A13B4 fixed (DL) exact; 3A2D98 needs NOYIELD + CONTMAX=200000 + IGNORE_RAM=0x772720:48 (timer words, EE-10) -> 1271/1271 exact.
+
+## 2026-11-18 - direct render path started (docs/RENDER_DIRECT_PLAN.md)
+- Baseline bench (logs/base_on_bench.txt): 60 fps everywhere, 24-46 ms CPU/frame, emulation side ~2/3. PRESENT_GPU: no gain.
+- FEAT-BGWIN (PS2Recomp PR #3): PS2X_WINDOW_BACKGROUND=1, test runs open unfocused at the bottom of the z-order.
+- R0 already existed (PERF-SA scene buffer). RD1 (recomp/render-direct-r1a, 61de155): PS2X_RD_VIEW=1 draws the scene
+  buffer with an own OpenGL pass at window resolution (vertex colour + depth), F11 toggles. Needs PS2X_RD_FLIP=1 (y).
+  travel_a/toyhouse_a: ~28-33k tris/frame, geometry matches the GS shots (logs/shots/rd1f1_*, rd1ref_*), 58-60 fps.
+  Missing: textures, GS state (blend/alpha test, invisible helper draws show as grey), clipped polys (~210 draws/frame), sky, HUD.
+- Next: RD2 = GS state join per scene draw (kick serial), RD3 = textures from VRAM (decode + cache = texture-replacement hook).
+- RD2 (22321c3): shadow A+D parser on the VU1 kick path -> per-draw GS state; blend/alpha test/depth applied. Bug found:
+  rlSetBlendMode flushes raylib's batch and unbinds our program -> rebind after blend changes.
+- RD3 (5d1ae71): textures decoded from the CPU VRAM copy, cached by content hash (future replacement key). This game draws
+  with TEX0 CLD=0/CBP=0 (palette pre-loaded into the CLUT cache by other TEX0 writes), so the Vulkan backend notes the active
+  CLUT per indexed texture (ps2xRdNoteClut). travel_a/toyhouse_a render textured at window res (logs/shots/rd3c_*).
+  Open: sky + near geometry (clip polygons, RD4 in progress), HUD (prebuilt GIF packets, not in scene buffer), some floor
+  textures wrong, cost (toyhouse 47 fps with view on, 245 texture decodes/s).
+- RD4 (0f970e5): VU1-clipped polygons drawn as fans -> sky and near geometry; hub matches the GS shot.
+- RD5 (b82042a): exact per-draw textures. woods_a streams several textures through one VRAM slot per frame -> kick serial
+  carried in the GIF stream as a GS NOP (0x7F) write; GS thread notes texture content + active CLUT per kick. Cost fixes
+  (PROBE-RDP): CLUT pointer from the instance that loads it (black textures), fast cache by VRAM page generation + CLUT
+  generation, CRC32C of raw pages before any texel decode (game re-uploads ~2.7 MB/frame of identical textures):
+  noteDraw 18.5 -> 0.45 ms/frame. View ON: toyhouse 41 fps / woods 55 (Vu1Exec +7 ms = scene recording); OFF: 59/59
+  unchanged. Visuals match GS shots in woods_a, toyhouse_a, castle_a, snowfesta_f; open: white drop-shadow quads, HUD.
+- RD6 in progress: texture replacement by content hash (mods/textures/<hash>.png, any resolution).
