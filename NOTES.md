@@ -1449,3 +1449,7 @@ GK (opt-in, env PS2X_GS_ASYNC=1, default OFF): GIF arbiter drain() hands sorted 
 FIX-VARARG-STACK: Support.h Ps2VarArgCursor stack args now at sp+0, 8-byte slots (EE ABI, verified in PCSX2). Not a hack: ABI correction in native printf-family stubs.
 VU1 native executor (stage 1): generated per-pair constants + vu1_native_body.inc in ps2_vu1_core.cpp; exact by construction, bypassed in probes/verifier ref pass. Not a hack.
 PERF-VK (opt-in, env PS2X_GS_VULKAN=1, default OFF): Vulkan GS backend wraps GSCpuBackend (ps2_vk_gs_backend.cpp). Hack: `#define private public` around the single gs_cpu_backend.h include in that file to read m_clut (avoids a header edit/full rebuild); layout unchanged. GPU draws triangles/sprites only; approximations vs CPU: float contraction may differ by 1 LSB, texture reads see live VRAM (CPU path caches pages until TEXFLUSH). PS2X_GS_COMPARE=1 reports per-present VRAM diffs vs a reference CPU backend.
+
+- FEAT-DE/DE2 (2026-11-18, feature, off by default): MC switch. PS2X_MC=boy|girl or F8. Writes guest u32 0x649910 (0 boy/1 girl) when the game sets it (save load/char select, per-frame poll) and at the mission screen request (/etc/norma/). Saving afterwards stores the new MC.
+
+- FEAT-DF (2026-11-18, dev tool, inert without logs\dev_cmd.txt): dev console. warp replaces one frame of the area-scene update (0x4DE1A4) with the game's own scene creation (0x20C378 + 0x208BF4).

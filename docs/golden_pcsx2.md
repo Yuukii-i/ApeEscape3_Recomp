@@ -289,3 +289,25 @@ Every [+0x58] value differs per group (never reused). One pair per group, about 
 - sceGsPutDispEnv-like 0x51E3D4 copies env at 0x784700 to GS each frame, same values in play AND ~3 s into the load: PMODE 0x8063 (EN1+EN2, MMOD, AMOD, ALP 0x80), DISPFB1=DISPFB2=0x1070 (fbp 0x70, fbw 8, psm 0), DISPLAY1 0x001BF9FF_0203228C / DISPLAY2 ..0203328C (1-line offset).
 - Frame draw 0x3B3A90 (from main loop 0x1037E8) keeps running during the load.
 
+
+## MC (main character) selector - 2026-11-18 [pcsx2]
+- Savestates 7 (female picked at char select) / 8 (male) diffed via eeMemory.bin in the .p2s zips.
+- 0x649910 (u32, ELF .data): 1 = female (asset prefix g_), 0 = male (prefix b_). [CONFIRMED pcsx2 read watchpoint]
+- Readers seen while loading the tutorial: 0x34A82C (player object create 'pl', passes it as a2 to 0x350C18),
+  0x4E6EB4 (bnez -> female path), 0x435FB0 (generic getter, called from 0x4041C4/0x51E484 = script engine?),
+  0x21FEBC. No WRITE during the tutorial stage load (write watchpoint, slot 7) -> set at char select / save load.
+- Per-MC assets: player/{b,g}_<morph>/pl_{b,g}_<morph>.pck/.eff/.eft, demo/sNNNx_{b,g}.*, pl_g_nrm_skirt2 (female only).
+
+## Scene / stage-change system - 2026-11-18 [pcsx2, slots 1 (hub -> woods_a) and 2 (woods_a -> woods_b)]
+- Scene manager global 0x635530 = {cur scene*, next}. Scene thread loop 0x15A504: first frame calls vtable[0] (init),
+  then each frame v0 = vtable[2](scene) (update); v0 != 0 -> v0 becomes the next scene. vtable[1] called on switch.
+- Area scene (stage + spawn), vtable 0x6ADE10 = {init 0x4DDFA4, 0x4DE3BC, update 0x4DE1A4, 0x4DE42C, 0x4DE49C}.
+  The in-level gameplay scene IS this type (slot 2 cur scene 0x88C140 has vtable 0x6ADE10).
+  Object: +0x10 stage name[32] ("woods_b"), +0x30 spawn name[32] ("player_b1"), +0x50 u8 flag, +0x54, +0x58 ints.
+  ctor 0x4DDF20(this, block[0x50]) ; factory 0x20C378(a0=stage*, a1=spawn*) -> obj (flag=1; spawn "" = default);
+  factory 0x20C3F8 (5 callers). Callers wrap the result: v0 = 0x208BF4(obj) (allocs 0x20-byte wrapper vtable
+  0x6ADA88, transition) and return it up the update chain (e.g. 0x4987B4).
+  init 0x4DDFA4 -> 0x255784(stage name) builds "/stage/%s" (0x6EB830) and loads it.
+- Stage-entry scene (hub -> level with mission screen), vtable 0x6AE2A8 = {init 0x4E5E54, 0x4E6A80, update 0x4E6D14, ..}.
+  Object +0x10 stage name ("woods_a"); factory 0x4E5B90 (caller 0x22054C). init -> 0x255A4C(stage) compares with
+  current stage name at 0x649650 and loads; writes state keys next_stage_choice / stage_progress_entered (0x3714F4).
