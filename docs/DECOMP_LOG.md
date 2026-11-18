@@ -226,3 +226,22 @@ Note: runtime image hash = FNV-1a64 with the non-standard basis 1469598103934665
 - DA (batch 26): 10 functions incl. 3B5900 + labels 3B8B0C/3A7C2C/3AEF30. DB (batch 27): 25 functions of 0x3A0000 group.
   DC: 3A6B34 is the real body after the 3-insn leaf 3A6B24 (standalone entry, verbatim - readability pass later).
 - slow1 checked with DB+DC: exact, mark 2. Pending: full-capture PS2X_EEDC_ONLY runs (logs/czfull_*, logs/dbfull_*).
+
+## 2026-11-18 - checked warp run verA (toyhouse a-c, arabian a-c, snowfesta_c, studio_a, castle_a; ONLY batches 25-27 leftovers)
+- 25 exact (3B9D38 2516 checks, 3A0670 557, 3A02D8 410, 0x3A0000 group 102 each, 3B5900 5 ...). 19 not reached here.
+- MISMATCH 3A0038 (DB): at a0+0x30 (0x8FA720) original stores 0, decomp stores 0x01FFD560 (= sp-0x100, a stack ptr)
+  -> wrong source register in one store. Entry a0=0x8FA6F0 sp=0x1FFD660 ra=0x39FFD8.
+- MISMATCH 3A7C20 (CZ label wrapper into 3A7BB8): original returns with s1 = entry s1 (0x1AA4EF8), s0 = 1; decomp
+  s1 = entry-0x40, s0 = 2 -> resume case at 0x3A7C20 runs one loop step (s0++, s1-=0x40) too many. ra=0x3A7C2C.
+- Exhaustive checks drop fps to ~5 in toyhouse_c/arabian_a (3B9D38 is hot); fine for verification runs.
+- verB (batch 28 + DH2 fixes, 15 stages): 15 exact (3A06F8 3361, 3BD26C 876, 3C2A68 685, 3BD2A0 677, 3A7C20 17 fixed ...).
+  3A0038 still differs on one path: call from ra=0x391CD8, a0=0x8B48A0 a1=0x71E458 a2=0x1FFD650 t0=0x3E2AAAAA, s0=0
+  s3=0x8B40E0 s4=0x3F800000 s5=0x8B48A0: decomp writes word 0x41324000 at a0+0x28, original leaves 0.
+  Not verified (not reached or all skipped by yields): 3B9E9C 3B9DB4 3B82C0 3BA154 3B8498 3AEF90 3C2AA8 3C2B88 3C3588
+  3C36C8 3C3910 3A5C60 3A1AEC 3A4384 (179 calls, 0 checked: jalr noCheck).
+- verC (batch 29, snowfesta e/f/g): 3A3BA8 562/562, 3A1ED4 561/561, 3A07C8 1/1 exact, first try.
+- verD (batch 30 + 3A0038 recheck): 3A0038 2/2 exact (DH3 fix). 3A13B4 off-by-one: original writes words 3,4,5 at
+  0x8DD270.., decomp writes 3,4 and leaves the third (v0=5 both; entry a0=0x8DC7F0 a1=0x1FFF630 a2=0x72D890 ra=0x3A4630).
+  3A2D98 (1448 calls) and 3A2558 (3) never checkable: every call yields at a checkpoint -> needs targeted no-yield checks
+  (PS2X_EEDC_NOYIELD, uses the CM g_ps2xSuppressCheckpoint hook only for listed entries; CM rejected only as global).
+- verE (sampled, all entries, 5 stages): 398 entries 10945 checks 0 mismatches (confirms DK thunk refactor). 3A4750/3A47F8 exact. verF/G/H/I: 3A13B4 fixed (DL) exact; 3A2D98 needs NOYIELD + CONTMAX=200000 + IGNORE_RAM=0x772720:48 (timer words, EE-10) -> 1271/1271 exact.
