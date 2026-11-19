@@ -93,3 +93,16 @@ Steps, each verified by pixel diff against the current recorded-clip-space path 
  4. Shrink the GS side: geometry kicks emit only the tag + A+D state (no vertex qwords) so GsWorker parses ~nothing for them.
 Risks: culling (ADC) semantics, clipping of near-plane crossings (GPU clips natively), fog/Q values (STQ perspective), morph (15E0
 lerp) and the special UV generators (1A68, 1CD8) need their own input recording.
+
+### R2b step 1 findings (read-only inventory of vu1_func.inc, 2026-11-19)
+- Inputs (all handlers): stream pointers from quad 1018 (+vi12): s2base/s3base/i4base, N = ILW.w 1018; output base ubase = ILW.z 1023;
+  positions 636+idx, normals 556+idx, 716+idx, 796+idx; constants 1002/1003 (viewport), 1014/1016, 1013, 1012; rigid path chosen by ILW.y 1011 < 0.
+- Skinned (1EE0/1EF0, ~90% of draws): positions at 636+idx are ALREADY the output of the 00A8 table loop (matrix * input table); the handler
+  itself mostly does 1/W, viewport scale, ftoi4 and copies the ST/colour streams. ADC for skinned = bit 15 of the INDEX WORD (word 3 of the
+  XYZF2 qword is idx & 0xFFFF), i.e. an INPUT, not an FMAC result -> culling needs no VU math for skinned meshes. (idx bit 15 is harmless for the
+  636+idx lookup because 32768 = 32*1024 and the quad index wraps with & 0x3FF.)
+- Rigid (2440): positions raw from 636+ix, but the ADC/clip bits and screen XYZ come from the FMAC clip machine (ftoi16 of clamped w + 2048 flag);
+  clip polygons (2900) are entirely FMAC-derived (Sutherland-Hodgman over 6 planes, count drives the GIF tag at quad 876).
+- Dispatcher-visible state after the geometry handlers is tiny: vi12 plus R.I=255 and the valid masks; internal flags are not exported.
+=> Plan refinement: the first GPU-transform target is the 00A8 table loop + skinned 1EE0/1EF0 (largest cost, simplest outputs); rigid/clip stay on the
+   exact CPU path until the skinned path is verified. Measure with the existing per-handler timers (lbTimed / PS2X_VU1_TSC) before coding.
