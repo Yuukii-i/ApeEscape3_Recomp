@@ -64,3 +64,32 @@ right place (matches GS framing), no crash over a 2 min warp run; fps reported.
 - Effects that read the framebuffer (heat haze, screen fades, render-to-texture) need a GS-compatible path
   or a reimplementation; inventory them during R1.
 - Multiple VU1 images (d6b2281a, 4279fa21...) have their own layouts; start with 86503d39.
+
+## Status 2026-11-19 (RD1-RD32 + config)
+Done and verified against the GS picture in 29 sampled stages (boot, FMV, title, gameplay): geometry, textures (exact per kick,
+render-target pages synced), blend/alpha/AFAIL/DATE semantics, HUD, drop shadows, viewport/FOV, any-aspect fill (Hor+ via the
+VU1 view-projection + decomp EE frustum), texture replacement by content hash, ps2x.ini. Opt-in: renderer = new (PS2X_RD_VIEW +
+PS2X_RD_TAKEOVER). Window-resolution rendering for free. CPU ms/frame, takeover vs classic, same-session (22:01-22:09 run +
+later): -11% avg (castle 35.1/40.4, space 21.8/27.9, woods 40.7/44.6, toyhouse 53.8/56.1).
+Known gaps: studio_e TV picture, boss intro light-beam passes (unverified), PS2X_ASPECT=fill for the 2D side is heuristic.
+
+## Where the time still goes (woods_a, takeover, ms/frame): GameThread 12, Vu1Exec 10, GsWorker 6, Vif1Worker 6, GL thread 4, main 2
+- Vu1Exec 10: the VU1 vertex programs still run on the CPU only to produce the clip-space vertices we record, and the GIF
+  packets the GS frontend then ignores (raster is skipped for geometry draws).
+- GsWorker 6: still parses all GIF vertex data of geometry kicks (kicks=5.5 ms in the PS2X_GW split) just to track state.
+
+## R2b: GPU vertex transform (next big step, est. -8..-10 ms/frame = -20%)
+Idea: in takeover mode do not run the VU1 FMAC pipeline for the geometry handlers (1EE0/1EF0 skinned, 2440 rigid, 2900 clip).
+Record their INPUTS instead (model-space positions at VU quad 636+idx, normals 556+idx, ST/colour streams, matrix quads 998..1001
+and 978..981, bone matrices, the index list) and let the vertex shader do the transform, skinning and perspective divide on
+the GPU; the VU1 culls via ADC bits (back faces, off-screen) which the GPU needs as per-triangle flags or equivalent tests.
+Steps, each verified by pixel diff against the current recorded-clip-space path (scene buffer already gives the reference):
+ 1. Inventory: for each geometry handler, which VU memory regions are inputs and which outputs feed later handlers (the
+    dispatcher/vi15 control flow must stay exact; docs/VU1_DECOMPILE_PLAN.md says outputs are a pure function of entry memory).
+ 2. Shadow recording (check mode): record inputs AND clip-space outputs; a GPU/CPU reference transform of the inputs must
+    reproduce the recorded outputs (same discipline as PS2X_SCENE_CHECK). Gate: 0 mismatches on the warp tour.
+ 3. Switch: with PS2X_RD_GPUXF=1 the handlers skip the FMAC work and the GIF output (state/tag still emitted for the GS state
+    tracker), unrecognised variants fall back to the exact path per MSCAL.
+ 4. Shrink the GS side: geometry kicks emit only the tag + A+D state (no vertex qwords) so GsWorker parses ~nothing for them.
+Risks: culling (ADC) semantics, clipping of near-plane crossings (GPU clips natively), fog/Q values (STQ perspective), morph (15E0
+lerp) and the special UV generators (1A68, 1CD8) need their own input recording.
