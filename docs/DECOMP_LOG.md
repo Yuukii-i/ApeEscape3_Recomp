@@ -286,3 +286,5 @@ Note: runtime image hash = FNV-1a64 with the non-standard basis 1469598103934665
   toyhouse regresses (GL driver thread ~9 ms) -> RD15 GL state caching. Cross-session numbers are not comparable (the
   same view-off toyhouse measured 46.5 at 18:16 and 54.6 at 22:09).
 - RD15: GL state cache (tex params/binds/uniforms/depth/colour mask only on change): 338 GL calls/frame, driver thread 8.9 -> 3.9 ms. Same-time A/B takeover vs off: toyhouse 52.2/58.4 ms (fps 53.7/56.5, pacing limited elsewhere), woods 34.6/46.1 (-25%).
+- RD16 (cac9dfd): PS2X_ASPECT=fill Hor+ (VU1 VP x lane, decomp EE frustum widen, renderer layout): 16:9 and 21:9 fill the window, 60/57 fps, same CPU as 4:3. RD17: GS-thread state per kick (gsState 99.8%): white drop-shadow squares gone; the dark blob shadow (two-pass dest-alpha) still missing.
+- RD18 (+18b): flip-time 2D filter by the frame's geometry FBP; classic present for frames without geometry kicks (raster skipped only for geometry draws). Boot with takeover: Now Loading, SCEA card, fades OK; title logo/menu missing (render-target composite?), FMV unverified (very dark frames). tools/boot_shots.ps1 added.
