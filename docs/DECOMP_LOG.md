@@ -292,3 +292,6 @@ Note: runtime image hash = FNV-1a64 with the non-standard basis 1469598103934665
 - RD26/27: camera timeline probe showed one camera per frame; root cause of the 'walls in front of the camera': skinned/clip recorders read ADC from the FOG qword, so VU1-culled back faces were drawn. Fixed; studio_e/hong_g/space_c match GS. Open: render-target screen contents (TV/robot screens), missing props in toyhouse_g, drop shadows, title logo.
 - RD28 RT page sync (live robot screens), RD29-31 AFAIL modes + unblended dest alpha + DATE/ABE (drop shadows back), RD32 recording realloc fix (toyhouse takeover 58 fps, 53.8 vs 56.1 ms off; castle 35.1 vs 40.4; space 21.8 vs 27.9).
 - FEAT-CFG: ps2x.ini (renderer classic|new, aspect, msaa, window, texture_pack, background_window); env vars override; PS2X_NO_CONFIG=1 for tests. Verified ini-only launch: new renderer + fill at 1600x900. Boot sequence with the new renderer: loading, SCEA card, FMV (classic fallback), title logo/menu all render.
+
+## 2026-11-19 flicker RD33-RD37
+RD33-34b composition by main-pass serial set + slot pinning; RD35 black-frame probe found space_c black = next frame's full-screen clear drawn in the 2D tail (RD36 drops it); RD37 rejects partial compositions (<0.6x average main serials). 6-stage burst: travel/woods/castle/arabian clean, space_c clean, toyhouse_a 3/30 sky-only frames left.
