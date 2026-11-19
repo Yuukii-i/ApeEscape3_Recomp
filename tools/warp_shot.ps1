@@ -1,7 +1,7 @@
 # warp_shot.ps1 - boot to hub (padrec), warp to each stage, settle, screenshot the game window (PrintWindow) -> logs\shots\<tag>_<stage>.png
 # Usage: powershell -File tools\warp_shot.ps1 -tag rd1 -only 'travel_a,toyhouse_a' -extraEnv 'PS2X_RD_VIEW=1'
 param([string]$tag = 'shot', [string]$padrec = 'logs\to_hub_fresh.padrec', [int]$settle = 8,
-      [string]$only = 'travel_a,toyhouse_a', [string]$extraEnv = '', [string]$winSize = '', [string]$exe = 'build\PS2Recomp\ps2xRuntime\ps2EntryRunner_dev.exe')
+      [string]$only = 'travel_a,toyhouse_a', [string]$extraEnv = '', [string]$winSize = '', [int]$burst = 0, [int]$burstGap = 100, [string]$exe = 'build\PS2Recomp\ps2xRuntime\ps2EntryRunner_dev.exe')
 $ErrorActionPreference = 'Continue'
 Set-Location C:\ApeEscape3_Recomp
 Add-Type -AssemblyName System.Drawing
@@ -40,5 +40,6 @@ foreach ($s in $only.Split(',')) {
   while (((Get-Date) - $t1).TotalSeconds -lt 30 -and -not $p.HasExited) { if ((Select-String -Path $err -Pattern "\[dev\] warp -> " | Measure-Object).Count -gt $before) { break }; Start-Sleep -Milliseconds 300 }
   Start-Sleep $settle
   $p.Refresh(); Capture $p.MainWindowHandle "logs\shots\${tag}_$s.png"; "shot $s"
+  for ($b = 1; $b -le $burst; $b++) { Start-Sleep -Milliseconds $burstGap; Capture $p.MainWindowHandle ("logs\shots\{0}_{1}_b{2:D2}.png" -f $tag,$s,$b) }
 }
 if (-not $p.HasExited) { Stop-Process -Id $p.Id -Force } else { "exit code $($p.ExitCode)" }
