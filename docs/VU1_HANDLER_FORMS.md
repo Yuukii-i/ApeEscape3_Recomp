@@ -556,3 +556,18 @@ where $n = (vi3 - vi2) \ \& \ \text{0xFFFF}$.
   - **Implementation**: Added `R.I` / `R.iValid` tracking to `Regs` and the `I`-writing handlers, added `R.vf[14]` to `handler0198`, and implemented `handler0C38` (`MINIi` on `vf12..14`, `FTOI0` on `vf11..14`, `SQ vf11/12 -> 9/11(vi4)`, followed by the `0C80` copy loop).
 - **`0x2E20` & `0x2E88` — (b) Internal `clipPolygon` (`2900..2F68`) Subroutines**:
   - **Call sites**: `2A50..2C68` call `BAL -> 2DB8` (edge loop containing `2E20..2E80` vertex-emit / `BAL 14 -> 2EC8`); `2DD8` sets `vi15 = 1489` (`0x2E88/8`) so `2E40`/`2E78` (`JR vi15`) enter `2E88` (wrap-around `JR vi12`, or `IBEQ vi11, vi0, -40 -> 2D50` all-clipped exit), while `2E50` calls `BAL 14 -> 2EC8..2F68` (returning via `JR vi1` to `2E60`). Neither is ever dispatched via `JR vi1`, and both are already covered by `clipPolygon` inside `handler1EE0`.
+
+---
+
+## Image 40204101 programs P0/P1/P2 // PERF-BK
+
+- **Gate**: `imageSelect` computes FNV-1a64 over VU1 code bytes `0x0000..0x0E7F`; match with `0xf64cba610d7fe263` sets `mask` bit 63, dispatching MSCAL entry PCs `0x0000` (P0), `0x04A0` (P1), and `0x0A18` (P2) to `fxProgram0000` / `fxProgram04A0` / `fxProgram0A18` (with `vncNote(0xF000 | pc)`).
+- **Inputs from `XTOP` (`vi3`, common to P0/P1/P2)**:
+  - `0..3(vi3)`: 4x4 object/world matrix $M_0$ (`vf10..13`); `4..7(vi3)`: 4x4 projection/viewport matrix $M_1$ (`vf14..17`).
+  - `8(vi3).xyz` (`vf18`), `9(vi3).xyz` (`vf19`), `10(vi3).xyz` (`vf20`), `12(vi3).xyz` (`vf21` RNEXT seed).
+  - `11(vi3).x`: particle count $N$; `13..14(vi3)` (`vf22`, `vf23`): UV/ST qwords; `15(vi3).xy`/`xyz` (`vf24`): sprite half-size / offset; `16(vi3)` (`vf25`): integer RGBA color; `17(vi3)` (`vf26`): GIFtag qword.
+- **Math**:
+  - **P0 (`0000..0490`)**: Generates 3D random jitter via `RINIT`/`RNEXT` (`vf21`), wraps to $[0, 1)$ (`vf - itof0(ftoi0(vf))`), maps `vf18 + frac * vf19`, transforms by $M_0$, expands a 2D quad `pos.xy ± vf24.xy`, transforms both corners by $M_1$, projects via `DIV Q`, computes 6-plane `CLIP` + `FCOR` ADC bit (`0x7FFF` / `0x8000`), scales alpha by `clamp(pos.w * 0.01, 0, 1)`, and converts to `FTOI0`/`FTOI4`.
+  - **P1 (`04A0..0A08`)**: Same RNG/jitter pipeline for two endpoints `p` and `p + vf24.xyz` (3D offset), uses `FCOR` (4 X/Y planes) + `FCAND 0x000C30` (Z planes) for ADC, and emits fixed color `vf25` (no `0.01 * w` alpha fade). Epilogue emits two trailing packets (`09A0` reads `0940` `DIV Q` before `0978` `DIV Q` completes).
+  - **P2 (`0A18..0DF8`)**: Same quad expansion as P0 (`pos.xy ± vf24.xy`), 6-plane `CLIP` + `FCOR` ADC, and `vf18.w` alpha modulation clamped by `min(..., vf29.xyz)` and `[0, 1]`.
+- **Outputs**: Double-buffered 6-qword GIF packets (`GIFtag`, `RGBA`, `UV0`, `XYZF0`, `UV1`, `XYZF1`, or `RGBA` first in P1/P2) ping-ponged between VU data `512` and `768`, emitted via `XGKICK`.

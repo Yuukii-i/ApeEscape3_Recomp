@@ -237,3 +237,77 @@ Chunk ring read per group: audio 16 KB (cmd1 flags=1) then video (cmd1 flags=0);
 - 8/25 in 0x3ABA20-0x3AEF78 (float compare loop at 0x3AC0F0-0x3AC150: lhu index, lwc1, c.le.s; a sort/sift), rest spread
   (0x239D20, 0x23CC40, 0x2422D8, 0x244F14, 0x3B8098, 0x3C1F00, 0x441F68, 0x4FCC20).
 - => real EE is ~85-90% busy per frame at the menu (coarse; pause lands on block boundaries). Backtrace tool returned stale frames.
+
+## 29 Movie stream start: refill vs read issue vs read latency (PCSX2, 2026-11-15, dolby + intro)
+ 3F7BA8 refill (obj 0x1900E00) uses voice-0 pos only; enqueues cmd1 (a3=consumed=0x4000) on every pos step. Stream start: pos 0->0x4000 then 0x4000->0x8000 only ~3.3 vblanks later (dolby 904.32M/920.31M cyc; intro 2370.51M/2386.83M), then ~18 vblanks per step. L/R pos also skew in the real game (0xC000/0x8000 seen).
+ Read issue 0x24CA3C: intro E1 read issued 487 cyc after E1 (frame 0); E2 (frame 2, dev30=2) read deferred to the frame-0x12 group boundary (2462.21M, dev30=0 at issue); dolby same (999M at frame 0x12, 1089M at 0x24). Exactly ONE audio+video pair per boundary; backlog drains one per group.
+ CID1 slot while in flight: word2=0x0E000000 word3=0 (slots 0x771BBC/0x771BCC); done: word2=0x8E00<size> word3=<size> (audio 0x4000, video 0x1800). Pair issued 2462.21M, first poll (1DA880 from 0x24CC54) seeing done = 2472.05M = next F tick (~2 vblanks). Recomp HLE sets the done bit synchronously inside the request (RPC.cpp ~2470-2481).
+
+## 30 Dolby movie end-of-stream (PCSX2, 2026-11-16, total 0xFB)
+Read pair = audio read at 24CA3C (a2=0x4000) then video read at 24CB10; [ctx+0x58]=video size, +0x74=group.
+| frame | +0x6C | group | video size | notes |
+| 0xA6 | 0xA2 | 0xA | 0x1D800 | pair; dev30 1 during video issue |
+| 0xB4 | 0xB4 | 0xB | 0x24800 | pair; refill (3F7C28) right after, a3=0x4000, s3=-0x18000, [+0x248]=0x3C000, [+0x244]=0x58000 |
+| 0xC4 | - | - | - | refill only |
+| 0xC6 | 0xC5 | 0xC | 0x17000 | pair |
+| 0xD6 | - | - | - | refill only |
+| 0xD8 | 0xD7 | 0xD | 0x800 | pair (tiny last video chunk) |
+| 0xE8 | - | - | - | refill only |
+| 0xEA | 0xE9 | 0xE | 0 | AUDIO ONLY (no 24CB10 hit); slot done 0x8E000000 = 0-byte reply |
+| 0xFA | - | - | - | refill; state still 9, movie plays to the end |
+Every [+0x58] value differs per group (never reused). One pair per group, about 18 frames apart, to the end.
+
+## 31 Movie frame clock (PCSX2, 2026-11-16, intro)
+- Movie update 24C164(ctx, step) is called from wrapper 24CE28(step) <- 4E2DF8. step = [0x696FD8] delta (31A514 returns [0x696FD8], latched from [0x696FD0] = game vblank count). Intro: step=2 (30 Hz loop).
+- 24C4D4 (state 9): audio pos = 3F7780(stream, voice 0) compared with [ctx+0x84]; 24C52C-24C558 gates the frame advance against [[ctx+0x4C]+0x10]. Frame = f([ctx+0x60] += step) via 24B840 when [0x635480]==1.
+- Read pairs (24CA3C) are issued from the SG2 stream callback dispatcher 24CD04 (event switch at 0x6EB008), i.e. driven by AUDIO consumption, not by video frames.
+
+## 32 SG2 stream event queue drives movie reads (PCSX2, 2026-11-16, dolby start)
+- Stream obj 0x1900E00 has a 32-entry FIFO: head [+0x228], tail [+0x22C], entry i at +0xA8+12*i = {event, a2, a3}.
+- Push 3F7850(obj, ev, a2, a3): append; if ev==1 and ([obj+8] & 8) also append ev 8 (a2=a3=0). Refill 3F7BA8 pushes ev 1 at 3F7C28, so every refill queues [1, 8].
+- Drain 3F7A18 (called from 3F7E38 every movie update = every 2 vblanks, before refill 3F7BA8, and again after it if the tail moved): calls callback [gp-0x7A60]=24CD04(ctx, ev, a2, a3) for the head entry; result -2 keeps the entry and stops the drain (strict FIFO), else pops.
+- 24CD04 jump table 0x6EB008: ev1 -> 24CD58: busy (24CBFC: audio job [ctx+0x10] or video job [ctx+0xC] not done) -> -2, else 24CA3C pair. ev8 -> 24CDAC: busy -> -2; state 8 -> -2; frame [ctx+0x64] > 0 and < [ctx+0x6C] + [[ctx+0x48]] (group len 18) -> -2; else 24C7DC (take chunk: [ctx+0x6C]=frame, new [ctx+0x58] size), clear +0x7D.
+- Observed: refill at frame 2, its ev1 delivered at 0x12; at 0x24: ev1 -> pair (v0 0), ev8 -> -2 (reads in flight), refill push [1,8], ev8 -> -2 again; 0x26 ev8 -> -2; at 0x36 [ctx+0x6C]=0x36 (ev8 taken), then refill pushes 1 then 8. One pair per 18-frame boundary.
+
+## 33 VIF1 interrupt protocol per frame (PCSX2, 2026-11-16, level 5 after the upper-left door, savestate slot 4)
+- Two VIF1 (INTC cause 5) interrupts per frame, one frame per vblank (~4.9M cyc): handler 2843D4 reads VIF1_MARK
+  (0x10003C30) at 2843F8: first MARK=0x4000 (-> iSignalSema [0x649DE0] = sema 3, NO STC), ~0.5M cyc later MARK=0x2000
+  (-> [0x649DE4]++, FBRST=8 STC at 284450).
+- Sema 3 wakes the VIF1 service thread (fn 284268, own stack sp=0x64AD90): loop { wait (435A00); t7=[VIF1_MARK];
+  [VIF1_MARK]=0; s2=t7&0xFFFF; if !(t7&0x4000) continue; FBRST=8 (STC, write at 2842B8 seen by watchpoint right after
+  the 0x4000 IRQ); 2845DC(s2); 2845F8(s2) -> per-mark job object, virtual call [[obj]+0xC]; s1=0x10009000 (D1) }.
+- So VIF1 STALLS on the IRQ-bit VIFcode until STC; the service thread restarts it after reading MARK 0x4000.
+- Setup 2844C4..: CreateSema -> [0x649DE0]; AddIntcHandler(5, 2843D4); EnableIntc(5).
+
+## §34 Level 5 door: which VIFcodes carry the IRQ bit (PCSX2 slot 4, RAM pattern search)
+- 0xA6FD08 / 0xBDFD08 (double buffer): `07004000` MARK 0x4000 WITHOUT i-bit, then `91000000` FLUSH WITH i-bit.
+- 0xA1550C / 0xB8550C: `11000000` FLUSH, then `87002000` MARK 0x2000 WITH i-bit.
+- No `87004000` anywhere in RAM. Real VIF raises the interrupt only for the i-bit; MARK alone never interrupts.
+
+
+## §35 Load-screen display (PCSX2 slot 5 = save load fade)
+- sceGsPutDispEnv-like 0x51E3D4 copies env at 0x784700 to GS each frame, same values in play AND ~3 s into the load: PMODE 0x8063 (EN1+EN2, MMOD, AMOD, ALP 0x80), DISPFB1=DISPFB2=0x1070 (fbp 0x70, fbw 8, psm 0), DISPLAY1 0x001BF9FF_0203228C / DISPLAY2 ..0203328C (1-line offset).
+- Frame draw 0x3B3A90 (from main loop 0x1037E8) keeps running during the load.
+
+
+## MC (main character) selector - 2026-11-18 [pcsx2]
+- Savestates 7 (female picked at char select) / 8 (male) diffed via eeMemory.bin in the .p2s zips.
+- 0x649910 (u32, ELF .data): 1 = female (asset prefix g_), 0 = male (prefix b_). [CONFIRMED pcsx2 read watchpoint]
+- Readers seen while loading the tutorial: 0x34A82C (player object create 'pl', passes it as a2 to 0x350C18),
+  0x4E6EB4 (bnez -> female path), 0x435FB0 (generic getter, called from 0x4041C4/0x51E484 = script engine?),
+  0x21FEBC. No WRITE during the tutorial stage load (write watchpoint, slot 7) -> set at char select / save load.
+- Per-MC assets: player/{b,g}_<morph>/pl_{b,g}_<morph>.pck/.eff/.eft, demo/sNNNx_{b,g}.*, pl_g_nrm_skirt2 (female only).
+
+## Scene / stage-change system - 2026-11-18 [pcsx2, slots 1 (hub -> woods_a) and 2 (woods_a -> woods_b)]
+- Scene manager global 0x635530 = {cur scene*, next}. Scene thread loop 0x15A504: first frame calls vtable[0] (init),
+  then each frame v0 = vtable[2](scene) (update); v0 != 0 -> v0 becomes the next scene. vtable[1] called on switch.
+- Area scene (stage + spawn), vtable 0x6ADE10 = {init 0x4DDFA4, 0x4DE3BC, update 0x4DE1A4, 0x4DE42C, 0x4DE49C}.
+  The in-level gameplay scene IS this type (slot 2 cur scene 0x88C140 has vtable 0x6ADE10).
+  Object: +0x10 stage name[32] ("woods_b"), +0x30 spawn name[32] ("player_b1"), +0x50 u8 flag, +0x54, +0x58 ints.
+  ctor 0x4DDF20(this, block[0x50]) ; factory 0x20C378(a0=stage*, a1=spawn*) -> obj (flag=1; spawn "" = default);
+  factory 0x20C3F8 (5 callers). Callers wrap the result: v0 = 0x208BF4(obj) (allocs 0x20-byte wrapper vtable
+  0x6ADA88, transition) and return it up the update chain (e.g. 0x4987B4).
+  init 0x4DDFA4 -> 0x255784(stage name) builds "/stage/%s" (0x6EB830) and loads it.
+- Stage-entry scene (hub -> level with mission screen), vtable 0x6AE2A8 = {init 0x4E5E54, 0x4E6A80, update 0x4E6D14, ..}.
+  Object +0x10 stage name ("woods_a"); factory 0x4E5B90 (caller 0x22054C). init -> 0x255A4C(stage) compares with
+  current stage name at 0x649650 and loads; writes state keys next_stage_choice / stage_progress_entered (0x3714F4).
