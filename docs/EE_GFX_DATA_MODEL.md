@@ -512,3 +512,40 @@ Observed in `sub_003B1268` (sub-entry of `sub_003B1248`), `sub_003B88B8` (sub-en
   - `3A6A90`: returns `*(uint8_t*)(a0+4)`.
   - `3A6AF0`: decrements/clamps global counter `0x69A074` into `[0, 60]`.
   - `3A6B24`: returns `*(int32_t*)0x69A074 < 1`.
+
+- **DECOMP-DH Batch 28 (`3B9C58`, `3BD2A0`, `3B9E9C`, `3B9DB4`, `3B82C0`, `3BA154`, `3B8498`, `3AEF90`, `3B9B60`, `3A06F8`, `3A5778`, `3A56C0`, `3C2AA8`, `3C2B88`, `3C2A68`, `3C3588`, `3C36C8`, `3BD26C`, `3C3910`, `3A5534`, `3A55F0`, `3A5C60`, `3A1AEC`, `3A19C4`, `3A4604`, `3A5E1C`, `3B99B8`, `3A4384`)**:
+  - `3B9C58` (`-> 3B9C48`), `3BD2A0` (`-> 3BD270`), `3B9E9C` (`-> 3B9E60`), `3B9DB4` (`-> 3B9D78`), `3B82C0` (`-> 3B8288`), `3BA154` (`-> 3BA0C8`), `3B8498` (`-> 3B8448`), `3AEF90` (`-> 3AEF08`), `3B9B60` (`-> 3B9B50`): resumable label/sub-entry wrappers routed into their parent decomp's `switch (ctx->pc)`.
+  - `3BD26C`: sets `$t4 = 0x40` and falls through into `3BD270`.
+  - `3A06F8`: VU0 torque/impulse accumulator into `*(vec4*)(a0+0xF0)` (plus `3A07A8` scaled-add sub-entry).
+  - `3A5778`: tail-jumps `*a0` to `3A47F8` (with `3A5790`->`3A4DD4` and `3A57A8` 42-byte clear + 16-iter delay sub-entries).
+  - `3A56C0`: advances circular buffer `head` (`+0x04`) mod `cap` (`+0x00`), zeroing slots when `*(u8*)(ring+8)==0` (plus `3A573C` zero-loop).
+  - `3C2AA8`: constructs an orthonormal 3D basis from `$a2` into `$a0` and tail-calls `3BD450(a1, a2, a0)`.
+  - `3C2B88`: ray/segment-vs-cylinder intersection test (body + endcaps) returning `0x111` (hit) or `0`, writing `t0`/`t1`.
+  - `3C2A68`: swaps `(a0,a1)` with `(a2,a3)` and calls `3C36C8`, returning `v0 != 0`.
+  - `3C3588`: transforms segment into cylinder space (`3BD338`/`3BD398`/`3BD470`) and calls `3C2B88`.
+  - `3C36C8`: segment-vs-cylinder hit test with `[0, *(float*)0x7217FC]` parameter clamping and bitmask return (plus `3C3768`/`3C3820` sub-entries).
+  - `3C3910`: sphere/capsule-vs-cylinder test calling `3C28D8`, falling back to `3C2B88` and checking `t0 <= *(float*)0x72180C` and `t1 >= 0`.
+  - `3A5534`: allocates `0x24` bytes via `41B800`, initializes via `3A4750`, and stores into `*a0` (plus `3A5584` cleanup sub-entry).
+  - `3A55F0`: tears down `*a0` (`5B7468`, `619D70`, `619D2C`) and tail-calls `41A3B0`.
+  - `3A5C60`: appends an `0x50`-byte entry into `a0+0x70` via `44BE58` and advances `a0+0x2F0` mod 8.
+  - `3A1AEC`: records hit via `3A5C60`, triggers `362178`/`3A5D04`/`3A61BC`/`28FA34`, and clamps `a0+0x60`.
+  - `3A19C4`: initializes `0x006B73C0` vtable object (`281870`, `281994`, `2801EC`, `20B944`, `1651E4`/`16525C`, `3A6070`) and tail-calls `41A3B0`.
+  - `3A4604`: allocates `0xB60` bytes via `41B800` and initializes via `3A13B4` (plus `3A4648` vector resize/clear sub-entry).
+  - `3A5E1C`: calls `3A5EA8` and dispatches `*(u32*)0x0064991C` (`1..6`) via jump table `0x0071FD6C`.
+  - `3B99B8`: initializes 6 `uint64_t` pairs (`0x60` bytes) at `$a0` (plus `3B9A10` TIM2/CL2T header validator sub-entry).
+  - `3A4384`: entity/world collision & ground-snap update (`29023C`, `441F40`, `28552C`, `238BF8`, `221644`, `44BE94`, and 2 `jalr` vtable calls).
+
+- **DECOMP-DI Batch 29 (`3A07C8`, `3A3BA8`, `3A1ED4`)**:
+  - `3A07C8`: Renders a 12-quad tiled GS sprite/vignette overlay when `*(float*)(a0+4) != 0`, resolving the texture via `28A31C`/`28A53C`, configuring GS registers via `3AFE58`/`3AFB68`/`3AFE00`/`3B0AA8`, emitting 14 GIF A+D quads (`0x3AFD98`) using scroll phase `*(float*)a0 * *(float*)0x71F8C0 % 224`, and flushing via `3B7798`.
+  - `3A3BA8`: Updates entity/effect transform matrices (`a0+0x7C0`, `a0+0x990..0x9C0`) via `3A02D8`/`441F40`/`441F70`, submits to `267F8C` and `26B1E0`/`26B310` (`a0+0xB14`/`0xB18`), updates 3 attachment/particle slots (`a0+0xA9A`, `0xA9E`, `0xB50`) via `1651E4`/`1652A8`/`15DF6C`/`16563C`, and invokes `3A07C8` on `a0+0xA74`.
+  - `3A1ED4`: Evaluates convex-hull collision impulses for `a0`: queries nearby faces via `29045C`, transforms 6 local planes (`a0+0x9D0..0xA20`) into world space, clips polygon vertices across ping-pong vectors (`$sp+0x70`, `$sp+0x90`), updates velocity `*(vec4*)(a0+0x860)`, and applies impulses via `3A0670` and `3A06F8`.
+
+- **DECOMP-DJ Batch 30 (`3A13B4`, `3A2558`, `3A2D98`)**:
+  - `3A13B4`: Constructor for the `0xB60`-byte `snowfesta_f` sled/vehicle entity (`$a0`) from spawn descriptor (`$a1`): installs vtable `0x006B73C0`, initializes physics sub-object (`39FF78`, `3A0038`), resets attachment/effect slots (`a0+0xA8C..0xAA0`, `0xB50..0xB52`), populates 14 local hull/probe vectors (`a0+0x8D0..0x940`, `0x9D0..0xA20`, `0xB20`), loads/binds the model and 3 effect/weapon handles (`281870`/`27F8CC`/`2410F8`/`23F4A0`/`256444` -> `a0+0xA30`, `0xA80..0xA88`), allocates camera/target sub-object `0x006B7400` (`a0+0xA60`), and stores initial/max HP (`a0+0x60`/`0x64`).
+  - `3A2558`: Per-frame sled terrain-probe and steering update for `$a0`: reads dual-stick inputs from `0x006496F8`, probes 8 local hull points (`a0+0x8D0..0x940`) against world collision via `29023C`, applies suspension/buoyancy forces (`3A06F8`, `3A0670`) and linear/angular velocity damping (`a0+0x860`, `a0+0x880`), evaluates steering/thrust (`2716BC`/`3713F8`/`3A06F8`/`3A0670`, updating `a0+0xA68`, `0xB14`, `0xB18`, `0xA98`, `0xA99`), and updates rumble/audio intensity via `362730`.
+  - `3A2D98`: Main per-frame `snowfesta_f` sled tick (`$a0`): updates cooldown/effect timers (`3A6224`, `3A640C`, `3A6700`, `3A60C8`, `3A0028`, `3A02D8`), handles primary (`pad0 & 0x1000`) and secondary (`pad1 & 0x8000`) fire & wake FX (`238F04`, `2564AC`, `16563C`, `362178`, `28FA34`), spawns damage smoke/fire attachments across 3 HP ratio thresholds (`a0+0xA8C`, `0xA90`, `0xA94`), handles destruction/explosion state (`3A63F0`, `3A4604`, `20AF68`), and runs `3A1ED4`, `3A2558`, `3A0328`, and `3A05D0`.
+
+- **DECOMP-DK Batch 31 (`3A4750`, sub-entries `3A47F8`, `3A4DD4`, `3A53E4`)**:
+  - `3A4750`: Initializes a `0x24`-byte trail/ribbon ring-buffer struct (`$a0`, capacity `$a1`): sets `a0+0 = maxPts`, resets head/flags (`a0+4..0x20`), initializes the point and active-flag arrays via `619D80` (`a0+0xC`) and `619E94` (`a0+0x18`), and zeroes all `maxPts` active flags.
+  - `3A47F8` & `3A4DD4`: Build and submit trail quad-strip GIF packets for `a0` with half-width `$f12` and base RGBA `$a1` (`3A47F8` skips when `284178` returns non-zero and uses per-point up vectors `pt+0x10` + GS `ALPHA_1=0x44`/`TEST_1=0x51001`; `3A4DD4` uses fixed Y-up `0x71FCF0` + GS `ALPHA_1=0x48`). Both configure GS/GIF via `3AFC08`/`3B7A00`/`3B76D0`/`3B7740`/`3AFEA8`/`3AFE58`, allocate temporary vertex/color/flag buffers (`41B8B0`), extrude ribbon edges via VU0 cross-product & `vrsqrt` normalization (`44BD80` transform on inactive points), run a backward alpha-fade pass, submit via `3B2420`/`3B7798`, and free temp buffers (`41A3D8`).
+  - `3A53E4`: Draws active trail segments of `a0` by lazily initializing `0x72C6E0` via `2478EC` (`0x72C6C8` guard) and submitting each active adjacent ring-buffer pair to `247A9C` with color `0x649110`. (Also includes `3A54E4` alloc+init tail-piece calling `41B800` + `3A4750`.)
