@@ -1,7 +1,7 @@
 # warp_shot.ps1 - boot to hub (padrec), warp to each stage, settle, screenshot the game window (PrintWindow) -> logs\shots\<tag>_<stage>.png
 # Usage: powershell -File tools\warp_shot.ps1 -tag rd1 -only 'travel_a,toyhouse_a' -extraEnv 'PS2X_RD_VIEW=1'
 param([string]$tag = 'shot', [string]$padrec = 'logs\to_hub_fresh.padrec', [int]$settle = 8,
-      [string]$only = 'travel_a,toyhouse_a', [string]$extraEnv = '', [string]$exe = 'build\PS2Recomp\ps2xRuntime\ps2EntryRunner_dev.exe')
+      [string]$only = 'travel_a,toyhouse_a', [string]$extraEnv = '', [string]$winSize = '', [string]$exe = 'build\PS2Recomp\ps2xRuntime\ps2EntryRunner_dev.exe')
 $ErrorActionPreference = 'Continue'
 Set-Location C:\ApeEscape3_Recomp
 Add-Type -AssemblyName System.Drawing
@@ -10,6 +10,7 @@ Add-Type -Namespace Win -Name Shot2 -MemberDefinition @'
 public struct RECT { public int Left; public int Top; public int Right; public int Bottom; }
 [System.Runtime.InteropServices.DllImport("user32.dll")] public static extern bool GetWindowRect(System.IntPtr h, out RECT r);
 [System.Runtime.InteropServices.DllImport("user32.dll")] public static extern bool PrintWindow(System.IntPtr h, System.IntPtr hdc, uint flags);
+[System.Runtime.InteropServices.DllImport("user32.dll")] public static extern bool SetWindowPos(System.IntPtr h, System.IntPtr after, int x, int y, int cx, int cy, uint flags);
 '@ -ErrorAction SilentlyContinue
 function Capture([IntPtr]$hwnd, [string]$path) {
   $r = New-Object Win.Shot2+RECT; [void][Win.Shot2]::GetWindowRect($hwnd, [ref]$r)
@@ -30,6 +31,7 @@ $p = Start-Process $exe -ArgumentList 'SCUS_975.01' -RedirectStandardOutput $run
 $t0 = Get-Date
 while (((Get-Date) - $t0).TotalSeconds -lt 120 -and -not $p.HasExited) { if (Select-String -Path $err -Pattern 'stage/travel_a/actionseq' -Quiet) { break }; Start-Sleep 1 }
 Start-Sleep 8
+if ($winSize) { $wh = $winSize.Split('x'); $p.Refresh(); [void][Win.Shot2]::SetWindowPos($p.MainWindowHandle, [IntPtr]1, 0, 0, [int]$wh[0], [int]$wh[1], 0x0012) } # HWND_BOTTOM, NOMOVE|NOACTIVATE
 foreach ($s in $only.Split(',')) {
   if ($p.HasExited) { "GAME EXITED before $s"; break }
   $before = (Select-String -Path $err -Pattern "\[dev\] warp -> " | Measure-Object).Count

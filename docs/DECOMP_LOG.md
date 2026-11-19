@@ -269,3 +269,20 @@ Note: runtime image hash = FNV-1a64 with the non-standard basis 1469598103934665
   noteDraw 18.5 -> 0.45 ms/frame. View ON: toyhouse 41 fps / woods 55 (Vu1Exec +7 ms = scene recording); OFF: 59/59
   unchanged. Visuals match GS shots in woods_a, toyhouse_a, castle_a, snowfesta_f; open: white drop-shadow quads, HUD.
 - RD6 in progress: texture replacement by content hash (mods/textures/<hash>.png, any resolution).
+- RD6 (17adf4e): texture replacement by content hash (mods/textures/<id>.png, any size; tested 90 x 512^2 in travel_a, 59 fps).
+- RD7 (1e3aaad): general PS2 blend formula -> GL blend equations; RD8/9 (8aa1367): 2D capture of non-VU1 GS draws on the
+  main colour buffer (game double-buffers: use the FBP of the 3D kick draws), FBMSK colour mask (alpha-only draws blacked
+  the frame), real dest alpha for Ad. RD10 (95d6257): VU1 non-geometry kicks (HUD, labels, some scenery) flagged via
+  serial bit 30 -> 2D path: travel_a HUD + trees appear. RD11: 2D draws depth-tested via inverse VU1 viewport Z (woods
+  canopy silhouettes gone). Open: drop shadows still white, gadget net dark, one intermittent all-black frame
+  (rd11_travel_a, not reproduced in 2 reruns), HUD auto-hide makes HUD checks timing-dependent.
+- RD12 (fbbd094): PS2X_RD_TAKEOVER=1 skips GS raster + frame readback (PresentLatch gone). RD13 (47be42f): 3D/2D frames
+  aligned by GS-thread kick-serial ranges (fixed all-black frames: next frame's clear sorted after this frame's 3D).
+  RD14 (2568485): lean capture (28-byte verts + strip indices, vector swap, 4 GPU slots, indexed draws); RD14b fixed stale
+  VAO base offset (>64k-vertex frames garbled).
+- Same-time A/B 22:01-22:09 (logs/rd14b_bench.txt vs rd14off_bench.txt), CPU ms/frame takeover vs off: travel_a 34.2/37.2,
+  travel_b 42.9/43.2, woods 41.9/46.0, castle 37.8/41.3, studio 23.3/29.8, snowfesta_f 26.1/31.1, toyhouse 57.5/54.6
+  (54 vs 59 fps), arabian 33.7/39.3, hong 29.8/37.0, space 25.0/29.7 -> ~-4 ms (-11%) avg at window resolution;
+  toyhouse regresses (GL driver thread ~9 ms) -> RD15 GL state caching. Cross-session numbers are not comparable (the
+  same view-off toyhouse measured 46.5 at 18:16 and 54.6 at 22:09).
+- RD15: GL state cache (tex params/binds/uniforms/depth/colour mask only on change): 338 GL calls/frame, driver thread 8.9 -> 3.9 ms. Same-time A/B takeover vs off: toyhouse 52.2/58.4 ms (fps 53.7/56.5, pacing limited elsewhere), woods 34.6/46.1 (-25%).
