@@ -33,7 +33,7 @@ $stages = if ($only) { $only.Split(',') } else { $all }
 $err = "logs\${tag}_err.txt"; $run = "logs\${tag}_run.txt"; $sum = "logs\${tag}_summary.txt"
 Set-Content $sum "tour $tag start $(Get-Date -Format HH:mm:ss) stages=$($stages.Count) hold=$hold check=$check"
 Remove-Item logs\dev_cmd.txt -ErrorAction SilentlyContinue
-$env:PS2X_GS_ASYNC='1';$env:PS2X_VIF1_ASYNC='1';$env:PS2X_GS_VULKAN='1';$env:PS2X_SG2_LLE='1';$env:PS2X_LOG_SYNC='1';$env:PS2X_WINDOW_BACKGROUND='1'
+$env:PS2X_GS_ASYNC='1';$env:PS2X_VIF1_ASYNC='1';$env:PS2X_GS_VULKAN='1';$env:PS2X_SG2_LLE='1';$env:PS2X_LOG_SYNC='1';$env:PS2X_WINDOW_BACKGROUND='1';$env:PS2X_NO_CONFIG='1'
 $env:PS2X_EEDC='1';$env:PS2X_EEDC_CHECK="$check";$env:PS2X_EEDC_CENSUS='1';$env:PS2X_EEDC_DISABLE='';$env:PS2X_EEDC_ONLY='';$env:PS2X_EEDC_CHECK_JALR=''
 $env:PS2X_MC='';$env:PS2X_PAD_REC='';$env:PS2X_PAD_PLAY=$padrec;$env:PS2X_PAD_STOP_MARK=''
 foreach ($kv in ($extraEnv.Split(';') | Where-Object { $_ })) { $k,$v = $kv.Split('=',2); Set-Item -Path "env:$k" -Value $v }
