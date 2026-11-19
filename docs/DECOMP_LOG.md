@@ -298,3 +298,6 @@ RD33-34b composition by main-pass serial set + slot pinning; RD35 black-frame pr
 
 ## 2026-11-19 perf RD38-RD42
 RD38 GS skips geometry vertex qwords (GsWorker -2.6..-4 ms), RD40 lean skinned handler (main pass; check mode 0 mismatches), RD42 lean kicks (1-qword tag NLOOP=0): CPU/frame castle 41.9->36.4, woods 51.2->46.6, toyhouse 58.9->51.1, space 29.9->28.0. Tried RD44 lean rigid/clip: no measurable gain (clip machine must stay exact), reverted. VIF1 other-parse has no hot spot (spread over DIRECT/MSCAL/NOP/CYCLE). Full 148-stage tour with new renderer: all alive; studio_b 29 fps, ciscocity_c 49, studio_c/d 42-43 (under investigation).
+
+## 2026-11-19 studio stall RD45-RD50
+studio_b/c/d were 28-43 fps in the new renderer: ps2xRdNoteDraw rt phase = syncPages stalling the GS thread ~20 ms/frame (GPU compute raster of ~10k RT-pass prims). RD45/46 fast paths + timers did not fix it, RD47 async sync never triggered (inert). RD48-50: adaptive guard forces the classic path per stage (renderer fully off) when RT sync EMA > 6 ms, resets on stage transition (prims/latch < 64 x 8). studio_b 28 -> 60 fps, studio_c 43 -> 52. Tour 148/148 alive, studio_c 47, studio_d 49 left under 50.
