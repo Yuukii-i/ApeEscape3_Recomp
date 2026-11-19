@@ -245,3 +245,59 @@ Note: runtime image hash = FNV-1a64 with the non-standard basis 1469598103934665
   3A2D98 (1448 calls) and 3A2558 (3) never checkable: every call yields at a checkpoint -> needs targeted no-yield checks
   (PS2X_EEDC_NOYIELD, uses the CM g_ps2xSuppressCheckpoint hook only for listed entries; CM rejected only as global).
 - verE (sampled, all entries, 5 stages): 398 entries 10945 checks 0 mismatches (confirms DK thunk refactor). 3A4750/3A47F8 exact. verF/G/H/I: 3A13B4 fixed (DL) exact; 3A2D98 needs NOYIELD + CONTMAX=200000 + IGNORE_RAM=0x772720:48 (timer words, EE-10) -> 1271/1271 exact.
+
+## 2026-11-18 - direct render path started (docs/RENDER_DIRECT_PLAN.md)
+- Baseline bench (logs/base_on_bench.txt): 60 fps everywhere, 24-46 ms CPU/frame, emulation side ~2/3. PRESENT_GPU: no gain.
+- FEAT-BGWIN (PS2Recomp PR #3): PS2X_WINDOW_BACKGROUND=1, test runs open unfocused at the bottom of the z-order.
+- R0 already existed (PERF-SA scene buffer). RD1 (recomp/render-direct-r1a, 61de155): PS2X_RD_VIEW=1 draws the scene
+  buffer with an own OpenGL pass at window resolution (vertex colour + depth), F11 toggles. Needs PS2X_RD_FLIP=1 (y).
+  travel_a/toyhouse_a: ~28-33k tris/frame, geometry matches the GS shots (logs/shots/rd1f1_*, rd1ref_*), 58-60 fps.
+  Missing: textures, GS state (blend/alpha test, invisible helper draws show as grey), clipped polys (~210 draws/frame), sky, HUD.
+- Next: RD2 = GS state join per scene draw (kick serial), RD3 = textures from VRAM (decode + cache = texture-replacement hook).
+- RD2 (22321c3): shadow A+D parser on the VU1 kick path -> per-draw GS state; blend/alpha test/depth applied. Bug found:
+  rlSetBlendMode flushes raylib's batch and unbinds our program -> rebind after blend changes.
+- RD3 (5d1ae71): textures decoded from the CPU VRAM copy, cached by content hash (future replacement key). This game draws
+  with TEX0 CLD=0/CBP=0 (palette pre-loaded into the CLUT cache by other TEX0 writes), so the Vulkan backend notes the active
+  CLUT per indexed texture (ps2xRdNoteClut). travel_a/toyhouse_a render textured at window res (logs/shots/rd3c_*).
+  Open: sky + near geometry (clip polygons, RD4 in progress), HUD (prebuilt GIF packets, not in scene buffer), some floor
+  textures wrong, cost (toyhouse 47 fps with view on, 245 texture decodes/s).
+- RD4 (0f970e5): VU1-clipped polygons drawn as fans -> sky and near geometry; hub matches the GS shot.
+- RD5 (b82042a): exact per-draw textures. woods_a streams several textures through one VRAM slot per frame -> kick serial
+  carried in the GIF stream as a GS NOP (0x7F) write; GS thread notes texture content + active CLUT per kick. Cost fixes
+  (PROBE-RDP): CLUT pointer from the instance that loads it (black textures), fast cache by VRAM page generation + CLUT
+  generation, CRC32C of raw pages before any texel decode (game re-uploads ~2.7 MB/frame of identical textures):
+  noteDraw 18.5 -> 0.45 ms/frame. View ON: toyhouse 41 fps / woods 55 (Vu1Exec +7 ms = scene recording); OFF: 59/59
+  unchanged. Visuals match GS shots in woods_a, toyhouse_a, castle_a, snowfesta_f; open: white drop-shadow quads, HUD.
+- RD6 in progress: texture replacement by content hash (mods/textures/<hash>.png, any resolution).
+- RD6 (17adf4e): texture replacement by content hash (mods/textures/<id>.png, any size; tested 90 x 512^2 in travel_a, 59 fps).
+- RD7 (1e3aaad): general PS2 blend formula -> GL blend equations; RD8/9 (8aa1367): 2D capture of non-VU1 GS draws on the
+  main colour buffer (game double-buffers: use the FBP of the 3D kick draws), FBMSK colour mask (alpha-only draws blacked
+  the frame), real dest alpha for Ad. RD10 (95d6257): VU1 non-geometry kicks (HUD, labels, some scenery) flagged via
+  serial bit 30 -> 2D path: travel_a HUD + trees appear. RD11: 2D draws depth-tested via inverse VU1 viewport Z (woods
+  canopy silhouettes gone). Open: drop shadows still white, gadget net dark, one intermittent all-black frame
+  (rd11_travel_a, not reproduced in 2 reruns), HUD auto-hide makes HUD checks timing-dependent.
+- RD12 (fbbd094): PS2X_RD_TAKEOVER=1 skips GS raster + frame readback (PresentLatch gone). RD13 (47be42f): 3D/2D frames
+  aligned by GS-thread kick-serial ranges (fixed all-black frames: next frame's clear sorted after this frame's 3D).
+  RD14 (2568485): lean capture (28-byte verts + strip indices, vector swap, 4 GPU slots, indexed draws); RD14b fixed stale
+  VAO base offset (>64k-vertex frames garbled).
+- Same-time A/B 22:01-22:09 (logs/rd14b_bench.txt vs rd14off_bench.txt), CPU ms/frame takeover vs off: travel_a 34.2/37.2,
+  travel_b 42.9/43.2, woods 41.9/46.0, castle 37.8/41.3, studio 23.3/29.8, snowfesta_f 26.1/31.1, toyhouse 57.5/54.6
+  (54 vs 59 fps), arabian 33.7/39.3, hong 29.8/37.0, space 25.0/29.7 -> ~-4 ms (-11%) avg at window resolution;
+  toyhouse regresses (GL driver thread ~9 ms) -> RD15 GL state caching. Cross-session numbers are not comparable (the
+  same view-off toyhouse measured 46.5 at 18:16 and 54.6 at 22:09).
+- RD15: GL state cache (tex params/binds/uniforms/depth/colour mask only on change): 338 GL calls/frame, driver thread 8.9 -> 3.9 ms. Same-time A/B takeover vs off: toyhouse 52.2/58.4 ms (fps 53.7/56.5, pacing limited elsewhere), woods 34.6/46.1 (-25%).
+- RD16 (cac9dfd): PS2X_ASPECT=fill Hor+ (VU1 VP x lane, decomp EE frustum widen, renderer layout): 16:9 and 21:9 fill the window, 60/57 fps, same CPU as 4:3. RD17: GS-thread state per kick (gsState 99.8%): white drop-shadow squares gone; the dark blob shadow (two-pass dest-alpha) still missing.
+- RD18 (+18b): flip-time 2D filter by the frame's geometry FBP; classic present for frames without geometry kicks (raster skipped only for geometry draws). Boot with takeover: Now Loading, SCEA card, fades OK; title logo/menu missing (render-target composite?), FMV unverified (very dark frames). tools/boot_shots.ps1 added.
+- RD19-21 (user report: 'FOV too far, mesh glitches, flicker'): 2D Z-writing clears now write our depth (black silhouettes from pre-clear passes gone), exact PS2 viewport mapping (guard band: clip +-1 was mapped to the window edges = zoomed out; framing now identical to GS in studio_e/toyhouse_g/hong_g/space_c). Open: near-camera objects the GS hides (scissor? camera-occluder fade?), render-target textures (TV screen).
+- RD26/27: camera timeline probe showed one camera per frame; root cause of the 'walls in front of the camera': skinned/clip recorders read ADC from the FOG qword, so VU1-culled back faces were drawn. Fixed; studio_e/hong_g/space_c match GS. Open: render-target screen contents (TV/robot screens), missing props in toyhouse_g, drop shadows, title logo.
+- RD28 RT page sync (live robot screens), RD29-31 AFAIL modes + unblended dest alpha + DATE/ABE (drop shadows back), RD32 recording realloc fix (toyhouse takeover 58 fps, 53.8 vs 56.1 ms off; castle 35.1 vs 40.4; space 21.8 vs 27.9).
+- FEAT-CFG: ps2x.ini (renderer classic|new, aspect, msaa, window, texture_pack, background_window); env vars override; PS2X_NO_CONFIG=1 for tests. Verified ini-only launch: new renderer + fill at 1600x900. Boot sequence with the new renderer: loading, SCEA card, FMV (classic fallback), title logo/menu all render.
+
+## 2026-11-19 flicker RD33-RD37
+RD33-34b composition by main-pass serial set + slot pinning; RD35 black-frame probe found space_c black = next frame's full-screen clear drawn in the 2D tail (RD36 drops it); RD37 rejects partial compositions (<0.6x average main serials). 6-stage burst: travel/woods/castle/arabian clean, space_c clean, toyhouse_a 3/30 sky-only frames left.
+
+## 2026-11-19 perf RD38-RD42
+RD38 GS skips geometry vertex qwords (GsWorker -2.6..-4 ms), RD40 lean skinned handler (main pass; check mode 0 mismatches), RD42 lean kicks (1-qword tag NLOOP=0): CPU/frame castle 41.9->36.4, woods 51.2->46.6, toyhouse 58.9->51.1, space 29.9->28.0. Tried RD44 lean rigid/clip: no measurable gain (clip machine must stay exact), reverted. VIF1 other-parse has no hot spot (spread over DIRECT/MSCAL/NOP/CYCLE). Full 148-stage tour with new renderer: all alive; studio_b 29 fps, ciscocity_c 49, studio_c/d 42-43 (under investigation).
+
+## 2026-11-19 studio stall RD45-RD50
+studio_b/c/d were 28-43 fps in the new renderer: ps2xRdNoteDraw rt phase = syncPages stalling the GS thread ~20 ms/frame (GPU compute raster of ~10k RT-pass prims). RD45/46 fast paths + timers did not fix it, RD47 async sync never triggered (inert). RD48-50: adaptive guard forces the classic path per stage (renderer fully off) when RT sync EMA > 6 ms, resets on stage transition (prims/latch < 64 x 8). studio_b 28 -> 60 fps, studio_c 43 -> 52. Tour 148/148 alive, studio_c 47, studio_d 49 left under 50.
