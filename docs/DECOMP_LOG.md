@@ -295,3 +295,6 @@ Note: runtime image hash = FNV-1a64 with the non-standard basis 1469598103934665
 
 ## 2026-11-19 flicker RD33-RD37
 RD33-34b composition by main-pass serial set + slot pinning; RD35 black-frame probe found space_c black = next frame's full-screen clear drawn in the 2D tail (RD36 drops it); RD37 rejects partial compositions (<0.6x average main serials). 6-stage burst: travel/woods/castle/arabian clean, space_c clean, toyhouse_a 3/30 sky-only frames left.
+
+## 2026-11-19 perf RD38-RD42
+RD38 GS skips geometry vertex qwords (GsWorker -2.6..-4 ms), RD40 lean skinned handler (main pass; check mode 0 mismatches), RD42 lean kicks (1-qword tag NLOOP=0): CPU/frame castle 41.9->36.4, woods 51.2->46.6, toyhouse 58.9->51.1, space 29.9->28.0. Tried RD44 lean rigid/clip: no measurable gain (clip machine must stay exact), reverted. VIF1 other-parse has no hot spot (spread over DIRECT/MSCAL/NOP/CYCLE). Full 148-stage tour with new renderer: all alive; studio_b 29 fps, ciscocity_c 49, studio_c/d 42-43 (under investigation).
