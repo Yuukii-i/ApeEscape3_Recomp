@@ -224,6 +224,15 @@ kernel32.GetThreadContext.restype = wintypes.BOOL
 kernel32.GetThreadDescription.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_wchar_p)]
 kernel32.GetThreadDescription.restype = ctypes.c_long
 
+kernel32.GetThreadTimes.argtypes = [
+    ctypes.c_void_p,
+    ctypes.POINTER(wintypes.FILETIME),
+    ctypes.POINTER(wintypes.FILETIME),
+    ctypes.POINTER(wintypes.FILETIME),
+    ctypes.POINTER(wintypes.FILETIME),
+]
+kernel32.GetThreadTimes.restype = wintypes.BOOL
+
 kernel32.LocalFree.argtypes = [ctypes.c_void_p]
 kernel32.LocalFree.restype = ctypes.c_void_p
 
@@ -419,9 +428,29 @@ def get_thread_description(h_thread: int) -> str:
         kernel32.LocalFree(desc_ptr)
 
 
+def get_thread_cpu_time_100ns(h_thread: int) -> int:
+    """Return cumulative kernel + user CPU time for h_thread in 100-ns units."""
+    creation = wintypes.FILETIME()
+    exit_t = wintypes.FILETIME()
+    kernel = wintypes.FILETIME()
+    user = wintypes.FILETIME()
+    if not kernel32.GetThreadTimes(
+        h_thread,
+        ctypes.byref(creation),
+        ctypes.byref(exit_t),
+        ctypes.byref(kernel),
+        ctypes.byref(user),
+    ):
+        return 0
+    k_val = (kernel.dwHighDateTime << 32) | kernel.dwLowDateTime
+    u_val = (user.dwHighDateTime << 32) | user.dwLowDateTime
+    return k_val + u_val
+
+
 def find_target_threads(pid: int, target_names: list[str]) -> list[tuple[str, int, int]]:
     """Return list of (thread_name, tid, h_thread) matching target_names."""
     wanted = set(target_names)
+    include_unnamed = "unnamed" in wanted
     snap = kernel32.CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0)
     if snap == INVALID_HANDLE_VALUE or not snap:
         raise ctypes.WinError(ctypes.get_last_error())
@@ -440,6 +469,8 @@ def find_target_threads(pid: int, target_names: list[str]) -> list[tuple[str, in
                     desc = get_thread_description(h_thread)
                     if desc in wanted:
                         matched.append((desc, tid, h_thread))
+                    elif include_unnamed and desc == "":
+                        matched.append((f"<unnamed tid {tid}>", tid, h_thread))
                     else:
                         kernel32.CloseHandle(h_thread)
             if not kernel32.Thread32Next(snap, ctypes.byref(te)):
@@ -775,18 +806,42 @@ def compute_busy_and_timeline(
     return busy_pcts, timeline_lines
 
 
+def is_unnamed_thread(tname: str) -> bool:
+    return tname.startswith("<unnamed tid ")
+
+
 def format_report(
     samples: dict[tuple[str, int], tuple[list[int], list[list[int]], list[float]]],
     resolver: SymbolResolver,
     top_n: int,
     capture_stacks: bool,
+    cpu_ms_by_thread: dict[tuple[str, int], float],
+    seg_wall_ms: float,
 ) -> str:
     """Format per-thread self, guest-address, and optional inclusive tables."""
     lines: list[str] = []
 
-    for (tname, tid), (rips, stacks, _t_rels) in samples.items():
+    named_items = [
+        (key, val) for key, val in samples.items() if not is_unnamed_thread(key[0])
+    ]
+    min_unnamed_cpu_ms = 0.02 * seg_wall_ms
+    unnamed_items = sorted(
+        (
+            (key, val)
+            for key, val in samples.items()
+            if is_unnamed_thread(key[0])
+            and cpu_ms_by_thread.get(key, 0.0) >= min_unnamed_cpu_ms
+        ),
+        key=lambda kv: cpu_ms_by_thread.get(kv[0], 0.0),
+        reverse=True,
+    )
+
+    for (tname, tid), (rips, stacks, _t_rels) in named_items + unnamed_items:
         total = len(rips)
-        lines.append(f"=== Thread: {tname} (TID {tid}) | total samples: {total} ===")
+        cpu_ms = cpu_ms_by_thread.get((tname, tid), 0.0)
+        lines.append(
+            f"=== Thread: {tname} (TID {tid}) | total samples: {total} | cpu_ms: {cpu_ms:.2f} ==="
+        )
         if total == 0:
             lines.append("  (no samples collected)\n")
             continue
@@ -904,7 +959,7 @@ def main() -> int:
     parser.add_argument(
         "--thread",
         default="GameThread",
-        help="Target thread description, or comma-separated list (default: GameThread)",
+        help="Target thread description, 'unnamed' for threads without a description, or comma-separated list (default: GameThread)",
     )
     parser.add_argument(
         "--seconds",
@@ -1021,6 +1076,11 @@ def main() -> int:
                 seg_iso = datetime.datetime.now().astimezone().isoformat()
                 seg_epoch_ms = int(time.time() * 1000)
                 ws_start, thr_start = get_process_stats(h_proc, pid)
+                cpu_start = {
+                    (tname, tid): get_thread_cpu_time_100ns(h_thread)
+                    for tname, tid, h_thread in threads
+                }
+                seg_wall_start = time.perf_counter()
 
                 samples = sample_threads(
                     h_proc,
@@ -1031,6 +1091,15 @@ def main() -> int:
                     show_progress=True,
                 )
 
+                seg_wall_ms = max((time.perf_counter() - seg_wall_start) * 1000.0, 1e-6)
+                cpu_end = {
+                    (tname, tid): get_thread_cpu_time_100ns(h_thread)
+                    for tname, tid, h_thread in threads
+                }
+                cpu_ms_by_thread = {
+                    key: max(0, cpu_end[key] - cpu_start[key]) / 10_000.0
+                    for key in cpu_start
+                }
                 ws_end, thr_end = get_process_stats(h_proc, pid)
                 total_samples = sum(len(rips) for rips, _, _ in samples.values())
 
@@ -1038,16 +1107,30 @@ def main() -> int:
                     samples, resolver, args.seconds, seg_epoch_ms
                 )
                 summary_rows.append((label, busy_pcts))
-                report = format_report(samples, resolver, args.top, args.stacks)
+                report = format_report(
+                    samples,
+                    resolver,
+                    args.top,
+                    args.stacks,
+                    cpu_ms_by_thread,
+                    seg_wall_ms,
+                )
 
                 if out_file is not None:
+                    cpu_header_parts = [
+                        f"{tname}(tid={tid})={cpu_ms:.2f}ms"
+                        for (tname, tid), cpu_ms in sorted(
+                            cpu_ms_by_thread.items(), key=lambda kv: kv[1], reverse=True
+                        )
+                    ]
                     out_file.write(
                         "\n" + "-" * 80 + "\n"
                         f"SEGMENT {k}/{args.segments} | label={label} | start_iso={seg_iso} | "
-                        f"start_epoch_ms={seg_epoch_ms} | interval_us={args.interval_us:g} | "
-                        f"threads={','.join(target_threads)}\n"
+                        f"start_epoch_ms={seg_epoch_ms} | wall_ms={seg_wall_ms:.2f} | "
+                        f"interval_us={args.interval_us:g} | threads={','.join(target_threads)}\n"
                         f"proc_start: working_set_mb={ws_start / (1024.0 * 1024.0):.2f} threads={thr_start}\n"
                         f"proc_end:   working_set_mb={ws_end / (1024.0 * 1024.0):.2f} threads={thr_end}\n"
+                        f"thread_cpu_ms: {', '.join(cpu_header_parts)}\n"
                         + "-" * 80 + "\n"
                     )
                     out_file.write("\n".join(timeline_lines) + "\n\n")
