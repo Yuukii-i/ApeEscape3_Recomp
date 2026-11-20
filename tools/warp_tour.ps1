@@ -2,7 +2,8 @@
 # Params: -tag name (logs\<tag>_run/_err/_summary.txt), -padrec, -hold seconds after each warp executes,
 #         -check N (PS2X_EEDC_CHECK), -only 'a,b,c' (stage subset), -startAt index, -extraEnv 'K=V;K2=V2'
 param([string]$tag = 'tour', [string]$padrec = 'logs\to_hub_fresh.padrec', [int]$hold = 3, [int]$check = 0,
-      [string]$only = '', [int]$startAt = 1, [string]$extraEnv = '', [string]$exe = 'build\PS2Recomp\ps2xRuntime\ps2EntryRunner_dev.exe')
+      [string]$only = '', [int]$startAt = 1, [string]$extraEnv = '', [string]$exe = 'build\PS2Recomp\ps2xRuntime\ps2EntryRunner_dev.exe',
+      [switch]$closeNormally)
 $ErrorActionPreference = 'Continue'
 Set-Location C:\ApeEscape3_Recomp
 $all = @(
@@ -36,6 +37,7 @@ Remove-Item logs\dev_cmd.txt -ErrorAction SilentlyContinue
 $env:PS2X_GS_ASYNC='1';$env:PS2X_VIF1_ASYNC='1';$env:PS2X_GS_VULKAN='1';$env:PS2X_SG2_LLE='1';$env:PS2X_LOG_SYNC='1';$env:PS2X_WINDOW_BACKGROUND='1';$env:PS2X_NO_CONFIG='1'
 $env:PS2X_EEDC='1';$env:PS2X_EEDC_CHECK="$check";$env:PS2X_EEDC_CENSUS='1';$env:PS2X_EEDC_DISABLE='';$env:PS2X_EEDC_ONLY='';$env:PS2X_EEDC_CHECK_JALR=''
 $env:PS2X_MC='';$env:PS2X_PAD_REC='';$env:PS2X_PAD_PLAY=$padrec;$env:PS2X_PAD_STOP_MARK=''
+$env:PS2X_DEV_CMD='logs\dev_cmd.txt' # FIX-DC1
 foreach ($kv in ($extraEnv.Split(';') | Where-Object { $_ })) { $k,$v = $kv.Split('=',2); Set-Item -Path "env:$k" -Value $v }
 $p = Start-Process $exe -ArgumentList 'SCUS_975.01' -RedirectStandardOutput $run -RedirectStandardError $err -PassThru
 $t0 = Get-Date
@@ -64,5 +66,17 @@ foreach ($s in $stages) {
   Add-Content $sum ("#{0} {1}: warped={2} where={3} fps={4} alive={5}" -f $i, $s, $w, $st, $f, (-not $p.HasExited))
 }
 Add-Content $sum "tour end $(Get-Date -Format HH:mm:ss)"
-Start-Sleep 5
-if (-not $p.HasExited) { Stop-Process -Id $p.Id -Force }
+if ($closeNormally) {
+  if (-not $p.HasExited) {
+    $null = $p.CloseMainWindow()
+    $null = $p.WaitForExit(90000)
+  }
+} else {
+  Start-Sleep 5
+}
+if (-not $p.HasExited) {
+  Stop-Process -Id $p.Id -Force
+  Add-Content $sum 'exit forced'
+} else {
+  Add-Content $sum 'exit normal'
+}
