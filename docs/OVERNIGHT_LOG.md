@@ -16,3 +16,26 @@ RD71 KEPT (risky) render: classic fallback guard thresholds 6ms/30 frames -> 16m
 PGO 08:30: ran the cycle by hand in build_pgo: cmake -B build_pgo -DPS2X_PGO=GEN, build ps2EntryRunner (about 45 min at /low), delete stale ps2EntryRunner_pgogen!1.pgc, train with tools\warp_tour.ps1 -exe build_pgo\...\ps2EntryRunner_pgogen.exe -hold 6 -closeNormally (148 stages, new-renderer env, about 20 min, writes the .pgc on normal exit), then cmake -B build_pgo -DPS2X_PGO=USE + build (3 min link) -> build_pgo\PS2Recomp\ps2xRuntime\ps2EntryRunner_pgo.exe. Gate pgo1 (3 reps): fps unchanged, cpu/frame castle -9.6%, toyhouse -12.2%, ciscocity -4.8%, studio_d +0.8%; per-thread GameThread -7..-8%, Vu1Exec -9..-12%, Vif1Worker -12..-15%. 3-core affinity runs are too noisy to show a difference (background load drift ~20%). VPIPE_SPIN 300/0 not better than default under 3 cores.
 CFG1/CFG2 KEPT (risky) config: ps2x.ini renderer=new NEVER activated the new renderer (view/takeover flags cached before ps2xLoadConfig ran; verified also on base_pf1.exe from earlier today). Now applied before first read; renderer=new also defaults 2DFEEDBACK/2DLATE on. ini-only run: [rd] lines 171, takeover on, latch skipped, 59 fps; boot sheet ok. Seen in ini boot sheet: small black rectangle near the character in 2 of 36 frames (black-square texture glitch, still open) | PS2Recomp d31c8a7
 RD72 KEPT (risky) render: ROOT CAUSE of the intermittent black 3D textures and banded 2D noise = shared serial ring aliasing (2D unique serials 0x8000xxxx overwrote 3D kick-serial slots; render thread then fell back to a decode without CLUT note). Split rings by bit 31. Hub burst 300 frames: black-flagged frames 12 -> 0 (twice), all [rdbt2] miss classes 0; PS2X_RD_SPLITRING=0 reproduces the old behaviour (12). Detector: logs\det_black.py + tools\warp_shot.ps1 -burst. Probes PS2X_RD_BLACKTEX=1 | PS2Recomp 2744fc4
+RD72 verification: same-exe A/B (2 reps, studio_d/ciscocity_c): split on cpu/frame studio_d 46.5 vs 48.5, ciscocity_c 52.1 vs 52.8 (off) = no cost. Gate r72 FAILed on cpu +6%/+5.5% vs an older baseline = drift, not the change. Baseline promoted 09:48.
+PAUSE MENU 10:10 (parked, evidence): pad-replay pause_test.padrec (tools: boot_shots -padrec) reproduces it. Game runs 60 fps in pause (in-game counter) but ~34% of presented frames are near-empty (menu 2D batches missing), background scene black (no frozen-frame copy: render-target read skipped under takeover). FRAMECUT=0 or 2DLATE/2DFEEDBACK off make it 100% dark. rd2dr in pause: total2d=804 n2d=606 drawn2d=262, bboxes outside 512x448. Needs a dedicated session. Likely same root as missing transition swirl: framebuffer-as-texture effects are skipped under takeover (fbFeedbackSkipped).
+
+========================================================================
+MORNING REPORT (2026-11-20 11:16) - overnight run started 04:22
+========================================================================
+BRANCHES (both repos, pushed): perf/overnight-safe (phase 1, tag overnight-safe-final), perf/overnight-risky (phase 2, tag overnight-risky-final). main untouched, nothing merged.
+RESULT (final acceptance gate, PGO exe vs phase-1-final build, 3 alternating reps, 6 stages, visual OK on 6, tour 148/148 alive on both):
+  studio_c 40.1 -> 58.8 fps (cpu/frame -26.8%)   studio_d 42.2 -> 58.7 (-22.5%)   ciscocity_c 47.3 -> 58.8 (-15.2%)
+  castle_a cpu/frame -9.9%   toyhouse_a -5.7%   arabian_a -5.9%   (those stages sit on the 60 fps cap)
+  Real ini config (1600x900, fill, MSAA 4), PGO exe: castle 58.9, toyhouse 58.1, studio_d 56.9, ciscocity_c 55.5 fps.
+  Soak: 2 extra full tours in the real ini config: 148/148 alive, normal exits.
+KEPT:
+  EX1-3 EE hot paths (hoists, unsigned range tests), EX4+5 VIF1 queue + texture cache upkeep (orderings unchanged)   [safe branch]
+  VL2/VL3 vblank latch skipped from startup when the new renderer is active (+30..46% studio, ciscocity +24%)
+  RD71 classic-fallback guard 6ms/30fr -> 16ms/60fr (4-core ciscocity_c: 43.6 classic -> 51-52 new)
+  CFG1/CFG2 ps2x.ini 'renderer = new' now actually activates the new renderer (it NEVER did), defaults 2DFEEDBACK/2DLATE on
+  RD72 split 2D/3D texture-note rings: ROOT CAUSE of intermittent black 3D textures and banded 2D noise (black-flagged frames 12/300 -> 0)
+  PGO build recipe (build_pgo): GameThread -7%, Vu1Exec -10%, Vif1Worker -13%
+  Tools: gate.ps1, stage_bench -affinity/-unnamed, boot_shots + contact_sheet (-padrec), hostprof segments/stacks/unnamed, warp_tour -closeNormally, detect_black_frames.py
+REVERTED / NOT DONE: dynamic latch switching (3 fps), memory-order weakening in the VIF1 queue (rejected for hang/ARM risk), header-defined ps2Dcall/isSpecialAddress (header edit = hours rebuild; moot with /GL+PGO).
+OPEN (need a session): pause menu (34% near-empty frames, no frozen background; RD54 cut logic + render-target read skipped), transition swirl (framebuffer-as-texture effects skipped), black rectangle in ini boot sheet (1-2 of 36), studio_e TV, driver thread 9-12 ms/frame at 1600x900 MSAA4.
+TO USE THE OPTIMISED EXE: build_pgo\PS2Recomp\ps2xRuntime\ps2EntryRunner_pgo.exe (needs the DLLs next to it, already there). Dev exe: build_avx2\...\ps2EntryRunner_dev.exe.
