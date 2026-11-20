@@ -9,10 +9,15 @@ import argparse
 import collections
 import ctypes
 from ctypes import wintypes
+import datetime
+import math
 import os
 import re
+import subprocess
 import sys
 import time
+import winreg
+import winsound
 
 # ---------------------------------------------------------------------------
 # Win32 Constants
@@ -88,6 +93,21 @@ class MODULEINFO(ctypes.Structure):
         ("lpBaseOfDll", ctypes.c_void_p),
         ("SizeOfImage", wintypes.DWORD),
         ("EntryPoint", ctypes.c_void_p),
+    ]
+
+
+class PROCESS_MEMORY_COUNTERS(ctypes.Structure):
+    _fields_ = [
+        ("cb", wintypes.DWORD),
+        ("PageFaultCount", wintypes.DWORD),
+        ("PeakWorkingSetSize", ctypes.c_size_t),
+        ("WorkingSetSize", ctypes.c_size_t),
+        ("QuotaPeakPagedPoolUsage", ctypes.c_size_t),
+        ("QuotaPagedPoolUsage", ctypes.c_size_t),
+        ("QuotaPeakNonPagedPoolUsage", ctypes.c_size_t),
+        ("QuotaNonPagedPoolUsage", ctypes.c_size_t),
+        ("PagefileUsage", ctypes.c_size_t),
+        ("PeakPagefileUsage", ctypes.c_size_t),
     ]
 
 
@@ -243,6 +263,13 @@ psapi.GetModuleFileNameExW.argtypes = [
 ]
 psapi.GetModuleFileNameExW.restype = wintypes.DWORD
 
+psapi.GetProcessMemoryInfo.argtypes = [
+    ctypes.c_void_p,
+    ctypes.POINTER(PROCESS_MEMORY_COUNTERS),
+    wintypes.DWORD,
+]
+psapi.GetProcessMemoryInfo.restype = wintypes.BOOL
+
 # dbghelp
 dbghelp.SymGetOptions.argtypes = []
 dbghelp.SymGetOptions.restype = wintypes.DWORD
@@ -323,6 +350,59 @@ def find_process_by_name(exe_name: str) -> int:
     finally:
         kernel32.CloseHandle(snap)
     raise RuntimeError(f"Process '{exe_name}' not found")
+
+
+def get_process_stats(h_proc: int, pid: int) -> tuple[int, int]:
+    """Return (working_set_bytes, thread_count) for pid."""
+    ws_bytes = 0
+    pmc = PROCESS_MEMORY_COUNTERS()
+    pmc.cb = ctypes.sizeof(PROCESS_MEMORY_COUNTERS)
+    if psapi.GetProcessMemoryInfo(h_proc, ctypes.byref(pmc), pmc.cb):
+        ws_bytes = int(pmc.WorkingSetSize)
+
+    thr_count = 0
+    snap = kernel32.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)
+    if snap and snap != INVALID_HANDLE_VALUE:
+        try:
+            pe = PROCESSENTRY32W()
+            pe.dwSize = ctypes.sizeof(PROCESSENTRY32W)
+            if kernel32.Process32FirstW(snap, ctypes.byref(pe)):
+                while True:
+                    if pe.th32ProcessID == pid:
+                        thr_count = int(pe.cntThreads)
+                        break
+                    if not kernel32.Process32NextW(snap, ctypes.byref(pe)):
+                        break
+        finally:
+            kernel32.CloseHandle(snap)
+    return ws_bytes, thr_count
+
+
+def get_cpu_model_name() -> str:
+    """Read CPU ProcessorNameString from Windows registry."""
+    try:
+        with winreg.OpenKey(
+            winreg.HKEY_LOCAL_MACHINE,
+            r"HARDWARE\DESCRIPTION\System\CentralProcessor\0",
+        ) as key:
+            val, _ = winreg.QueryValueEx(key, "ProcessorNameString")
+            return str(val).strip()
+    except OSError:
+        return "<unknown>"
+
+
+def get_active_power_scheme() -> str:
+    """Return `powercfg /getactivescheme` output."""
+    try:
+        out = subprocess.check_output(
+            ["powercfg", "/getactivescheme"],
+            text=True,
+            stderr=subprocess.STDOUT,
+            timeout=5,
+        )
+        return " ".join(out.strip().split())
+    except Exception as exc:
+        return f"<error: {exc}>"
 
 
 def get_thread_description(h_thread: int) -> str:
@@ -447,14 +527,21 @@ def init_dbghelp(h_proc: int, exe_path: str, exe_base: int, exe_size: int, pdb_p
             raise ctypes.WinError(err)
 
 
-def walk_stack_6(
+STACK_DEPTH = 16
+
+WAIT_LEAF_DLLS = ("<ntdll.dll>", "<kernelbase.dll>", "<win32u.dll>")
+WAIT_CALLER_LEAF_DLLS = ("<ntdll.dll>", "<kernelbase.dll>", "<win32u.dll>", "<nvoglv64.dll>")
+
+
+def walk_stack(
     h_proc: int,
     h_thread: int,
     ctx_addr: int,
     fn_table_access: int,
     get_mod_base: int,
+    max_depth: int = STACK_DEPTH,
 ) -> list[int]:
-    """Capture up to 6 PC addresses via StackWalk64 on an already-suspended thread."""
+    """Capture up to max_depth PC addresses via StackWalk64 on an already-suspended thread."""
     frame = STACKFRAME64()
     frame.AddrPC.Offset = read_u64(ctx_addr, CONTEXT_OFF_RIP)
     frame.AddrPC.Mode = ADDR_MODE_FLAT
@@ -464,7 +551,7 @@ def walk_stack_6(
     frame.AddrStack.Mode = ADDR_MODE_FLAT
 
     pcs: list[int] = []
-    for _ in range(6):
+    for _ in range(max_depth):
         ok = dbghelp.StackWalk64(
             IMAGE_FILE_MACHINE_AMD64,
             h_proc,
@@ -530,16 +617,38 @@ class SymbolResolver:
 # Sampling & Reporting
 # ---------------------------------------------------------------------------
 
+THREAD_ALIASES = [
+    ("GameThread", "GT"),
+    ("GsWorker", "GS"),
+    ("Vu1Exec", "V1"),
+    ("Vif1Worker", "VF"),
+    ("MainLoop", "ML"),
+]
+
+
+def is_idle_symbol(sym: str) -> bool:
+    """Treat <ntdll.dll>, <KERNELBASE.dll>, and wait/sleep frames as idle."""
+    s = sym.lower()
+    if s in ("<ntdll.dll>", "<kernelbase.dll>"):
+        return True
+    if not s.startswith("sub_") and (
+        "wait" in s or "sleep" in s or "delayexecution" in s
+    ):
+        return True
+    return False
+
+
 def sample_threads(
     h_proc: int,
     threads: list[tuple[str, int, int]],
     seconds: float,
     interval_us: float,
     capture_stacks: bool,
-) -> dict[tuple[str, int], tuple[list[int], list[list[int]]]]:
+    show_progress: bool = True,
+) -> dict[tuple[str, int], tuple[list[int], list[list[int]], list[float]]]:
     """Sample all target threads for `seconds` at `interval_us` intervals."""
-    samples: dict[tuple[str, int], tuple[list[int], list[list[int]]]] = {
-        (name, tid): ([], []) for name, tid, _ in threads
+    samples: dict[tuple[str, int], tuple[list[int], list[list[int]], list[float]]] = {
+        (name, tid): ([], [], []) for name, tid, _ in threads
     }
 
     _, ctx_addr = alloc_aligned_context()
@@ -552,12 +661,20 @@ def sample_threads(
         t_start = time.perf_counter()
         t_end = t_start + seconds
         next_t = t_start
+        last_progress_t = -1.0
 
         while True:
             now = time.perf_counter()
             if now >= t_end:
                 break
 
+            if show_progress and (last_progress_t < 0.0 or now - last_progress_t >= 0.25):
+                last_progress_t = now
+                rem_s = max(0.0, t_end - now)
+                sys.stdout.write(f"\r  {rem_s:5.1f} s left...   ")
+                sys.stdout.flush()
+
+            t_rel = now - t_start
             for name, tid, h_thread in threads:
                 prev_susp = kernel32.SuspendThread(h_thread)
                 if prev_susp == 0xFFFFFFFF:
@@ -569,15 +686,21 @@ def sample_threads(
                     if kernel32.GetThreadContext(h_thread, ctx_addr):
                         rip = read_u64(ctx_addr, CONTEXT_OFF_RIP)
                         if capture_stacks:
-                            stack_pcs = walk_stack_6(
-                                h_proc, h_thread, ctx_addr, fn_table_access, get_mod_base
+                            stack_pcs = walk_stack(
+                                h_proc,
+                                h_thread,
+                                ctx_addr,
+                                fn_table_access,
+                                get_mod_base,
+                                STACK_DEPTH,
                             )
                 finally:
                     kernel32.ResumeThread(h_thread)
 
                 if rip:
-                    rips, stacks = samples[(name, tid)]
+                    rips, stacks, t_rels = samples[(name, tid)]
                     rips.append(rip)
+                    t_rels.append(t_rel)
                     if capture_stacks:
                         stacks.append(stack_pcs)
 
@@ -593,12 +716,67 @@ def sample_threads(
                 pass
     finally:
         winmm.timeEndPeriod(1)
+        if show_progress:
+            sys.stdout.write("\r" + " " * 32 + "\r")
+            sys.stdout.flush()
 
     return samples
 
 
+def compute_busy_and_timeline(
+    samples: dict[tuple[str, int], tuple[list[int], list[list[int]], list[float]]],
+    resolver: SymbolResolver,
+    seconds: float,
+    seg_epoch_ms_start: int,
+) -> tuple[dict[str, float], list[str]]:
+    """Compute per-thread busy % and per-second timeline lines."""
+    num_secs = max(1, int(math.ceil(seconds)))
+    per_thr_total: dict[str, int] = collections.defaultdict(int)
+    per_thr_busy: dict[str, int] = collections.defaultdict(int)
+    per_sec_syms: dict[tuple[str, int], list[str]] = collections.defaultdict(list)
+
+    for (tname, _tid), (rips, _stacks, t_rels) in samples.items():
+        for rip, t_rel in zip(rips, t_rels):
+            sym = resolver.resolve(rip)
+            sec = min(num_secs - 1, max(0, int(t_rel)))
+            per_thr_total[tname] += 1
+            if not is_idle_symbol(sym):
+                per_thr_busy[tname] += 1
+            per_sec_syms[(tname, sec)].append(sym)
+
+    busy_pcts: dict[str, float] = {}
+    for tname, tot in per_thr_total.items():
+        busy_pcts[tname] = (100.0 * per_thr_busy[tname] / tot) if tot > 0 else 0.0
+
+    timeline_lines: list[str] = ["[Per-Second Timeline]"]
+    for sec in range(num_secs):
+        epoch_ms = seg_epoch_ms_start + sec * 1000
+        parts: list[str] = []
+        for full_name, abbr in THREAD_ALIASES:
+            syms = per_sec_syms.get((full_name, sec), [])
+            if syms:
+                busy = 100.0 * sum(1 for s in syms if not is_idle_symbol(s)) / len(syms)
+                parts.append(f"{abbr}={busy:.1f}%")
+            else:
+                parts.append(f"{abbr}=0.0%")
+
+        def top_for(tname: str) -> str:
+            syms = per_sec_syms.get((tname, sec), [])
+            if not syms:
+                return "none 0.0%"
+            fn, cnt = collections.Counter(syms).most_common(1)[0]
+            return f"{fn} {100.0 * cnt / len(syms):.1f}%"
+
+        timeline_lines.append(
+            f"t={sec} epoch_ms={epoch_ms} {' '.join(parts)} | "
+            f"GT top: {top_for('GameThread')} | GS top: {top_for('GsWorker')}"
+        )
+
+    return busy_pcts, timeline_lines
+
+
 def format_report(
-    samples: dict[tuple[str, int], tuple[list[int], list[list[int]]]],
+    samples: dict[tuple[str, int], tuple[list[int], list[list[int]], list[float]]],
     resolver: SymbolResolver,
     top_n: int,
     capture_stacks: bool,
@@ -606,7 +784,7 @@ def format_report(
     """Format per-thread self, guest-address, and optional inclusive tables."""
     lines: list[str] = []
 
-    for (tname, tid), (rips, stacks) in samples.items():
+    for (tname, tid), (rips, stacks, _t_rels) in samples.items():
         total = len(rips)
         lines.append(f"=== Thread: {tname} (TID {tid}) | total samples: {total} ===")
         if total == 0:
@@ -649,14 +827,60 @@ def format_report(
 
         if capture_stacks:
             inc_counts: collections.Counter[str] = collections.Counter()
+            path_counts: collections.Counter[tuple[str, ...]] = collections.Counter()
+            wait_callers: collections.Counter[str] = collections.Counter()
+
             for pcs in stacks:
-                seen = {resolver.resolve(pc) for pc in pcs}
-                for sym in seen:
+                if not pcs:
+                    continue
+                syms = [resolver.resolve(pc) for pc in pcs]
+
+                for sym in set(syms):
                     inc_counts[sym] += 1
-            lines.append(f"\n  [Inclusive Time (StackWalk64 depth 6) - Top {top_n}]")
+
+                # Merge consecutive duplicate frames for call-path signature.
+                dedup: list[str] = []
+                for sym in syms:
+                    if not dedup or dedup[-1] != sym:
+                        dedup.append(sym)
+
+                # Collapse leading <ntdll.dll>/<KERNELBASE.dll>/<win32u.dll> frames into 'WAIT'.
+                idx = 0
+                while idx < len(dedup) and dedup[idx].lower() in WAIT_LEAF_DLLS:
+                    idx += 1
+                if idx > 0:
+                    sig = ("WAIT", *dedup[idx:])
+                else:
+                    sig = tuple(dedup)
+                path_counts[sig] += 1
+
+                # For wait/driver-wait leaves, find first resolved runtime frame.
+                if syms[0].lower() in WAIT_CALLER_LEAF_DLLS:
+                    caller = "<unresolved>"
+                    for sym in syms:
+                        if not sym.startswith("<") and not sym.startswith("0x"):
+                            caller = sym
+                            break
+                    wait_callers[caller] += 1
+
+            lines.append(f"\n  [Inclusive Time (StackWalk64 depth {STACK_DEPTH}) - Top {top_n}]")
             lines.append(f"  {'Pct':>7}  {'Samples':>8}  Function")
             for sym, cnt in inc_counts.most_common(top_n):
                 lines.append(f"  {100.0 * cnt / total:6.2f}%  {cnt:8d}  {sym}")
+
+            lines.append("\n  [Top Call Paths - leaf first]")
+            lines.append(f"  {'Pct':>7}  {'Samples':>8}  Path")
+            for sig, cnt in path_counts.most_common(15):
+                path_str = " <- ".join(sig[:10])
+                lines.append(f"  {100.0 * cnt / total:6.2f}%  {cnt:8d}  {path_str}")
+
+            lines.append("\n  [Wait Callers]")
+            lines.append(f"  {'Pct':>7}  {'Samples':>8}  Caller")
+            if wait_callers:
+                for sym, cnt in wait_callers.most_common(top_n):
+                    lines.append(f"  {100.0 * cnt / total:6.2f}%  {cnt:8d}  {sym}")
+            else:
+                lines.append("  (no wait samples)")
 
         lines.append("")
 
@@ -703,19 +927,46 @@ def main() -> int:
     parser.add_argument(
         "--out",
         default=None,
-        help="Optional output file path to write the report",
+        help="Optional output file path to append the report",
+    )
+    parser.add_argument(
+        "--segments",
+        type=int,
+        default=1,
+        help="Number of sampling segments to run (default: 1)",
+    )
+    parser.add_argument(
+        "--labels",
+        default=None,
+        help="Comma-separated segment labels (default: seg1,seg2,...)",
+    )
+    parser.add_argument(
+        "--gap",
+        type=float,
+        default=20.0,
+        help="Gap seconds between segments with countdown and beep (default: 20)",
     )
     parser.add_argument(
         "--stacks",
         action="store_true",
-        help="Capture up to 6 stack frames via StackWalk64 and report inclusive time",
+        help="Capture up to 16 stack frames via StackWalk64 and report inclusive time, top call paths, and wait callers",
     )
     args = parser.parse_args()
+
+    if args.segments < 1:
+        print("Error: --segments must be >= 1.", file=sys.stderr)
+        return 1
 
     target_threads = [t.strip() for t in args.thread.split(",") if t.strip()]
     if not target_threads:
         print("Error: --thread must specify at least one thread name.", file=sys.stderr)
         return 1
+
+    raw_labels = [s.strip() for s in args.labels.split(",") if s.strip()] if args.labels else []
+    labels = [
+        raw_labels[i] if i < len(raw_labels) else f"seg{i + 1}"
+        for i in range(args.segments)
+    ]
 
     pid = find_process_by_name(args.exe_name)
     h_proc = kernel32.OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, False, pid)
@@ -741,20 +992,102 @@ def main() -> int:
 
         init_dbghelp(h_proc, exe_path, exe_base, exe_size, args.pdb)
         sym_inited = True
-
-        samples = sample_threads(
-            h_proc, threads, args.seconds, args.interval_us, args.stacks
-        )
         resolver = SymbolResolver(h_proc, exe_base, exe_size, modules)
-        report = format_report(samples, resolver, args.top, args.stacks)
 
-        print(report)
+        out_file = None
         if args.out:
             out_dir = os.path.dirname(os.path.abspath(args.out))
             if out_dir:
                 os.makedirs(out_dir, exist_ok=True)
-            with open(args.out, "w", encoding="utf-8") as f:
-                f.write(report)
+            out_file = open(args.out, "a", encoding="utf-8")
+            run_iso = datetime.datetime.now().astimezone().isoformat()
+            cpu_model = get_cpu_model_name()
+            power_scheme = get_active_power_scheme()
+            out_file.write(
+                "\n" + "=" * 80 + "\n"
+                f"HOSTPROF RUN | start={run_iso} | cpu={cpu_model}\n"
+                f"power_scheme={power_scheme}\n"
+                + "=" * 80 + "\n"
+            )
+            out_file.flush()
+
+        summary_rows: list[tuple[str, dict[str, float]]] = []
+        try:
+            for seg_idx in range(args.segments):
+                k = seg_idx + 1
+                label = labels[seg_idx]
+                print(f"[seg {k}/{args.segments} {label}] sampling {args.seconds:g} s ...")
+
+                seg_iso = datetime.datetime.now().astimezone().isoformat()
+                seg_epoch_ms = int(time.time() * 1000)
+                ws_start, thr_start = get_process_stats(h_proc, pid)
+
+                samples = sample_threads(
+                    h_proc,
+                    threads,
+                    args.seconds,
+                    args.interval_us,
+                    args.stacks,
+                    show_progress=True,
+                )
+
+                ws_end, thr_end = get_process_stats(h_proc, pid)
+                total_samples = sum(len(rips) for rips, _, _ in samples.values())
+
+                busy_pcts, timeline_lines = compute_busy_and_timeline(
+                    samples, resolver, args.seconds, seg_epoch_ms
+                )
+                summary_rows.append((label, busy_pcts))
+                report = format_report(samples, resolver, args.top, args.stacks)
+
+                if out_file is not None:
+                    out_file.write(
+                        "\n" + "-" * 80 + "\n"
+                        f"SEGMENT {k}/{args.segments} | label={label} | start_iso={seg_iso} | "
+                        f"start_epoch_ms={seg_epoch_ms} | interval_us={args.interval_us:g} | "
+                        f"threads={','.join(target_threads)}\n"
+                        f"proc_start: working_set_mb={ws_start / (1024.0 * 1024.0):.2f} threads={thr_start}\n"
+                        f"proc_end:   working_set_mb={ws_end / (1024.0 * 1024.0):.2f} threads={thr_end}\n"
+                        + "-" * 80 + "\n"
+                    )
+                    out_file.write("\n".join(timeline_lines) + "\n\n")
+                    out_file.write(report + "\n")
+                    out_file.flush()
+                    print(f"[seg {k}/{args.segments} {label}] done, {total_samples} samples -> appended to {args.out}")
+                else:
+                    print(f"[seg {k}/{args.segments} {label}] done, {total_samples} samples")
+
+                if k < args.segments and args.gap > 0:
+                    end_gap = time.perf_counter() + args.gap
+                    while True:
+                        left = end_gap - time.perf_counter()
+                        if left <= 0:
+                            break
+                        sys.stdout.write(
+                            f"\rswitch level now, next segment in {int(math.ceil(left))} s   "
+                        )
+                        sys.stdout.flush()
+                        time.sleep(min(0.5, left))
+                    sys.stdout.write("\rswitch level now, next segment in 0 s   \n")
+                    sys.stdout.flush()
+                    try:
+                        winsound.Beep(880, 250)
+                    except Exception:
+                        sys.stdout.write("\a")
+                        sys.stdout.flush()
+        finally:
+            if out_file is not None:
+                out_file.close()
+
+        summary_cols = [full for full, _ in THREAD_ALIASES]
+        print("\nSummary (Busy %):")
+        print(
+            f"{'Segment':<14} "
+            + " ".join(f"{col:>10}" for col in summary_cols)
+        )
+        for label, bp in summary_rows:
+            vals = " ".join(f"{bp.get(col, 0.0):9.1f}%" for col in summary_cols)
+            print(f"{label:<14} {vals}")
     finally:
         for _, _, h_thread in threads:
             kernel32.CloseHandle(h_thread)

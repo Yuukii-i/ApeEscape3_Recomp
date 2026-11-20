@@ -480,14 +480,15 @@ def selftest():
         if info["tags"] != [0, 1]:
             errs.append(f"tags {info['tags']} != [0, 1]")
 
-    # FEAT-FT3: Tag-column presents file + --presents-only (no _cpu.csv)
+    # FEAT-FT3 + FEAT-HP2: Tag & EpochMs columns + --presents-only (no _cpu.csv)
     prefix2 = os.path.join(tmp, "st_ft3")
     with open(prefix2 + "_presents.csv", "w", newline="") as f:
-        f.write("Application,ProcessID,SwapChainAddress,TimeInSeconds,msBetweenPresents,Tag\n")
-        f.write("ApeEscape3.exe,1234,0x1,0.000000,0.0000,0\n")
+        f.write("Application,ProcessID,SwapChainAddress,TimeInSeconds,msBetweenPresents,Tag,EpochMs\n")
+        f.write("ApeEscape3.exe,1234,0x1,0.000000,0.0000,0,1700000000000\n")
         for idx, (tt, ft) in enumerate(main_rows):
             tag = 0 if tt < 14.0 else 2
-            f.write(f"ApeEscape3.exe,1234,0x1,{tt:.6f},{ft:.4f},{tag}\n")
+            epoch_ms = 1700000000000 + int(tt * 1000.0)
+            f.write(f"ApeEscape3.exe,1234,0x1,{tt:.6f},{ft:.4f},{tag},{epoch_ms}\n")
     rc2, info2 = run_report(prefix2, 5.0, quiet=True, presents_only=True)
     if rc2 != 0 or info2 is None:
         errs.append("presents-only report failed")
