@@ -3,7 +3,7 @@
 # Usage: powershell -File tools\stage_bench.ps1 -tag base_off -extraEnv 'PS2X_EEDC=0' [-only 'travel_a,woods_a'] [-settle 8 -measure 12]
 param([string]$tag = 'bench', [string]$padrec = 'logs\to_hub_fresh.padrec', [int]$settle = 8, [int]$measure = 12,
       [string]$only = 'travel_a,travel_b,woods_a,castle_a,studio_a,snowfesta_f,toyhouse_a,arabian_a,hong_a,space_a',
-      [string]$extraEnv = '', [string]$winSize = '', [string]$exe = 'build\PS2Recomp\ps2xRuntime\ps2EntryRunner_dev.exe')
+      [string]$extraEnv = '', [string]$winSize = '', [string]$affinity = '', [string]$exe = 'build\PS2Recomp\ps2xRuntime\ps2EntryRunner_dev.exe')
 $ErrorActionPreference = 'Continue'
 Set-Location C:\ApeEscape3_Recomp
 Add-Type -Namespace Win -Name Thr2 -MemberDefinition @'
@@ -37,8 +37,21 @@ $env:PS2X_EEDC='1';$env:PS2X_EEDC_CHECK='0';$env:PS2X_EEDC_CENSUS='0';$env:PS2X_
 $env:PS2X_MC='';$env:PS2X_PAD_REC='';$env:PS2X_PAD_PLAY=$padrec;$env:PS2X_PAD_STOP_MARK=''
 $env:PS2X_DEV_CMD='logs\dev_cmd.txt' # FIX-DC1
 foreach ($kv in ($extraEnv.Split(';') | Where-Object { $_ })) { $k,$v = $kv.Split('=',2); Set-Item -Path "env:$k" -Value $v }
-Set-Content $out ("bench {0} {1} settle={2}s measure={3}s env='{4}'" -f $tag, (Get-Date -Format 'yyyy-MM-dd HH:mm'), $settle, $measure, $extraEnv)
 $p = Start-Process $exe -ArgumentList 'SCUS_975.01' -RedirectStandardOutput $run -RedirectStandardError $err -PassThru
+if ($affinity) {
+  $ok = $false
+  for ($i = 0; $i -lt 5 -and -not $ok; $i++) {
+    try {
+      $p.ProcessorAffinity = [IntPtr][Convert]::ToInt64($affinity, 16)
+      $ok = $true
+    } catch {
+      Start-Sleep -Milliseconds 100
+    }
+  }
+  if (-not $ok) { Write-Warning "Failed to set ProcessorAffinity=$affinity" }
+}
+$effAff = try { $p.Refresh(); '0x{0:X}' -f $p.ProcessorAffinity.ToInt64() } catch { 'unknown' }
+Set-Content $out ("bench {0} {1} settle={2}s measure={3}s env='{4}' affinity={5}" -f $tag, (Get-Date -Format 'yyyy-MM-dd HH:mm'), $settle, $measure, $extraEnv, $effAff)
 $t0 = Get-Date
 while (((Get-Date) - $t0).TotalSeconds -lt 120 -and -not $p.HasExited) { if (Select-String -Path $err -Pattern 'stage/travel_a/actionseq' -Quiet) { break }; Start-Sleep 1 }
 Start-Sleep 8
