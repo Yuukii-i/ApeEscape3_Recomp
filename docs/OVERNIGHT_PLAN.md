@@ -21,16 +21,13 @@ Run `powershell -File tools\gate.ps1 -tag n0 -level full` (baseline vs the ident
 6. Keep = commit in PS2Recomp (`perf(<area>): <what>` + measured numbers in the body) then parent pointer commit, push the branch. Update the log line to KEPT with numbers.
 7. Every 5 kept changes or every 2 h: `gate.ps1 -level full -tour` as a checkpoint.
 
-## Phase 1 backlog (image-identical, in priority order)
-Profile facts (host profile, normal play): GameThread is the ceiling in castle/ciscocity/toyhouse (86-88% busy, ~37% of its samples in guest code); GsWorker ps2xRdNoteDraw 11-13% self + GSMem::ReadTexture 6-7% + ps2xRdNoteClut ~2%; MainLoop ps2xRdTexTickFrame 2-3%, ps2xRdGetTexture 1.5%; EE scheduler overhead (EeScheduler::checkpointDue, PS2Runtime::eeCheckpointDue, PS2Memory::advanceEeTimers, EeScheduler::accountCycles) ~6% of GameThread; PS2Runtime::isSpecialAddress + dispatchGuestBranch ~2.5%; decompThunkImpl ~2.5%; VU0 (v0hScaleAndMatVec, executeVU0Microprogram, run_*) ~5%; IOP LLE (IopCpuCore::executeInstruction, Impl::step, IopMemory::read32) ~2.5%; Vif1Worker processVIF1Data ~10% self, vpPushRec 2%; Vu1Exec buildLeanSkinVertsImpl 2-3%, fmacV, clipPolygon.
-1. ps2xRdNoteDraw / rdNoteKickBookkeeping / ps2xRdNoteClut on the GS thread: cheaper keys, fewer hash lookups, no per-draw allocation.
-2. GSMem::ReadTexture / decode paths used by note: skip work when page generations are unchanged (outputs identical).
-3. ps2xRdTexTickFrame (MainLoop): amortise the per-frame cache maintenance.
-4. EE scheduler checkpoint path (cycle accounting must stay bit-identical in emulated time).
-5. isSpecialAddress / dispatchGuestBranch fast paths.
-6. processVIF1Data / vpPushRec allocations.
-7. VU1 lean skin vertex builder and fmac helpers.
-8. IOP LLE step/read32 hot paths.
+## Phase 1 backlog (image-identical) - REVISED order: the GameThread is the ceiling (12-13 ms/frame in castle, 86-88% busy), GsWorker is ~4.5 ms/frame, so attack the GameThread first
+1. EE scheduler checkpoint path (EeScheduler::checkpointDue, PS2Runtime::eeCheckpointDue, PS2Memory::advanceEeTimers, EeScheduler::accountCycles, accountCycles batching): ~6% of GameThread. Emulated cycle/timer accounting must stay bit-identical.
+2. PS2Runtime::isSpecialAddress, dispatchGuestBranch, ps2Dcall, decompThunkImpl (~7% together): fast paths, avoid repeated lookups.
+3. VU0 on the game thread (vu0func::v0hScaleAndMatVec, executeVU0Microprogram, run_*, vu0fast::execFmacFast): ~5%.
+4. IOP LLE (IopCpuCore::executeInstruction, IopEmulator::Impl::step, IopMemory::read32): ~2.5%.
+5. Vif1Worker processVIF1Data / vpPushRec (about 25-29% busy) and Vu1Exec buildLeanSkinVertsImpl / fmacV / clipPolygon (35-40% busy) - lower priority, they are not the ceiling but cost CPU on weak machines.
+6. GS thread: ps2xRdNoteDraw / rdNoteKickBookkeeping / ps2xRdNoteClut / GSMem::ReadTexture (use PS2X_RD_PROF=1, the [rdprof] line, to see which sub-part dominates); MainLoop ps2xRdTexTickFrame.
 Stop phase 1 when 3 consecutive experiments are not kept, or the list is exhausted, or after 5 hours. Final phase-1 act: tag `overnight-safe-final` in both repos, push `perf/overnight-safe`.
 
 ## Phase 2 (may change visuals; start from tag overnight-safe-final on `perf/overnight-risky`)
@@ -44,3 +41,6 @@ Backlog: (a) `PS2X_VBLANK_LATCH=0` equivalent decided at STARTUP (not dynamic sw
 
 ## Morning report (docs/OVERNIGHT_LOG.md bottom)
 Kept changes with numbers, reverted ones with reasons, VISUAL-REVIEW patches, current baseline vs `overnight-base` (stage_bench same-session A/B), open ideas.
+
+## Coding fallback (user, 2026-11-20)
+If Gemini reports a quota/limit error, give the same spec (docs/NEXT_TASK.md) to a Sonnet subagent (Agent tool, model sonnet, general-purpose) instead and keep going. Same rules apply (.cpp only, no headers, build via tools\build_avx2.bat, gate). Only stop if the work gets genuinely messy; small errors can be fixed later. Objective: very low ms and stable fps.

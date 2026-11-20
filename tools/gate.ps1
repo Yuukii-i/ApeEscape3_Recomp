@@ -7,7 +7,10 @@ param(
     [ValidateSet('alt', 'base', 'cand')][string]$order = 'alt',
     [switch]$tour,
     [switch]$promote,
-    [string]$extraEnv = ''
+    [string]$extraEnv = '',
+    [string]$stages = '',
+    [int]$reps = 0,
+    [string]$shots = ''
 )
 
 $ErrorActionPreference = 'Continue'
@@ -33,18 +36,32 @@ $reportPath = "$reportDir\report.txt"
 
 if ($level -eq 'quick') {
     $perfStages = @('castle_a', 'studio_d', 'toyhouse_a')
-    $reps = 1
+    $defaultReps = 1
     $shotStages = @('castle_a', 'studio_d')
-    $regThresh = 8.0
-    $imp2Thresh = 9.0
-    $imp1Thresh = 14.0
 } else {
     $perfStages = @('castle_a', 'studio_c', 'studio_d', 'toyhouse_a', 'arabian_a', 'ciscocity_c')
-    $reps = 3
+    $defaultReps = 3
     $shotStages = @('castle_a', 'studio_c', 'toyhouse_a', 'arabian_a', 'ciscocity_c', 'travel_a')
+}
+
+if ($stages) {
+    $perfStages = @($stages.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' })
+}
+if ($reps -le 0) {
+    $reps = $defaultReps
+}
+if ($shots) {
+    $shotStages = @($shots.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' })
+}
+
+if ($reps -ge 3) {
     $regThresh = 4.0
     $imp2Thresh = 3.0
     $imp1Thresh = 8.0
+} else {
+    $regThresh = 8.0
+    $imp2Thresh = 9.0
+    $imp1Thresh = 14.0
 }
 
 $perfOnly = $perfStages -join ','
@@ -229,7 +246,7 @@ $verdictLine = if ($passed) {
 }
 
 $report = New-Object System.Collections.Generic.List[string]
-$report.Add("gate tag=$tag level=$level order=$order reg=${regThresh}% imp2=${imp2Thresh}% imp1=${imp1Thresh}% candidate=$candidate baseline=$baseline")
+$report.Add("gate tag=$tag level=$level order=$order reps=$reps stages=$perfOnly shots=$shotOnly reg=${regThresh}% imp2=${imp2Thresh}% imp1=${imp1Thresh}% candidate=$candidate baseline=$baseline")
 $report.Add("--- PERF (median across $reps rep(s), order=$order, regression limit ${regThresh}%, improved >=2@${imp2Thresh}% or >=1@${imp1Thresh}%) ---")
 foreach ($r in $perfRows) { $report.Add($r) }
 $report.Add("--- VISUAL ---")

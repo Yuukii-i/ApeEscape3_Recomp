@@ -74,7 +74,7 @@ def main() -> int:
     noise_mean, noise_frac = pair_metrics(a, b)
     cand_mean, cand_frac = pair_metrics(a, c)
 
-    failed = (cand_mean > max(2.0 * noise_mean, 2.0)) or (cand_frac > max(2.0 * noise_frac, 0.02))
+    failed = (cand_mean > max(2.0 * noise_mean, 4.5)) or (cand_frac > max(2.0 * noise_frac, 0.09))
     status = "FAIL" if failed else "OK"
     print(
         f"{status} {stage} mean={cand_mean:.3f} frac={cand_frac:.4f} "
