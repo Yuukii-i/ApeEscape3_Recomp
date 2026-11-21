@@ -12,7 +12,10 @@ Correction of an earlier claim: my "classic beats new" table used a stale exe. W
 - Pause menu in that mode: frozen scene through the measured tint ramp (R=G=0.25*Y+8, B=0.45*Y+14, fitted from the real classic pause frame) + the real animated menu on top (alpha-keyed): very close to the PCSX2 reference.
 - Perf vs GL (CPU ms/frame): castle_a 39.8 vs 38.5, toyhouse_a 55.8 vs 50.5, studio_b 22.5 vs 21.2 (fps equal in castle/studio, toyhouse 53.8 vs 57). Remaining gap is mostly main-thread recording (~3-5 ms) and can be cut further.
 
-## 2b. Robustness\nFull 148-stage warp tour in `PS2X_FRONTEND=sdl PS2X_SDL_RD=1`: 148/148 alive, no GPU errors, fps min 45 / median 59 (logs\vktour_summary.txt).\n\n## 3. How to try it (PowerShell, one block)
+## 2b. Robustness
+Full 148-stage warp tour in `PS2X_FRONTEND=sdl PS2X_SDL_RD=1`: 148/148 alive, no GPU errors, fps min 45 / median 59 (logs\vktour_summary.txt).
+
+## 3. How to try it (PowerShell, one block)
 ```
 cd C:\ApeEscape3_Recomp
 $env:PS2X_GS_ASYNC='1'; $env:PS2X_VIF1_ASYNC='1'; $env:PS2X_GS_VULKAN='1'; $env:PS2X_SG2_LLE='1'; $env:PS2X_EEDC='1'
@@ -32,7 +35,7 @@ Keys: WASD left stick, IJKL right stick, arrows D-pad, X/Space cross, C/Esc circ
 
 ## 5. Next steps (suggested)
 1. You try the block above (hub, pause, a few levels) and tell me what looks wrong.
-2. Dear ImGui (SDL3 + Vulkan backends) debug panel + the Enhanced-renderer UI from docs/OVERHAUL_PLAN.md.
+2. Exercise the debug panel in the SDL window and build the Enhanced-renderer UI (fly camera, light sources, profile sliders) from docs/OVERHAUL_PLAN.md.
 3. Fix snapshots, then native fades/swirl in rdgfx_vk.
 4. Camera/light research via PCSX2 for the overhaul.
 5. Perf: batching/state sorting in the Vulkan path, GS double-raster removal (RTT plan P5).
