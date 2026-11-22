@@ -9,7 +9,7 @@
 - R1 window/present: borderless fullscreen (F11 + ini `fullscreen`), present mode (ini `vsync`: on=FIFO default, mailbox, off=immediate; env PS2X_VK_PRESENT).
 - R2 render scale: offscreen target = scale x window size (ini `render_scale` 25..400 %, default 100); final composite scales to the swapchain (linear). Weak hardware can lower it, strong hardware can supersample.
 - R3 config + panel: all keys readable from ps2x.ini in SDL mode; debug panel (F1) graphics section to change aspect/scale/msaa live where cheap.
-- R4 widescreen audit per scene type (3D gameplay, HUD, menus/level select, fades/transitions/swirl, FMV (must be 4:3 pillarbox), pause FX composite, loading screens, boss/cutscene letterboxes). Fix what stretches or leaves bars.
+- R4 widescreen audit per scene type that works today (3D gameplay, HUD, menus/level select, FMV (4:3 pillarbox), pause FX composite, loading/intro screens, boss/cutscene letterboxes). Fades/transitions/swirl are OUT of scope until native fades exist in the Vulkan renderer (user note 2026-11-22). Fix what stretches or leaves bars.
 
 ## Phase 2: widescreen content popping (after phase 1)
 - The game culls objects/textures against its 4:3 frustum and draws backdrops sized for 4:3. Find the culling tests/FOV constants (EE side), GS scissor / guard band limits, LOD/streaming radius, and widen them for aspectK (hack ledger entries, env-gated). PCSX2 pnach widescreen/no-cull patches for SCUS-97501 are a lead.
