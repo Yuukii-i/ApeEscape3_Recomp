@@ -16,3 +16,4 @@
 - FG10: replay path costs 0.09ms/extra but only 25% extras replay (15 replay/45 full), CHECK flag inflates real draw so guard skips. FG10b launched.
 - FG10b: hub replay hit=59, extras 58/s at ~2.1-2.5ms (upload 0.9). woods: recording the cache inflates real draw 8.5->13-14ms, 56fps, extras skipped. FG10c launched.
 - FG10c (retry) built+tested: hub works (hit=55, 59 extras/s, 2.1ms each, real draw 6.9ms). woods: recordMs=0 but real draw still 12-14ms with INTERP on (7.5-8.5 off) => cost is NOT recording; extras skipped, game stays ~60. STOPPED at user request; commits local only.
+- PARKED 2026-11-23 by user: motion makes interpolated geometry go crazy (stabilises only when still). Needs matching/teleport work; not for release 1.
