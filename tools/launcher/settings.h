@@ -11,6 +11,7 @@ namespace ape3::launcher
 struct Settings
 {
     std::string isoPath;
+    std::string gameDir;
     std::string elfName = "SCUS_975.01";
     std::string renderer = "new";      // classic | new
     std::string aspect = "fill";
@@ -22,6 +23,7 @@ struct Settings
     bool fullscreen = false;
     std::string windowSize = "1280x960"; // WxH
     std::string texturePack = "mods/textures";
+    int volume = 100;
     std::string loadTiming = "original"; // original | fast
     std::string memoryCard;
     bool developer = false;

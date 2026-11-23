@@ -83,6 +83,24 @@ int main(int argc, char **argv)
         std::filesystem::remove(tempIni);
         return 1;
     }
+
+    reloaded.gameDir = "extracted_game";
+    reloaded.volume = 65;
+    if (!saveIni(tempIni, reloaded, reloadedExtras))
+    {
+        std::cerr << "FAIL: saveIni with gameDir/volume failed\n";
+        std::filesystem::remove(tempIni);
+        return 1;
+    }
+    Settings reloadedGameAudio;
+    IniExtras reloadedGameAudioExtras;
+    if (!loadIni(tempIni, reloadedGameAudio, reloadedGameAudioExtras) ||
+        reloadedGameAudio.gameDir != "extracted_game" || reloadedGameAudio.volume != 65)
+    {
+        std::cerr << "FAIL: reloaded gameDir/volume mismatch\n";
+        std::filesystem::remove(tempIni);
+        return 1;
+    }
     std::filesystem::remove(tempIni);
     std::cout << "PASS: ini round-trip preserves unknown lines and rewrites known keys\n";
 
@@ -179,17 +197,36 @@ int main(int argc, char **argv)
 
     Settings missingIso = valid;
     missingIso.isoPath.clear();
-    if (validate(missingIso).empty())
+    missingIso.gameDir.clear();
+    if (validate(missingIso) != "No game image selected.")
     {
-        std::cerr << "FAIL: validate accepted empty isoPath\n";
+        std::cerr << "FAIL: validate did not return expected message for empty isoPath and gameDir\n";
+        return 1;
+    }
+
+    Settings validGameDir = valid;
+    validGameDir.isoPath.clear();
+    validGameDir.gameDir = std::filesystem::temp_directory_path().string();
+    if (!validate(validGameDir).empty())
+    {
+        std::cerr << "FAIL: validate rejected valid gameDir: " << validate(validGameDir) << "\n";
         return 1;
     }
 
     Settings badIso = valid;
     badIso.isoPath = "nonexistent_ape3_image_12345.iso";
-    if (validate(badIso).empty())
+    if (validate(badIso).find(badIso.isoPath) == std::string::npos)
     {
-        std::cerr << "FAIL: validate accepted missing isoPath\n";
+        std::cerr << "FAIL: validate did not reject missing isoPath with path\n";
+        return 1;
+    }
+
+    Settings badGameDir = valid;
+    badGameDir.isoPath.clear();
+    badGameDir.gameDir = "nonexistent_ape3_dir_12345";
+    if (validate(badGameDir).find(badGameDir.gameDir) == std::string::npos)
+    {
+        std::cerr << "FAIL: validate did not reject missing gameDir with path\n";
         return 1;
     }
 

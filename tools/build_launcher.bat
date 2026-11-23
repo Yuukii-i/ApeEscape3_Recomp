@@ -9,7 +9,13 @@ if errorlevel 1 (
     exit /b 1
 )
 
-cmake -S tools/launcher -B build_launcher -DCMAKE_BUILD_TYPE=Release > cmake_launcher_config.tmp 2>&1
+set "REPO_DIR=%CD:\=/%"
+set "FETCH_ARGS="
+if exist "build_avx2\_deps\sdl3-src" if exist "build_avx2\_deps\imgui-src" (
+    set "FETCH_ARGS=-DFETCHCONTENT_SOURCE_DIR_SDL3=%REPO_DIR%/build_avx2/_deps/sdl3-src -DFETCHCONTENT_SOURCE_DIR_IMGUI=%REPO_DIR%/build_avx2/_deps/imgui-src -DFETCHCONTENT_FULLY_DISCONNECTED=ON"
+)
+
+cmake -S tools/launcher -B build_launcher -DCMAKE_BUILD_TYPE=Release %FETCH_ARGS% > cmake_launcher_config.tmp 2>&1
 if errorlevel 1 (
     echo BUILD FAIL
     type cmake_launcher_config.tmp
@@ -35,6 +41,16 @@ if exist "build_launcher\Release\test_settings.exe" (
 )
 if errorlevel 1 (
     echo TEST FAIL
+    exit /b 1
+)
+
+if exist "build_launcher\Release\ape3_launcher.exe" (
+    "build_launcher\Release\ape3_launcher.exe" --print-launch --ini ps2x.ini
+) else (
+    "build_launcher\ape3_launcher.exe" --print-launch --ini ps2x.ini
+)
+if %ERRORLEVEL% equ 1 (
+    echo PRINT-LAUNCH FAIL
     exit /b 1
 )
 

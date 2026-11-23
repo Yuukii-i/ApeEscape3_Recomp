@@ -107,6 +107,14 @@ const KeyEntry kLauncherKeys[] = {
     {"developer", [](const Settings &s) -> std::string { return s.developer ? "1" : "0"; }},
 };
 
+const KeyEntry kGameKeys[] = {
+    {"game_dir", [](const Settings &s) { return s.gameDir; }},
+};
+
+const KeyEntry kAudioKeys[] = {
+    {"volume", [](const Settings &s) { return std::to_string(s.volume); }},
+};
+
 const KeyEntry *findKeyEntry(const std::string &section, const std::string &key)
 {
     if (section == "graphics")
@@ -125,6 +133,22 @@ const KeyEntry *findKeyEntry(const std::string &section, const std::string &key)
                 return &entry;
         }
     }
+    else if (section == "game")
+    {
+        for (const auto &entry : kGameKeys)
+        {
+            if (key == entry.key)
+                return &entry;
+        }
+    }
+    else if (section == "audio")
+    {
+        for (const auto &entry : kAudioKeys)
+        {
+            if (key == entry.key)
+                return &entry;
+        }
+    }
     return nullptr;
 }
 
@@ -132,6 +156,16 @@ bool hasLauncherValues(const Settings &s)
 {
     return !s.isoPath.empty() || s.elfName != "SCUS_975.01" || s.loadTiming != "original" ||
            !s.memoryCard.empty() || s.developer;
+}
+
+bool hasGameValues(const Settings &s)
+{
+    return !s.gameDir.empty();
+}
+
+bool hasAudioValues(const Settings &s)
+{
+    return s.volume != 100;
 }
 
 } // namespace
@@ -209,6 +243,20 @@ bool loadIni(const std::filesystem::path &path, Settings &settings, IniExtras &e
             else if (key == "developer")
                 settings.developer = parseBool(val, settings.developer);
         }
+        else if (currentSection == "game")
+        {
+            if (key == "game_dir")
+                settings.gameDir = val;
+        }
+        else if (currentSection == "audio")
+        {
+            if (key == "volume")
+            {
+                int v = 100;
+                if (parseIntStrict(val, v))
+                    settings.volume = std::clamp(v, 0, 100);
+            }
+        }
     }
 
     return true;
@@ -222,8 +270,12 @@ bool saveIni(const std::filesystem::path &path, const Settings &settings, const 
     std::string currentSection;
     std::set<std::string> writtenGraphics;
     std::set<std::string> writtenLauncher;
+    std::set<std::string> writtenGame;
+    std::set<std::string> writtenAudio;
     bool sawGraphicsSection = false;
     bool sawLauncherSection = false;
+    bool sawGameSection = false;
+    bool sawAudioSection = false;
 
     auto flushMissingForSection = [&](const std::string &sec) {
         if (sec == "graphics")
@@ -248,6 +300,28 @@ bool saveIni(const std::filesystem::path &path, const Settings &settings, const 
                 }
             }
         }
+        else if (sec == "game")
+        {
+            for (const auto &entry : kGameKeys)
+            {
+                if (writtenGame.find(entry.key) == writtenGame.end())
+                {
+                    outLines.push_back(std::string(entry.key) + " = " + entry.getter(settings));
+                    writtenGame.insert(entry.key);
+                }
+            }
+        }
+        else if (sec == "audio")
+        {
+            for (const auto &entry : kAudioKeys)
+            {
+                if (writtenAudio.find(entry.key) == writtenAudio.end())
+                {
+                    outLines.push_back(std::string(entry.key) + " = " + entry.getter(settings));
+                    writtenAudio.insert(entry.key);
+                }
+            }
+        }
     };
 
     for (const std::string &rawLine : extras.lines)
@@ -262,6 +336,10 @@ bool saveIni(const std::filesystem::path &path, const Settings &settings, const 
                 sawGraphicsSection = true;
             else if (currentSection == "launcher")
                 sawLauncherSection = true;
+            else if (currentSection == "game")
+                sawGameSection = true;
+            else if (currentSection == "audio")
+                sawAudioSection = true;
             outLines.push_back(rawLine);
             continue;
         }
@@ -277,6 +355,10 @@ bool saveIni(const std::filesystem::path &path, const Settings &settings, const 
                     writtenGraphics.insert(entry->key);
                 else if (currentSection == "launcher")
                     writtenLauncher.insert(entry->key);
+                else if (currentSection == "game")
+                    writtenGame.insert(entry->key);
+                else if (currentSection == "audio")
+                    writtenAudio.insert(entry->key);
                 continue;
             }
         }
@@ -300,6 +382,22 @@ bool saveIni(const std::filesystem::path &path, const Settings &settings, const 
             outLines.emplace_back("");
         outLines.emplace_back("[launcher]");
         flushMissingForSection("launcher");
+    }
+
+    if (!sawGameSection && hasGameValues(settings))
+    {
+        if (!outLines.empty() && !outLines.back().empty())
+            outLines.emplace_back("");
+        outLines.emplace_back("[game]");
+        flushMissingForSection("game");
+    }
+
+    if (!sawAudioSection && hasAudioValues(settings))
+    {
+        if (!outLines.empty() && !outLines.back().empty())
+            outLines.emplace_back("");
+        outLines.emplace_back("[audio]");
+        flushMissingForSection("audio");
     }
 
     std::ofstream out(path, std::ios::trunc);
@@ -356,19 +454,31 @@ std::vector<std::string> buildArgs(const Settings &settings)
 
 std::string validate(const Settings &settings)
 {
-    if (settings.isoPath.empty())
-        return "ISO path is missing.";
+    if (settings.isoPath.empty() && settings.gameDir.empty())
+        return "No game image selected.";
 
     std::error_code ec;
-    if (!std::filesystem::exists(settings.isoPath, ec) ||
-        !std::filesystem::is_regular_file(settings.isoPath, ec))
+    if (!settings.isoPath.empty())
     {
-        return "ISO path does not exist or is not a regular file.";
+        if (!std::filesystem::exists(settings.isoPath, ec) ||
+            !std::filesystem::is_regular_file(settings.isoPath, ec))
+        {
+            return "ISO path does not exist or is not a regular file: " + settings.isoPath;
+        }
+
+        std::ifstream isoStream(settings.isoPath, std::ios::binary);
+        if (!isoStream.good())
+            return "ISO path is not readable: " + settings.isoPath;
     }
 
-    std::ifstream isoStream(settings.isoPath, std::ios::binary);
-    if (!isoStream.good())
-        return "ISO path is not readable.";
+    if (!settings.gameDir.empty())
+    {
+        if (!std::filesystem::exists(settings.gameDir, ec) ||
+            !std::filesystem::is_directory(settings.gameDir, ec))
+        {
+            return "Extracted game folder does not exist or is not a directory: " + settings.gameDir;
+        }
+    }
 
     if (settings.renderScale < 25 || settings.renderScale > 400)
         return "render_scale must be between 25 and 400.";
