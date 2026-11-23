@@ -53,3 +53,7 @@ Real-game-first: PCSX2 is the oracle for every blocker (register/memory state at
 - Guest code 0x439b40..0x439bf8 = SDK sceSifCallRpc: CreateSema, SifSendCmd(0x8000000a), WaitSema (WaitSema(10), ra=0x439bec), woken by iSignalSema(10) from ra=0x439448. PCSX2 threads at white hold: TID1 running in WaitSema(10) sequence (every ~0.2-0.4 s per file), TID2 waiting in a semaphore, TID3/4 SleepThread (ra 0x35f4b4, woken every vblank).
 - Ours: sceSifCallRpc is HLE (RPC.cpp SifCallRpc L1570+) and returns at once; trace shows tid1 (main, entry 0x100134) NEVER calls WaitSema in the load window, so the main loop keeps ticking and the fade-out starts while stage files are still read (castle reads span ~1100 log lines after the fade peak).
 - Fix = T3: make sync SifCallRpc block the calling guest thread until the modelled IOP completion (Cid1DriveModel due time). Env PS2X_RPC_BLOCK=1 (default off until verified).
+
+## B5 refinement (PCSX2 breakpoints)
+- Sync RPC seen in PCSX2 during the white hold: guest 0x43de18 (called from game code 0x36bd50, a0=0x10000) -> sceSifCallRpc(client 0x76d7c0, fno=1, mode=0). NOWAIT per-vblank call (client 0x74b240 fno 0 mode 1, ra 0x3fc06c) is the pad poll and is the only RPC we also see.
+- Ours: libcdvd calls are instant HLE stubs (Kernel/Stubs/CD.cpp) and never go through SifCallRpc; T3 (PS2X_RPC_BLOCK) therefore never fired. T4 = block the guest thread in those stubs while the Cid1 drive model is busy.
