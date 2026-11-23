@@ -33,3 +33,9 @@ Real-game-first: PCSX2 is the oracle for every blocker (register/memory state at
 - Blend census (PS2X_RD_BLENDLOG=1): nothing skipped (skip=none). Suspect full-screen untextured sprites prim=006 with ALPHA=1 (reverse lerp, vertex alpha) reported blend=0 => possibly drawn without the intended blend. Unverified.
 - Argon (second opinion, analysis only): bell ramp cannot be a one-way fade; alternatives H1 frozen scratch buffer TBP != live FBP, H2 snapshot misses the white pass, H3 pulse belongs to white hold and fast-load collides. Wants per-frame log of FBP/TBP0/ALPHA/3D-draw-count for the zoom quad.
 - NEXT: PCSX2 GS dump (Shift+F8) at the white hold and at the dark dip just before it; parse draw list with scratchpad gsdump_draws.py; compare with our census.
+
+## B1 GS-dump facts (PCSX2 dumps refs/pcsx2_dumps/ref_dark_dip, ref_white_hold, ref_after_white_hold; parsed with scratchpad gsdump_draws.py)
+- WHITE HOLD: 4 frames, ZERO draws, zero uploads. Real HW submits nothing during the load; the GS keeps scanning out the last framebuffer (white).
+- FADE = the LAST draw of every frame: full-screen untextured SPRITE (512x448), ALPHA=0x44, vertex white 0xffffff, vertex alpha ramp: dark dip 0x4a,0x4e (rising); after hold 0x19,0x0c (falling). Letterbox bars (after hold) = two SPRITES ALPHA=0x42, rgba 0x80ffffff, y 800..845 and 1203..1248 (primitive coords), drawn before the fade.
+- No FIX-alpha zoom/blur quad in any of the 12 captured PCSX2 frames. Our run issues it (0x09..0x40..0x00 + 0x04..0x1a..0x04, two clusters per run). Need PCSX2 dumps of the tunnel frames and the first ~10 castle frames to see whether the real game draws it.
+- OURS (real timing): tunnel returns DARK during the load => the last white fade overlay is not part of what we re-present when the game stops drawing. Keep-previous counters are ~0, so another path drops it (2D frame selection / cover check / fade quad handling). Unverified which.
