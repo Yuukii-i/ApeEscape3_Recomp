@@ -57,3 +57,7 @@ Real-game-first: PCSX2 is the oracle for every blocker (register/memory state at
 ## B5 refinement (PCSX2 breakpoints)
 - Sync RPC seen in PCSX2 during the white hold: guest 0x43de18 (called from game code 0x36bd50, a0=0x10000) -> sceSifCallRpc(client 0x76d7c0, fno=1, mode=0). NOWAIT per-vblank call (client 0x74b240 fno 0 mode 1, ra 0x3fc06c) is the pad poll and is the only RPC we also see.
 - Ours: libcdvd calls are instant HLE stubs (Kernel/Stubs/CD.cpp) and never go through SifCallRpc; T3 (PS2X_RPC_BLOCK) therefore never fired. T4 = block the guest thread in those stubs while the Cid1 drive model is busy.
+
+## B5 status after T3/T4 (2026-11-23)
+- Guest 0x43de18 is mapped to sceSifAllocIopHeap (config.toml), i.e. an IOP-heap alloc RPC, NOT a disc poll: T4's premise was wrong. T3 (sync SifCallRpc block) and T4 (cd stub blocking), both env PS2X_RPC_BLOCK=1 default OFF, never fire in the load window ([rpcblock]/[cdblock] = 0).
+- PCSX2 has 4 non-idle guest threads at the white hold (TID1 main, TID2 WaitSema, TID3 + TID4 SleepThread) vs 3 in ours (tid1 main entry 0x100134, tid2 entry 0x284268 sleeping, tid3 entry 0x35f4a4 sleeping). The thread that WaitSema()s in PCSX2 (TID2) has no counterpart in ours => likely the stage-loader thread, which our HLE/boot path never creates or lets exit. NEXT: get thread entry points + the semaphore TID2 waits on from PCSX2 (kernel TCB/sema table), then find who creates it in the game (CreateThread callers) and why ours differs.
