@@ -34,3 +34,6 @@ lights (each a named C++ function with its own comment): 0840 point specular (Bl
 
 ## Consequence for the plan
 Phase 3 as "decompile the programs" is already done for gameplay. What remains: (1) export the missing semantic data (light constants, bone matrices, object id) into SceneDraw without changing GIF bytes, (2) the one-off image 4279fa21 (optional, ~117 runs/session), (3) the consumer: a renderer path that uses positions + normals + lights for shadows/lighting.
+
+## V2 result (2026-11-23)
+FEAT-V2 exports SceneGlobals (view-proj qwords 998..1001, viewport, ambient qword 1014, light scale qword 1013, fog qword 1016) per draw when PS2X_SCENE=1: hub shows ambient=(1,1,1), lightScale=128, scene check mismatch=0. The 7 light handlers are NOT executed in the hub or in seaside_a (lights=0 per frame; none appears in any scene's top-handler list): gameplay lighting arrives as EE-precomputed vertex colours, so a modern lighting path must either rebuild light sources from the EE side (light matrix block, handler 1C48, ~130 calls/frame) or derive them from the stage data, not from the VU light handlers. The light handlers were exercised in the shop image only.
