@@ -8,3 +8,11 @@
 - FG4 built: fg4 enabled but extraPresents=0 skipped=0 (loop breaks immediately). FG4b diagnose+fix launched.
 - FG4b works: hub rate2 118 presents/s on 180Hz (pm=0). But woods rate2 collapses to 15 fps, hub rate3 ~50. FG4c instrument+cut cost launched.
 - FG4c: hub rate3 110 extras/s ok; woods rate2 extras skipped by overrun guard (drawRealMs 9.2, extra would double) => game stays 60. Cost = ps2xRdDraw itself. FG5 draw-cost instrumentation launched.
+- FG5 drawprof: woods 7.5ms/frame (stateBind 2.4, upload 1.5, other 2.5 unaccounted), 2859 state changes of which ~250 real; hub 4.7ms. FG6 state cache launched (also speeds the normal path).
+- FG6: hub 4.7->3.45 ms/frame with PS2X_RD_STATECACHE=1 (merged 2000 draws); woods 7.5->7.3 only (2860 changes/frame unexplained). FG7 diagnose launched.
+- FG7: pcUpd=2842/frame (push constants changed ~4.6 B each), batch fields identical => one small PC field varies per batch. prepMisc 1.0, prepVertexFix 0.7. FG8 launched.
+- FG8: culprit uAtInvert (2-pass afail batches) moved to firstInstance/gl_InstanceIndex; woods pcUpd 2842->119, image ok; stateBind still 2.1ms. hub total 3.26ms. FG9 finer buckets launched.
+- FG9: woods stateBind 2.7ms = bindPipe 1.64ms (2785 pipeline binds/frame: 2-pass afail alternates pipelines; pipe lookup 0.12 ms, 0 miss, desc 0.21). Inherent. FG10 launched: replay prepared draw list for extra presents.
+- FG10: replay path costs 0.09ms/extra but only 25% extras replay (15 replay/45 full), CHECK flag inflates real draw so guard skips. FG10b launched.
+- FG10b: hub replay hit=59, extras 58/s at ~2.1-2.5ms (upload 0.9). woods: recording the cache inflates real draw 8.5->13-14ms, 56fps, extras skipped. FG10c launched.
+- FG10c (retry) built+tested: hub works (hit=55, 59 extras/s, 2.1ms each, real draw 6.9ms). woods: recordMs=0 but real draw still 12-14ms with INTERP on (7.5-8.5 off) => cost is NOT recording; extras skipped, game stays ~60. STOPPED at user request; commits local only.
