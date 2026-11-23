@@ -19,3 +19,9 @@ Real-game-first: PCSX2 is the oracle for every blocker (register/memory state at
 2. B3: stage and what the rope does wrong (visual, stuck, can't swing, crash).
 3. Any other place where you could not continue or the game crashed.
 4. A savestate or padrec near each case is ideal.
+
+## B1 findings (2026-11-23, video refs/castle_blur.mp4, 30 fps, frames cropped in refs/game/)
+- Blur is a heavy radial/zoom smear of the castle on video frames 301-305 (~0.17 s), clean from 307; it follows a title->castle crossfade (295-299). Reproduced by logs/castle_blur.padrec (fast load timing).
+- The game itself builds the blur: a quad of +-1.2 floats (zoomed copy) at EE 0xa4c9b0/0xa4ebb0/0xa4eeb0, blend FIX ramp 0x09 0x18 0x24 0x2e 0x36 0x3c 0x3f 0x40 0x3f 0x3c 0x36 0x2e ... (smooth up/down). The same quad packet exists in PCSX2 slot 5 at 0xa4c9b0.
+- Not yet known: whether PCSX2 draws the same ramp (invisible) or skips it; what texture/FB the quad samples in ours (stale previous-frame snapshot suspected: ps2xRdGetPrevFrame/FIX-RD80).
+- Also seen in the video: briefing tunnel has black/grey tiles where blue is expected; video duplicate-frame stalls (about 1 s frozen at frames 269-289 in the title->castle load = our load stall, not blur).
