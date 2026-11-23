@@ -39,3 +39,12 @@ Real-game-first: PCSX2 is the oracle for every blocker (register/memory state at
 - FADE = the LAST draw of every frame: full-screen untextured SPRITE (512x448), ALPHA=0x44, vertex white 0xffffff, vertex alpha ramp: dark dip 0x4a,0x4e (rising); after hold 0x19,0x0c (falling). Letterbox bars (after hold) = two SPRITES ALPHA=0x42, rgba 0x80ffffff, y 800..845 and 1203..1248 (primitive coords), drawn before the fade.
 - No FIX-alpha zoom/blur quad in any of the 12 captured PCSX2 frames. Our run issues it (0x09..0x40..0x00 + 0x04..0x1a..0x04, two clusters per run). Need PCSX2 dumps of the tunnel frames and the first ~10 castle frames to see whether the real game draws it.
 - OURS (real timing): tunnel returns DARK during the load => the last white fade overlay is not part of what we re-present when the game stops drawing. Keep-previous counters are ~0, so another path drops it (2D frame selection / cover check / fade quad handling). Unverified which.
+
+- 2026-11-23 user note: the blur ALSO happens half-way through the castle level at a spot that always slows the game and applies the blur (game slow-motion+blur effect; see HYPOTHESES C319 monkey capture). Transitions work (T1..) may not fix the blur; do it first anyway.
+
+## B5/B1 ROOT-CAUSE LEAD (PROBE-T1, logs/t1a_err.txt, real load timing)
+- Publisher log [t1-pub], white fade sprite (prim=46 alpha=44, rgba0 = RGB white + alpha in low byte): seq 796-800 alpha 0x07,0x1c,0x31,0x47,0x5c rising; seq 809 = 0x7b (~96%); then seq 810.. alpha DECREASES 0x79,0x77,0x75,0x73,..,0x59 one frame at a time, game still ticking (n2d=10 per frame).
+- PCSX2: fade reaches full white, then ZERO draws for ~2.8 s (load), then fades out (0x19,0x0c).
+- => In ours the game does NOT block during the stage load: its fade state machine starts the fade-OUT immediately while the tunnel is still the scene (dark tunnel returns), and the castle only appears when the load truly finishes. This is the 'transitions end early' bug (main thread keeps ticking while PCSX2's is blocked in the load).
+- Likely area: how the load completion is signalled to the guest (CID1 RPC deferred replies, FIX-AU5 queue, FEAT-E8c drive model) vs where the real game blocks (sceCdSync / semaphore / RPC wait) and whether we let the main loop (0x51DF88, sceGsSyncV 0x404198) run in that window.
+- NEXT (PCSX2): savestate at the white hold -> pcsx2_get_threads + backtrace to see which guest function/semaphore the main thread blocks in; then compare with ours at the same stage.
