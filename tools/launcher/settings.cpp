@@ -410,6 +410,49 @@ bool saveIni(const std::filesystem::path &path, const Settings &settings, const 
     return out.good();
 }
 
+namespace
+{
+
+std::vector<std::string> extractUnknownLines(const IniExtras &extras)
+{
+    std::vector<std::string> unknown;
+    std::string currentSection;
+    for (const std::string &rawLine : extras.lines)
+    {
+        const std::string t = trim(rawLine);
+        if (t.empty())
+            continue;
+
+        std::string sec;
+        if (parseSectionHeader(t, sec))
+        {
+            currentSection = sec;
+            if (sec != "graphics" && sec != "launcher" && sec != "game" && sec != "audio")
+                unknown.push_back("[" + sec + "]");
+            continue;
+        }
+
+        std::string key;
+        std::string val;
+        if (parseKeyValue(t, key, val))
+        {
+            if (findKeyEntry(currentSection, key) == nullptr)
+                unknown.push_back(currentSection + "." + key + "=" + val);
+            continue;
+        }
+
+        unknown.push_back(t);
+    }
+    return unknown;
+}
+
+} // namespace
+
+bool hasDifferentUnknownContent(const IniExtras &a, const IniExtras &b)
+{
+    return extractUnknownLines(a) != extractUnknownLines(b);
+}
+
 std::vector<std::pair<std::string, std::string>> buildEnvironment(const Settings &settings)
 {
     std::vector<std::pair<std::string, std::string>> env = {

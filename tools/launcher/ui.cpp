@@ -52,14 +52,26 @@ void SDLCALL onGameDirSelected(void *userdata, const char *const *filelist, int 
 
 bool runtimeExeExists(const LauncherState &state)
 {
-    if (state.runtimeExe.empty())
+    const std::filesystem::path exePath = resolveRuntimeExePath(state);
+    if (exePath.empty())
         return false;
     std::error_code ec;
-    return std::filesystem::exists(state.runtimeExe, ec) &&
-           std::filesystem::is_regular_file(state.runtimeExe, ec);
+    return std::filesystem::exists(exePath, ec) &&
+           std::filesystem::is_regular_file(exePath, ec);
 }
 
-void saveAll(LauncherState &state)
+bool pathsEqual(const std::filesystem::path &a, const std::filesystem::path &b)
+{
+    std::error_code ec;
+    if (std::filesystem::exists(a, ec) && std::filesystem::exists(b, ec))
+    {
+        if (std::filesystem::equivalent(a, b, ec))
+            return true;
+    }
+    return a.lexically_normal() == b.lexically_normal();
+}
+
+bool saveAll(LauncherState &state)
 {
     if (!saveIni(state.iniPath, state.settings, state.extras))
     {
@@ -78,30 +90,29 @@ void saveAll(LauncherState &state)
                     saveLauncherIni(state.launcherIniPath, state.runtimeExe);
                 }
                 state.statusMessage = "Failed to save " + failedPath + "; fell back to " + state.iniPath.string();
-                return;
+                return true;
             }
         }
         state.statusMessage = "Failed to save " + state.iniPath.string();
-        return;
+        return false;
     }
     if (!state.launcherIniPath.empty())
     {
         saveLauncherIni(state.launcherIniPath, state.runtimeExe);
     }
     state.statusMessage = "Saved " + state.iniPath.string();
+    return true;
 }
 
 void startGame(LauncherState &state)
 {
-    saveAll(state);
+    const PlayIniResult playIni = writePlayInis(state);
     state.validationError = validate(state.settings);
     if (!state.validationError.empty())
         return;
 
-    const std::filesystem::path exePath(state.runtimeExe);
-    std::filesystem::path workDir = exePath.parent_path();
-    if (workDir.empty())
-        workDir = state.exeDir;
+    const std::filesystem::path exePath = resolveRuntimeExePath(state);
+    const std::filesystem::path workDir = resolveRuntimeWorkDir(state);
 
     const auto args = buildArgs(state.settings);
     const auto env = buildEnvironment(state.settings);
@@ -109,6 +120,9 @@ void startGame(LauncherState &state)
     std::string err;
     state.logLines.clear();
     state.partialLine.clear();
+    if (!playIni.runtimeDirWritable && !playIni.note.empty())
+        appendLogChunk(state, playIni.note + "\n");
+
     if (!startRuntime(exePath, workDir, args, env, state.process, &err))
     {
         state.validationError = err.empty() ? "Failed to start runtime." : err;
@@ -342,6 +356,73 @@ void renderAboutTab()
 }
 
 } // namespace
+
+std::filesystem::path resolveRuntimeExePath(const LauncherState &state)
+{
+    if (state.runtimeExe.empty())
+        return {};
+    std::filesystem::path p(state.runtimeExe);
+    if (p.is_relative())
+    {
+        std::error_code ec;
+        const std::filesystem::path fromExeDir = state.exeDir / p;
+        if (p.parent_path().empty() || std::filesystem::exists(fromExeDir, ec))
+            p = fromExeDir;
+        else
+            p = std::filesystem::absolute(p, ec);
+    }
+    return p.lexically_normal();
+}
+
+std::filesystem::path resolveRuntimeWorkDir(const LauncherState &state)
+{
+    const std::filesystem::path exePath = resolveRuntimeExePath(state);
+    std::filesystem::path workDir = exePath.parent_path();
+    if (workDir.empty())
+        workDir = state.exeDir;
+    return workDir;
+}
+
+PlayIniResult writePlayInis(LauncherState &state)
+{
+    PlayIniResult result;
+    if (saveAll(state) && !state.iniPath.empty())
+        result.writtenPaths.push_back(state.iniPath);
+
+    const std::filesystem::path runtimeDir = resolveRuntimeWorkDir(state);
+    const std::filesystem::path runtimeIniPath = runtimeDir / "ps2x.ini";
+    if (!state.iniPath.empty() && pathsEqual(state.iniPath, runtimeIniPath))
+        return result;
+
+    std::error_code ec;
+    const IniExtras *extrasToWrite = &state.extras;
+    IniExtras runtimeExtras;
+    if (std::filesystem::exists(runtimeIniPath, ec))
+    {
+        Settings existingSettings;
+        if (loadIni(runtimeIniPath, existingSettings, runtimeExtras))
+        {
+            if (hasDifferentUnknownContent(runtimeExtras, state.extras))
+            {
+                const std::filesystem::path bakPath = runtimeDir / "ps2x.ini.bak";
+                if (!std::filesystem::exists(bakPath, ec))
+                    std::filesystem::copy_file(runtimeIniPath, bakPath, std::filesystem::copy_options::none, ec);
+            }
+            extrasToWrite = &runtimeExtras;
+        }
+    }
+
+    if (saveIni(runtimeIniPath, state.settings, *extrasToWrite))
+    {
+        result.writtenPaths.push_back(runtimeIniPath);
+    }
+    else
+    {
+        result.runtimeDirWritable = false;
+        result.note = "Note: runtime dir not writable (" + runtimeDir.string() + "); using environment settings.";
+    }
+    return result;
+}
 
 void appendLogChunk(LauncherState &state, const std::string &chunk)
 {

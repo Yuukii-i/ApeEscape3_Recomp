@@ -93,29 +93,40 @@ void initLauncherPaths(ape3::launcher::LauncherState &state,
     }
 
 #ifdef _WIN32
-    const std::string defaultExeName = "ps2EntryRunner_dev.exe";
+    const std::string devExeName = "ps2EntryRunner_dev.exe";
+    const std::string relExeName = "ps2EntryRunner.exe";
 #else
-    const std::string defaultExeName = "ps2EntryRunner_dev";
+    const std::string devExeName = "ps2EntryRunner_dev";
+    const std::string relExeName = "ps2EntryRunner";
 #endif
-    const std::filesystem::path defaultRuntime = state.exeDir / defaultExeName;
+    const std::filesystem::path devRuntime = state.exeDir / devExeName;
+    const std::filesystem::path relRuntime = state.exeDir / relExeName;
 
     if (std::filesystem::exists(state.launcherIniPath, ec))
         state.runtimeExe = ape3::launcher::loadLauncherIni(state.launcherIniPath);
     if (state.runtimeExe.empty())
     {
-        state.runtimeExe = defaultRuntime.string();
+        if (std::filesystem::exists(devRuntime, ec))
+            state.runtimeExe = devRuntime.string();
+        else if (std::filesystem::exists(relRuntime, ec))
+            state.runtimeExe = relRuntime.string();
+        else
+            state.runtimeExe = devRuntime.string();
+
         if (overrideIni.empty())
             ape3::launcher::saveLauncherIni(state.launcherIniPath, state.runtimeExe);
     }
     state.validationError = ape3::launcher::validate(state.settings);
 }
 
-int runPrintLaunch(const ape3::launcher::LauncherState &state)
+int runPrintLaunch(ape3::launcher::LauncherState &state, bool withPlay)
 {
-    const std::filesystem::path exePath(state.runtimeExe);
-    std::filesystem::path workDir = exePath.parent_path();
-    if (workDir.empty())
-        workDir = state.exeDir;
+    const std::filesystem::path exePath = ape3::launcher::resolveRuntimeExePath(state);
+    const std::filesystem::path workDir = ape3::launcher::resolveRuntimeWorkDir(state);
+
+    ape3::launcher::PlayIniResult playIni;
+    if (withPlay)
+        playIni = ape3::launcher::writePlayInis(state);
 
     const auto args = ape3::launcher::buildArgs(state.settings);
     std::string argsStr;
@@ -126,8 +137,21 @@ int runPrintLaunch(const ape3::launcher::LauncherState &state)
         argsStr += args[i];
     }
 
-    std::cout << "exe=" << state.runtimeExe << '\n';
+    std::cout << "exe=" << exePath.string() << '\n';
     std::cout << "cwd=" << workDir.string() << '\n';
+    if (withPlay)
+    {
+        std::string writtenStr;
+        for (size_t i = 0; i < playIni.writtenPaths.size(); ++i)
+        {
+            if (i > 0)
+                writtenStr.push_back(';');
+            writtenStr += playIni.writtenPaths[i].string();
+        }
+        std::cout << "ini_written=" << (writtenStr.empty() ? "none" : writtenStr) << '\n';
+        if (!playIni.runtimeDirWritable && !playIni.note.empty())
+            std::cout << "note=" << playIni.note << '\n';
+    }
     std::cout << "args=" << argsStr << '\n';
 
     const auto env = ape3::launcher::buildEnvironment(state.settings);
@@ -139,8 +163,12 @@ int runPrintLaunch(const ape3::launcher::LauncherState &state)
     return valErr.empty() ? 0 : 2;
 }
 
-int runHeadlessPlay(const ape3::launcher::LauncherState &state)
+int runHeadlessPlay(ape3::launcher::LauncherState &state)
 {
+    const ape3::launcher::PlayIniResult playIni = ape3::launcher::writePlayInis(state);
+    if (!playIni.runtimeDirWritable && !playIni.note.empty())
+        std::cerr << playIni.note << '\n';
+
     const std::string valErr = ape3::launcher::validate(state.settings);
     if (!valErr.empty())
     {
@@ -148,10 +176,8 @@ int runHeadlessPlay(const ape3::launcher::LauncherState &state)
         return 2;
     }
 
-    const std::filesystem::path exePath(state.runtimeExe);
-    std::filesystem::path workDir = exePath.parent_path();
-    if (workDir.empty())
-        workDir = state.exeDir;
+    const std::filesystem::path exePath = ape3::launcher::resolveRuntimeExePath(state);
+    const std::filesystem::path workDir = ape3::launcher::resolveRuntimeWorkDir(state);
 
     const auto args = ape3::launcher::buildArgs(state.settings);
     const auto env = ape3::launcher::buildEnvironment(state.settings);
@@ -223,7 +249,7 @@ int main(int argc, char *argv[])
         ape3::launcher::LauncherState headlessState;
         initLauncherPaths(headlessState, exeDir, cliIniPath);
         if (printLaunch)
-            return runPrintLaunch(headlessState);
+            return runPrintLaunch(headlessState, headlessPlay);
         return runHeadlessPlay(headlessState);
     }
 

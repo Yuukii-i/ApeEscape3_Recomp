@@ -36,6 +36,7 @@ struct IniExtras
 
 bool loadIni(const std::filesystem::path &path, Settings &settings, IniExtras &extras);
 bool saveIni(const std::filesystem::path &path, const Settings &settings, const IniExtras &extras);
+bool hasDifferentUnknownContent(const IniExtras &a, const IniExtras &b);
 
 std::vector<std::pair<std::string, std::string>> buildEnvironment(const Settings &settings);
 std::vector<std::string> buildArgs(const Settings &settings);

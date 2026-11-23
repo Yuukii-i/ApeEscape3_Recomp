@@ -39,6 +39,17 @@ struct LauncherState
     std::string pendingGameDir;
 };
 
+struct PlayIniResult
+{
+    std::vector<std::filesystem::path> writtenPaths;
+    bool runtimeDirWritable = true;
+    std::string note;
+};
+
+std::filesystem::path resolveRuntimeExePath(const LauncherState &state);
+std::filesystem::path resolveRuntimeWorkDir(const LauncherState &state);
+PlayIniResult writePlayInis(LauncherState &state);
+
 void appendLogChunk(LauncherState &state, const std::string &chunk);
 bool saveLauncherIni(const std::filesystem::path &path, const std::string &runtimeExe);
 std::string loadLauncherIni(const std::filesystem::path &path);
