@@ -25,3 +25,11 @@ Real-game-first: PCSX2 is the oracle for every blocker (register/memory state at
 - The game itself builds the blur: a quad of +-1.2 floats (zoomed copy) at EE 0xa4c9b0/0xa4ebb0/0xa4eeb0, blend FIX ramp 0x09 0x18 0x24 0x2e 0x36 0x3c 0x3f 0x40 0x3f 0x3c 0x36 0x2e ... (smooth up/down). The same quad packet exists in PCSX2 slot 5 at 0xa4c9b0.
 - Not yet known: whether PCSX2 draws the same ramp (invisible) or skips it; what texture/FB the quad samples in ours (stale previous-frame snapshot suspected: ps2xRdGetPrevFrame/FIX-RD80).
 - Also seen in the video: briefing tunnel has black/grey tiles where blue is expected; video duplicate-frame stalls (about 1 s frozen at frames 269-289 in the title->castle load = our load stall, not blur).
+
+## B1 update (real-load-timing recording logs/castle_real.padrec; PCSX2 video refs/castle_blur_ps2.mp4)
+- PCSX2: briefing tunnel -> dark dip -> fully WHITE hold ~2.8 s (the load) -> castle fades in from white; castle sharp in every frame.
+- Ours (real load timing, replay reaches gameplay): tunnel washes to grey (~80% white) for ~1 frame at 4 fps sampling, then the DARK tunnel returns for ~2.3 s (load), then castle crossfade with blur. So the white hold is missing: the tunnel keeps being published as real 3D frames (k0 n=29-45k, keptPrev~0, keepCapped=0 => NOT the keep-previous rule).
+- Blur ramp (game, PS2X_BLURPKT) occurs in two clusters per run: one BEFORE the castle load (briefing), one after the last DVD read; each = big pulse 0x09..0x40..0x00 then small pulse 0x04..0x1a..0x04.
+- Blend census (PS2X_RD_BLENDLOG=1): nothing skipped (skip=none). Suspect full-screen untextured sprites prim=006 with ALPHA=1 (reverse lerp, vertex alpha) reported blend=0 => possibly drawn without the intended blend. Unverified.
+- Argon (second opinion, analysis only): bell ramp cannot be a one-way fade; alternatives H1 frozen scratch buffer TBP != live FBP, H2 snapshot misses the white pass, H3 pulse belongs to white hold and fast-load collides. Wants per-frame log of FBP/TBP0/ALPHA/3D-draw-count for the zoom quad.
+- NEXT: PCSX2 GS dump (Shift+F8) at the white hold and at the dark dip just before it; parse draw list with scratchpad gsdump_draws.py; compare with our census.
