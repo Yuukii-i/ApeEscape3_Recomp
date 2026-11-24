@@ -79,3 +79,9 @@ Real-game-first: PCSX2 is the oracle for every blocker (register/memory state at
 ## B2 status 2026-11-24
 - M10 (clip saturation) cut bad clip outputs from ~100k per run to 0-2k, still nonzero in ~2 of 5 runs. M11 (CPU wrap of RdVert pos) was WRONG (pos is clip-space x,y,z,w): broke geometry, disabled by default (PS2X_RD_WRAP=1 only). M12: GS-style 12.4 wrap in rd.vert for out-of-range vertices only (normal scene unchanged, visual check woods_a OK); not yet validated on a real spike (spike detector measures CPU-side values so it still counts them).
 - Remaining clipbad input: polygons with ~FLT_MAX vertices from objects whose object matrix is filled with +-3.4e38 (EE side). Decisive check needed: does PCSX2 submit those draws (prim 0x7d fan, tex tbp 0xb720/b7c0/b900/b9a0/b980/b740) in toyhouse_a? => ask user for 2 PCSX2 GS dumps in toyhouse_a.
+
+## B2 findings 2026-11-24 (PCSX2 dumps ref_toy, ref_toy2 + M13)
+- User test of M10+M12 build: no visible change; explosions still happen => not fixed.
+- PCSX2 toyhouse dumps: the spike textures (tbp 0x3720/0x3740/0x37c0/0x3900/0x3980/0x39a0, 64x64) are PARTICLE atlases drawn as large strip batches (one group of 2424 vertices); no polygon wider than ~2260 px ever. So the spikes are particle effect quads with garbage (+-FLT_MAX) positions in ours only.
+- M13: sceGsSyncV returns exactly once per vblank (d1 only, no zero/double steps), main loop ~48 ticks/s in that setup; COP0 Count unused by the game (no mfc0 \ in recomp_source); timers T0/T1 read 0 in the probe (inconclusive). So a zero time step from loop pacing is NOT the cause.
+- Next idea (costs a multi-hour full rebuild because ps2_runtime_macros.h changes): log the host return address of every FPU div-by-zero / FLT_MAX-clamp result (ps2_fdiv_slow etc.) and resolve it with the PDB to the guest function that creates the FLT_MAX values.
