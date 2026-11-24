@@ -69,3 +69,9 @@ Real-game-first: PCSX2 is the oracle for every blocker (register/memory state at
 ## B2 evidence (PROBE-M3/M4/M5)
 - VU0 macro hook (M3) and VU0 microprogram tracer (M4): nothing logged during play where explosions + rope glitch were seen (user-confirmed) => physics is not in VU0.
 - VU1 watchdog (M5, logs/v1w_err.txt): bad draws are 4-vertex rigid draws (handler 0x2440, mscal 0x00e5/0x0000) with object matrix X translation garbage (-4.99e13, -1.17e14, -3.15e12; bits 0xd6359b70) while Y/Z (0.5..1.4 / 554..632) and rotation are sane. ~250 bad draws per 5 s. Skinned 1EE0 has a few (n=2-7 per 5 s). => the bad float is written by EE code. NEXT: M6 store watch (find the writing PC) + RAM scan for the bad bits.
+
+## B2 root cause (2026-11-23, PROBE-M5..M9)
+- VU0 probes silent; VU1 [vu1bad] bad-matrix draws never reach the renderer (harmless). Visible spikes = prim 0x7d triangle fans from handler 0x2900 (clipPolygon), clipRan=1 vin=3 vout=4, output vertices all (0,0,0,0).
+- [clipbad] dump (logs/m9b1_err.txt): clip INPUT vertices are ~1e37..2.8e38 (near FLT_MAX: PS2 div-by-zero => +-FLT_MAX, exists in PCSX2 too). Our IEEE arithmetic: (v1-v0) overflows to Inf, t*Inf with t==0 = NaN -> output zeros -> giant triangle. Real VU saturates to +-FLT_MAX (no Inf/NaN).
+- Occurs with PS2X_VIF1_ASYNC=0 as well (not an async race). Intermittent per run (0..150 spikes/70 s) in warp toyhouse_a.
+- Fix task: M10 (saturating clip arithmetic). Verify: [clipbad-sum] badCalls=0 and [spike-sum] 0 over several 70 s runs.
