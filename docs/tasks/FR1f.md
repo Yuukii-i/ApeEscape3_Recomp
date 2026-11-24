@@ -1,0 +1,8 @@
+# Task FR1f: the replay dispatch loop must NOT stop when ctx->pc is unchanged (cpp only)
+Budget: "[call N/12]", stop at 12. Edit ONLY ps2_runtime.cpp (ps2xFnReplay loop). No headers. DO NOT BUILD/RUN/COMMIT. Mark `// PROBE-FR1f`.
+Evidence: replay of fn 0x340744 makes 82 PS2_DCALLs then ends with `stop: pc unchanged at pc=0x003bfbd0` at a deep stack (sp=0x01ffed50, entry sp 0x01fffc70). `[dispatchlean] ON`: the lean chain loop (ps2_runtime.cpp ~L5010-5040) breaks after 1000 steps or on a missing function and PS2_DCALL then returns false, so the caller returns early to the outer dispatcher with ctx->pc = the pending resume/call address. Our harness loop treats `ctx->pc unchanged after a call` as the end, but in the real runtime the outer run loop just dispatches ctx->pc again (a resumed function may legitimately re-yield with the same pc, e.g. after hitting the lean step cap).
+Do:
+1. Remove the "pc unchanged" stop condition. Keep: stop when ctx->pc == spec ra (and ideally sp == the spec's gpr 29 value), ctx->pc == 0, no generated function for ctx->pc, or total iterations > 5,000,000 (log `step cap`).
+2. Treat a repeated identical (pc, sp) 50,000 times in a row as a hang: log `[fnreplay] hang at pc=.. sp=..` and stop.
+3. If the real outer loop (PS2Runtime::run / GameThread main loop that calls the table functions) does ANY extra bookkeeping between dispatches that the resume protocol needs (e.g. resetting leanChainSteps, a thread-local 'resume depth', ps2DcallContinue state, clearing in_delay_slot), replicate it; report what you found in 2 lines.
+Acceptance: compiles. Reply <=4 lines.
