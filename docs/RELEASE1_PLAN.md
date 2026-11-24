@@ -110,3 +110,8 @@ Real-game-first: PCSX2 is the oracle for every blocker (register/memory state at
 - Transitions (B5) need NO regenerated code: missing thread TID2 (WaitSema, PCSX2 TID2 pc 0x435b28) has no counterpart in ours; kernel .cpp work only, do after the build.
 
 - PA1e RESULT (logs/pa1e_err.txt, release build): NOT fixed. 11733/14218 paused flips still noCut=1 (batches +296/flip until a rare accept), [cutwhy] reason=no-clear gap=0 armed=0 although [cutfix] PA1e 'copy recognised disp=70' fires. Copy recognised but armed state is lost/not consumed before the clear check. PARKED per user.
+
+## B3 rope: first data (2026-11-24, PCSX2 slots 9/10/0 vs ours logs/ramdump_1..6)
+- Player position is at 0x647b00 (also 0x785bc0), same address in PCSX2 and ours. PCSX2: P09 (-241.7,53.2,193.1) air -> P10 (-238.8,39.2,190.8) -> P00 hanging (-246.7,35.1,197.5).
+- A 5-node ring (stride 0x90 from 0x64af60, all same y; x,z within +-2 of the player) is the likely ground/contact probe: PCSX2 y=-23 (floor) before contact, +18/+15 after contact (rope height, ~20 below player), and fields +0x24 7->4.34, +0x30 0.105->0.322 change at the grab. OURS: those fields never change (7 / 0.105) and the ring y keeps falling (2, -25, -81 | -4, -20, -75 over ~1 s dumps) while the player stays y~35-50 => the rope contact is never detected, the player falls through. This is a COLLISION result (rope hit missing), not FPU specials, not dt.
+- Next: find the writer of 0x64af84/0x64af90 at the grab (PCSX2 write watch on a rarely written word needs user OK; alternative store-trace in ours = header change).
