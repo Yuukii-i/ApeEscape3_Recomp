@@ -75,3 +75,7 @@ Real-game-first: PCSX2 is the oracle for every blocker (register/memory state at
 - [clipbad] dump (logs/m9b1_err.txt): clip INPUT vertices are ~1e37..2.8e38 (near FLT_MAX: PS2 div-by-zero => +-FLT_MAX, exists in PCSX2 too). Our IEEE arithmetic: (v1-v0) overflows to Inf, t*Inf with t==0 = NaN -> output zeros -> giant triangle. Real VU saturates to +-FLT_MAX (no Inf/NaN).
 - Occurs with PS2X_VIF1_ASYNC=0 as well (not an async race). Intermittent per run (0..150 spikes/70 s) in warp toyhouse_a.
 - Fix task: M10 (saturating clip arithmetic). Verify: [clipbad-sum] badCalls=0 and [spike-sum] 0 over several 70 s runs.
+
+## B2 status 2026-11-24
+- M10 (clip saturation) cut bad clip outputs from ~100k per run to 0-2k, still nonzero in ~2 of 5 runs. M11 (CPU wrap of RdVert pos) was WRONG (pos is clip-space x,y,z,w): broke geometry, disabled by default (PS2X_RD_WRAP=1 only). M12: GS-style 12.4 wrap in rd.vert for out-of-range vertices only (normal scene unchanged, visual check woods_a OK); not yet validated on a real spike (spike detector measures CPU-side values so it still counts them).
+- Remaining clipbad input: polygons with ~FLT_MAX vertices from objects whose object matrix is filled with +-3.4e38 (EE side). Decisive check needed: does PCSX2 submit those draws (prim 0x7d fan, tex tbp 0xb720/b7c0/b900/b9a0/b980/b740) in toyhouse_a? => ask user for 2 PCSX2 GS dumps in toyhouse_a.
