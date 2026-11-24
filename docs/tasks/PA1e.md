@@ -1,0 +1,11 @@
+# Task PA1e: swap copy is never recognised because ps2xRdIsDisplayFbp() says fbp 0 is the display and fbp 0x70 is not
+Budget: "[call N/12]", stop at 12. Edit ONLY PS2Recomp/ps2xRuntime/src/lib/gs/gs_frontend.cpp (no headers). DO NOT BUILD/RUN/COMMIT. Mark `// FIX-PA1e`. Normal frames must stay IDENTICAL. Respect PS2X_RD_PAUSEFIX=0 (old behaviour).
+Evidence ([cutseq], logs/ps7_err.txt, paused flips): per flip the 2D sequence is: (A) swap copy prim 0x156 tme=1 fbp=0x70 fbmsk=0xff000000 tex tbp 0x0 full=1 -> `wantCopy=0 copy=0 dispFbp=0`; (B) clear prim 0x6 fbp=0 -> `wantClear=1 clr=1 dispFbp=1`; (C) noColour full-screen; (D) small textured draw. The probe's `dispFbp` is ps2xRdIsDisplayFbp(fbp): TRUE for fbp 0, FALSE for fbp 0x70, although [cutlog]/[cutseq] report `disp=70` (the display used for the frame, see the variable printed there: grep `dispCopyFbp` and `disp=%x` near L3138/L3205/L1426-1434). So at ~L6455-6463:
+ - copyDstIsDisp (= ps2xRdIsDisplayFbp(0x70)) is false -> wantCopyCheck=0, wantSwapArmCheck=0 -> copy never becomes a boundary nor arms s_rdCopyArmed.
+ - copySrcNotDisp (= !ps2xRdIsDisplayFbp(0)) is false too (0 is in the s_rdDispFbps set).
+Do:
+1. In the frame-cut classifier only (L6452-6463 + anything reading those two bools), define the display fbp as the SAME value that [cutlog] prints as `disp=` (the per-flip display fbp, e.g. s_censusDisplayFbp / the displayFbp used at L1426-1434; if it is 0xFFFFFFFF fall back to old behaviour). New: copyDstIsDisp = (ctx.frame.fbp == thatDisp); copySrcNotDisp = (copySrcFbp != thatDisp). Do not change ps2xRdIsDisplayFbp itself (other callers).
+2. Keep all other conditions (full-screen, psm0, addCount==6, src != dst, ALPHA not fade, FBMSK alpha-byte 0xff000000 for the arm rule). The copy must then (a) arm s_rdCopyArmed / s_rdLastCopyBIdx exactly like a normal copy, (b) so that the following full-screen clear (B) is accepted by the existing FIX-CUT4 armed rule even though gap < minGap.
+3. Under PS2X_RD_CUTLOG>=1 print once per 200 flips `[cutfix] PA1e copy recognised disp=%x flips=%u` (counter), so we can see it fires.
+Acceptance: pause replay shows `noCut=0 nB=1 batches~300` in the [cutlog] for paused flips (no growth); normal hub replay identical to before (nB=1, batches ~61).
+Reply <=5 lines with file:line ranges. Compile only.

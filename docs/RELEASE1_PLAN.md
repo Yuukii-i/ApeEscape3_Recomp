@@ -103,3 +103,10 @@ Real-game-first: PCSX2 is the oracle for every blocker (register/memory state at
 
 ## PAUSE screen (item 7) findings 2026-11-24
 - Reproduced by logs/pause_nav.padrec (black after the hub) and by a live session (logs/pause_err.txt). Paused stretch: rtdraw passes run (fbp 0x70 x1, 0xe0 x2 per frame, backend ran them), but frontend frame-cut records NO boundary: [cutlog] noCut=1 nB=0 drawFbps=0,e0,70 disp=70, 2D batches accumulate (62k+), [t1-drop] hold-no-cut, nothing published => black, no UI at all. Display fbp is 0x70 (software swap copy 0 -> 0x70 each frame is the boundary). Fix 1 = PA1 (cut works while paused, UI visible). Fix 2 (later) = tinted scene backdrop via off-screen targets (0x70 alpha as PSMT8H index through a CLUT, shrink to 0xe0, blend back).
+
+## Overnight full rebuild started 2026-11-24 (user asleep)
+- Carries: PA1e (swap copy recognised via per-flip display fbp, pause black screen), M14 (PS2X_FPU_PROBE=1: FPU div0/rsqrt0/saturation counts per guest function, header change).
+- After build: pause_nav replay with PS2X_RD_CUTLOG=1 (expect noCut=0 nB=1 batches~300), normal hub replay regression, then FPU probe run in a level with explosions/ropes.
+- Transitions (B5) need NO regenerated code: missing thread TID2 (WaitSema, PCSX2 TID2 pc 0x435b28) has no counterpart in ours; kernel .cpp work only, do after the build.
+
+- PA1e RESULT (logs/pa1e_err.txt, release build): NOT fixed. 11733/14218 paused flips still noCut=1 (batches +296/flip until a rare accept), [cutwhy] reason=no-clear gap=0 armed=0 although [cutfix] PA1e 'copy recognised disp=70' fires. Copy recognised but armed state is lost/not consumed before the clear check. PARKED per user.
