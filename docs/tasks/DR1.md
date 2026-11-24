@@ -1,0 +1,7 @@
+# Task DR1: F10 = dump EE RAM (32 MB) to logs\ramdump_<n>.bin (SDL frontend), for diffing against PCSX2 savestates
+Budget: "[call N/12]", stop at 12. Edit ONLY .cpp files (no headers): PS2Recomp/ps2xRuntime/src/lib/platform/ps2_sdl_platform.cpp (key handling ~L1166, g_sdl.keys[]) and, if needed, one place with access to the EE RDRAM pointer (PS2Runtime / ps2_runtime.cpp). DO NOT BUILD/RUN/COMMIT. Mark `// PROBE-DR1`.
+Do:
+1. Add an extern "C"-free global function `void ps2xDumpEeRam()` in ps2_runtime.cpp (global scope): writes the 32 MiB EE RAM (the same buffer the guest uses, rdram base) to `logs\ramdump_<counter>.bin` (create dir `logs` if missing; counter starts at 1, increments per call), then ps2xSafeLog("[ramdump] wrote %s\n"). Do it on the calling thread but copy first into a temporary std::vector to avoid tearing is NOT needed (a tear is acceptable).
+2. In the SDL platform key handler: on SDL_EVENT_KEY_DOWN of SDL_SCANCODE_F10 (edge, ignore repeats: ev.key.repeat) call ps2xDumpEeRam() (declare it extern at global scope in that .cpp; watch for anonymous-namespace scoping: declare before the namespace). Always enabled (no env needed).
+3. Make sure the pointer to RDRAM is reachable from ps2xDumpEeRam (use the global/singleton runtime the file already uses for other probes, e.g. how PROBE-RW1 reads RAM at ps2_runtime.cpp ~L7040).
+Acceptance: compiles. Reply <=4 lines with file:line ranges.
