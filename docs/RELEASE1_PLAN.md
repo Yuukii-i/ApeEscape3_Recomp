@@ -65,3 +65,7 @@ Real-game-first: PCSX2 is the oracle for every blocker (register/memory state at
 ## B2 math audit (docs/MATH_AUDIT.md)
 - Suspect #1 FIXED (M2): translateVU_VFTOI used _mm_cvttps_epi32 => 0x80000000 on +overflow (sign flip); now saturates to 0x7FFFFFFF. 31 occurrences in 15 generated files patched by tools/fix_vftoi_sat.py (idempotent), translator fixed for regeneration, unit check tools/mathcheck_vftoi.cpp passes 7/7. NOT yet confirmed to cure the explosions - needs user test.
 - Remaining suspects (audit table): VF0 write-guard, PMADDW/PMULTW unsigned mul, PMADDH/PHMADH/PMULTH accumulators, /fp:fast in ReleaseMode.cmake, VMAX/VMINI exp-255, VCLIPw exp-255, macro-mode flags, denormal flush, VDIV/VWAITQ timing. Several need verification before trusting (audit is analysis from reading code).
+
+## B2 evidence (PROBE-M3/M4/M5)
+- VU0 macro hook (M3) and VU0 microprogram tracer (M4): nothing logged during play where explosions + rope glitch were seen (user-confirmed) => physics is not in VU0.
+- VU1 watchdog (M5, logs/v1w_err.txt): bad draws are 4-vertex rigid draws (handler 0x2440, mscal 0x00e5/0x0000) with object matrix X translation garbage (-4.99e13, -1.17e14, -3.15e12; bits 0xd6359b70) while Y/Z (0.5..1.4 / 554..632) and rotation are sane. ~250 bad draws per 5 s. Skinned 1EE0 has a few (n=2-7 per 5 s). => the bad float is written by EE code. NEXT: M6 store watch (find the writing PC) + RAM scan for the bad bits.
