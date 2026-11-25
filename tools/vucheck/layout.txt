@@ -1,0 +1,13 @@
+blob_load_address   0x01E00000 (size 0x3260)
+harness_entry       0x01E00000
+done_pc             0x01E000E4 (infinite loop; bp here)
+done_marker         0x01E00810 (== 0x600DF00D when finished)
+sentinel_quad       0x01E00800
+input_table         0x01E01000 (32 cases x 80 bytes)
+op_stub_table       0x01E02000 (294 ops x 16 bytes: op; vwaitq|nop; jr ra; nop)
+result_table        0x01E10000 (294 ops x 32 cases x 64 bytes = 0x93000; NOT in blob)
+result_end          0x01EA3000
+record_layout       vf3[0x00] acc[0x10] status[0x20] mac[0x24] clip[0x28] Q[0x2C] I[0x30] pad[0x34..0x3F]
+result_index        (op_index*32 + case)*64 from result_table; op order = ops.txt line order
+num_ops             294
+num_cases           32

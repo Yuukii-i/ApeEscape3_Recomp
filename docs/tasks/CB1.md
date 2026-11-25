@@ -1,0 +1,8 @@
+# Task CB1: dump the INPUT vertices of bad clip calls (vu1_func.inc, no header)
+Budget: "[call N/12]", stop at 12. Edit ONLY PS2Recomp/ps2xRuntime/src/lib/vu/vu1_func.inc (included by a .cpp; verify it is not a header that triggers a full rebuild: if it is included from a .h, tell me and stop). DO NOT BUILD/RUN/COMMIT. Mark `// PROBE-CB1`.
+Context: `[clipbad] serial=.. mscal=.. form=m0_c0_-Z+Z-X+X-Y+Y vin=3 vout=4` (vu1_func.inc ~L1778-1810, PROBE-M8/M10 "clipbad" accounting) fires for ~4e-4 of the 1M clip handler calls (handler 0x2900 clipPolygon); visible result is one polygon corner flying to the camera (ear/cape of the monkey). We need to know whether the INPUT vertices of those calls are already garbage (then the bug is upstream: matrices/transform) or the clip arithmetic produces garbage from sane input.
+Do (env PS2X_CLIPBAD_DUMP=1 only, cap 40 dumps, off by default):
+1. For each call classified bad, print one block: `[clipbad-in] serial=%u mscal=0x%04x call#=%u` then for each INPUT vertex (vin of them): `  in[%d] xyzw=(%g,%g,%g,%g) bits=(%08x %08x %08x %08x) clipflags=0x%x` and for each OUTPUT vertex `  out[%d] xyzw=(...) bits=(...)`, plus the clip-plane constants / viewport scale vectors the handler uses (names as in the code) and the vi register values that select them (so the call can be replayed offline).
+2. Also print the VU1 matrix rows used by the transform that produced the input (if the handler receives them) -- skip if not available.
+3. Append `[clipbad-in] summary: inputNaNOrHuge=%u inputSane=%u` at the end of each run (atexit or the existing summary printer): count bad calls whose input has any |component| > 1e6 / NaN / denormal versus all sane.
+Acceptance: compiles; reply <=4 lines with line ranges.
