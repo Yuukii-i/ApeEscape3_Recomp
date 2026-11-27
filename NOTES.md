@@ -1453,3 +1453,5 @@ PERF-VK (opt-in, env PS2X_GS_VULKAN=1, default OFF): Vulkan GS backend wraps GSC
 - FEAT-DE/DE2 (2026-11-18, feature, off by default): MC switch. PS2X_MC=boy|girl or F8. Writes guest u32 0x649910 (0 boy/1 girl) when the game sets it (save load/char select, per-frame poll) and at the mission screen request (/etc/norma/). Saving afterwards stores the new MC.
 
 - FEAT-DF (2026-11-18, dev tool, inert without logs\dev_cmd.txt): dev console. warp replaces one frame of the area-scene update (0x4DE1A4) with the game's own scene creation (0x20C378 + 0x208BF4).
+
+- FIX-BLUR1 (2026-11-27, deliberate behaviour change): override of 0x51E198 clears the frame-drop blur counter (u32 0x72D498) each call and allows the half-rate mode (byte 0x649DD8) only when 10 of the last 20 frames took 2+ vblanks. PS2X_DROPBLUR=1 and PS2X_DROPGUARD=0 restore the game behaviour.

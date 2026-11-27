@@ -325,3 +325,8 @@ Every [+0x58] value differs per group (never reused). One pair per group, about 
 - White screen first renders normally (0x3B3A90 every vblank), then the load starts: repeated blocking waits in
   0x1DC578 (a2=1) and NO frame draw for >= 1.7 s (cycles 1857M..2354M). So the real game also stops drawing while it
   loads; the display keeps the last finished (white) frame. (An earlier note that it keeps rendering was wrong.)
+
+## Frame-drop motion blur (2026-11-27)
+- Routine 0x51E198 runs once per game frame. Elapsed time is in bus clock ticks (one vblank about 2457060); gaps over 20000000 are ignored. Thresholds at +0x360..+0x36C of the object at 0x784700.
+- Settings byte 0x649DD8 enables the half-rate fallback: 1 in levels, 0 while loading. Half-rate flag at 0x784A70, blur counter u32 0x72D498 (0 = no blur).
+- Console, slots 3, 6, 7, 8: the picture stays sharp; the fallback and blur branches were not taken after a level load.
