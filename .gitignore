@@ -16,6 +16,8 @@ frame_*.png
 # Virtual Memory Cards (Saves)
 mc0/
 mc1/
+mc0_*/
+*.ps2
 # Logs and debug output
 logs/
 ps2_log.txt

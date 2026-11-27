@@ -311,3 +311,12 @@ Every [+0x58] value differs per group (never reused). One pair per group, about 
 - Stage-entry scene (hub -> level with mission screen), vtable 0x6AE2A8 = {init 0x4E5E54, 0x4E6A80, update 0x4E6D14, ..}.
   Object +0x10 stage name ("woods_a"); factory 0x4E5B90 (caller 0x22054C). init -> 0x255A4C(stage) compares with
   current stage name at 0x649650 and loads; writes state keys next_stage_choice / stage_progress_entered (0x3714F4).
+
+## UI layers (2026-11-26, gameplay in hub, PCSX2 reads only)
+- 2D queue manager at *0x006AF340 = 0x00794070: 35 entries of 0x20 bytes; +0x10 float depth = 4035.0 - index (confirmed in RAM). Add = sub_00508804 (via wrappers 0x24D0F4, 0x24CF88; 0x24D0F4 layer 16).
+- SpriteLayer: ctor 0x51FD98, factory 0x288498(id, queue, count); object[0] = id+1 = manager index (static); submit at ~0x52028C. Live table 0x00650BB0[id]. Live in hub gameplay: ids 1,3,4,5,6,7,8,9,10,12,13,20,32.
+- Static id hints: 1,3-7 ui_static (0x291918); 8 sc_live/sc_help; 9 button/gadget ring (0x2B5C08); 10 cs_biscuit health + timer (0x2A91D8); 12 fontcache; 23 s_enemyNum (0x2B167C). Breath meter name "ui_swimgauge" (0x2B0914), layer not yet identified.
+- NOT yet verified: which ids are drawn by pause/gadget/load menus, and whether the depth value survives to the GS packet Z.
+- Later (same day): recomp log shows layer depth does NOT reach GS Z. sub_00508E50 = per-frame reset of the layer queues; packet builder = *(*0x00649434+0x34) (accessors 0x3B7820 get / 0x3B7840 commit).
+- UI quad writer (PCSX2 bp, hub): sub_0050897C(a0 = layer queue entry, a1 = quad struct), reached from sub_0024D030(layer, quad) used by SpriteLayer draw 0x52028C. Each quad = DMA cnt + VIF DIRECT + GIF REGLIST packet whose first datum is PRIM (0x14C/0x15C), vertex Z 0xFFFF0000; optional trailing A+D blocks of 0x30 if quad[1]!=0 and if quad[0]&1. Committed by sub_003B7798 (a1 = end, ra 0x508D94, s3 = queue entry, s2 = quad); PRIM qword = end - 0x70 - 0x30*trailers.
+- Font drawer sub_001DF43C commits glyph runs via 0x3B7798 (ra 0x1DF85C, a1 = end); each glyph = VIF DIRECT 4qw GIF REGLIST (tag low64 0x6400000000008001) starting with PRIM 0x156 (PCSX2 bp, pause menu).
