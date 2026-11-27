@@ -1,0 +1,10 @@
+# Task FG6: skip redundant state/uniform updates in the RD draw loop (env-gated PS2X_RD_STATECACHE=1)
+Budget: "[call N/12]", stop at 12. Edit ONLY PS2Recomp/ps2xRuntime/src/lib/render/rd_view.cpp and the rdgfx_vk .cpp that PROBE-FG5 touched (no headers). DO NOT BUILD/RUN/COMMIT. Mark `// FEAT-FG6`.
+Evidence (PS2X_RD_DRAWPROF=1, logs/fg5_*_err.txt, `[drawprof]`): woods_a total=7.5 ms/frame: stateBind 2.4, upload 1.5, uniforms 0.4, drawCalls 0.43, other ~2.5 (unaccounted: look for it); nBatches=3483 nDraws=4851 nStateChanges=2859 nUniformUpdates=2843, but the real consecutive-batch changes are only tex:70 alpha:39 test:38 prim:95 fog:8 per frame. Hub: total 4.7 ms, nStateChanges 264, stateBind 0.75, upload 1.35. So ~90% of state/uniform calls in woods re-set identical values.
+Do (when env PS2X_RD_STATECACHE=1; unset = old behaviour exactly):
+1. In the 3D batch loop of ps2xRdDraw (and the draw/bind wrappers it calls), keep the last-applied value of every piece of state (pipeline/blend/depth/colour-mask/scissor/descriptor set or texture, push constants or uniform block incl. viewport scale/offset, fog colour, alpha reference, z-bias). Only call the underlying API when the new value differs. Reset the cache at the start of every frame (beginFrame) and whenever a render pass/target changes.
+2. Merge consecutive draws with identical full state and contiguous index ranges into one drawIndexed (extend the count) - only when baseVertex is equal.
+3. Find where the other ~2.5 ms of the 7.5 ms goes (probably per-batch CPU work: batch prep, filters, fog/abe/tex filter checks, std::vector building, map lookups) and add buckets for it to the `[drawprof]` line (`prep=%.2f`); fix obvious waste only if clearly safe (hoist loop-invariant lookups, avoid per-batch heap allocation, avoid repeated getenv/static init checks).
+4. Counters `[drawprof2] skippedState=%u skippedUniform=%u merged=%u` per frame average.
+5. Image must be identical to cache-off (the cache may only remove calls that set the same value).
+Accept: compiles; reply <=5 lines with line ranges.

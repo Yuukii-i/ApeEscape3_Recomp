@@ -18,8 +18,9 @@ DECL = 'extern "C" void ps2x_vu0_flags(R5900Context *ctx, __m128 res, int laneMa
 total_files = total_ops = 0
 for f in sorted(SRC.glob("sub_*.cpp")):
     txt = f.read_text(encoding="utf-8", errors="surrogateescape")
-    if "cfc2" not in txt or "ps2x_vu0_flags" in txt:
+    if "cfc2" not in txt:
         continue
+    has_decl = 'void ps2x_vu0_flags' in txt
     lines = txt.split("\n")
     out = []
     pending = False
@@ -31,7 +32,7 @@ for f in sorted(SRC.glob("sub_*.cpp")):
             pending = bool(MN_OK.match(mn) or MN_OK2.match(mn))
             out.append(ln)
             continue
-        if pending and "_mm_blendv_ps" in ln and "res" in ln and ln.rstrip().endswith(("}", "// FIX-VUMAC")):
+        if pending and "ps2x_vu0_flags" not in ln and ("_mm_blendv_ps" in ln or "PS2_VBLEND" in ln) and "res" in ln and ln.rstrip().endswith(("}", "// FIX-VUMAC")):
             # lane mask: the _mm_set_epi32 that feeds the blend (last one on the line)
             sets = SETEPI.findall(ln)
             if sets:
@@ -53,6 +54,9 @@ for f in sorted(SRC.glob("sub_*.cpp")):
         print(f"{f.name}: {nops} ops")
         if not DRY:
             # declaration after the unconditional #include "ps2_stubs.h" (later includes sit in #ifdef blocks)
+            if has_decl:
+                f.write_text("\n".join(out), encoding="utf-8", errors="surrogateescape")
+                continue
             idx = next((i for i, l in enumerate(out) if l.startswith('#include "ps2_stubs.h"')), -1)
             out.insert(idx + 1, DECL.rstrip("\n"))
             f.write_text("\n".join(out), encoding="utf-8", errors="surrogateescape")

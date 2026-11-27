@@ -1,0 +1,8 @@
+# Task FG9: what is in the 2.1 ms `stateBind` bucket in woods_a? (finer buckets, then remove the waste)
+Budget: "[call N/12]", stop at 12. Edit ONLY PS2Recomp/ps2xRuntime/src/lib/render/rd_view.cpp and rd_gfx_vk.cpp (no headers, no shader changes). Mark `// PROBE-FG9` / `// FIX-FG9`. DO NOT BUILD/RUN/COMMIT.
+Evidence (logs/fg8_woods_a_err.txt, PS2X_RD_DRAWPROF=1 PS2X_RD_STATECACHE=1): pcUpd fell 2842 -> 119 per frame (FIX-FG8 works, image correct) but `stateBind` stayed 2.09 ms, nStateChanges=2859, drawCalls 0.25, prep 2.2, upload 1.5, total 7.4 ms/frame. Hub: total 3.3, stateBind 0.30.
+Do:
+1. Under PS2X_RD_DRAWPROF=1 split stateBind into: bindPipeline, bindDescriptorSets, bindVertexIndexBuffers, setViewport/setScissor/setBlendConstants/setDepthBias (dynamic state), vkCmdPushConstants, and "pipeline lookup" (the hash/map lookup that finds or creates the VkPipeline per batch - suspect: std::unordered_map/std::map keyed by a large struct, or pipeline creation on a cache miss!). Print per frame time + call count + cache misses (`pipeMiss`, pipelines created) as `[drawprof-bind] ...`.
+2. Fix the biggest waste: e.g. a one-entry (last-key) cache before the pipeline map, a cheaper key (precomputed 64-bit hash from the packed state words instead of hashing a struct), skipping vkCmdBindPipeline/DescriptorSets when unchanged, avoiding a pipeline-key rebuild when the relevant batch fields are equal to the previous batch (compare the 6 relevant fields first). Keep behaviour identical; env gate PS2X_RD_STATECACHE=1 as before.
+3. Also report why nStateChanges stays ~2859 when only ~250 consecutive batches differ in any field: show the definition of that counter in the reply.
+Accept: compiles; reply <=5 lines.

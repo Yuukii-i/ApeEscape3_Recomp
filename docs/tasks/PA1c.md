@@ -1,0 +1,8 @@
+# Task PA1c: dump the 2D batch sequence of a few paused flips with the boundary classification of each draw (probe only, PS2X_RD_CUTLOG=2)
+Budget: "[call N/12]", stop at 12. Edit ONLY PS2Recomp/ps2xRuntime/src/lib/gs/gs_frontend.cpp (no headers). DO NOT BUILD/RUN/COMMIT. Mark `// PROBE-PA1c`.
+Evidence (logs/ps5_err.txt, [cutwhy]): in paused frames (drawFbps=0,e0,70) 3070 flips are rejected with `reason=no-clear armed=0 copyIdx=4294967295`: neither a clear sprite nor the swap copy (PCSX2 draw #0: full-screen textured sprite, FRAME fbp=0x70=display, FBMSK=0xff000000, TEX0 tbp 0x0, ALPHA 0x28; #1 untextured full-screen sprite fbp 0) is recognised. Normal frames work (nB=1).
+Do (only when PS2X_RD_CUTLOG=2; cap 12 flips total, choose flips whose drawFbps contain e0 or the first 6 flips that have noCut=1 and the first 3 with noCut=0):
+1. For each of those flips print every 2D batch of s_rd2dBatches in order, up to 80, one line: `[cutseq] flip=%u i=%zu prim=0x%llx tme=%d abe=%d alpha=0x%llx test=0x%llx fbp=0x%x fbmsk=0x%08x tex=0x%x/%u zbuf=0x%llx bbox=(%d,%d,%d,%d) count=%u afterSerial=%u` and for the checks in the boundary detector (wantClearCheck, isFullScreenClear, isFadeQuad, isCopyBoundary / copy detection, writesNoColour, ps2xRdIsDisplayFbp, the full-screen test) print on the same line which of them returned true/false: `clr=%d fade=%d copy=%d full=%d dispFbp=%d noColour=%d`.
+2. Print the values of the variables the copy/clear decisions use at that time: displayFbp, frameGeomFbp, the 'draw fbp' used for copies, s_rdCopyArmed, s_rdLastCopyBIdx, s_rdBoundaryEma, s_rdCutAdapt.
+3. In the reply say which of the PCSX2 draws #0/#1 (see above) is rejected by which condition (file:line) in a paused flip.
+Accept: compiles; reply <=5 lines.

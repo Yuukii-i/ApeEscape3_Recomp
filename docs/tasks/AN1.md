@@ -1,0 +1,9 @@
+# Task AN1: EE anomaly probe -- log every suspicious arithmetic event per guest pc (HEADER change, queued for the next full rebuild)
+Budget: "[call N/12]", stop at 12. Edit ONLY ps2_runtime_macros.h, ps2_runtime.cpp (probe state + atexit/F10 summary), and the vu0 helper where ps2x_vu0_div/sqrt/rsqrt live. DO NOT BUILD/RUN/COMMIT. Mark `// PROBE-AN1`.
+Goal: rope slide-out and ear/cape explosions are both EE physics (VU0 macro + FPU). Frame rate does not matter, so probe EVERYTHING and let the game show which guest pcs do abnormal math. Enabled by env PS2X_AN1=1 (one global bool, branch predicted; off = no cost beyond the branch).
+Events (counter per event kind per guest pc, key = current recompiled function entry pc or last pushDispatchPc; plus first 3 full occurrences with operands logged):
+ FPU (COP1): result NaN; result Inf; result denormal/flushed; input denormal; add/sub with exponent gap >= 24 (cancellation); div by 0; sqrt of negative; |result| > 1e9; any ps2_fall_normal slow-path entry (existing ps2xFpuProbe hooks may be reused).
+ VU0 macro (COP2): same events per lane for vadd/vsub/vmul/vmadd/vmsub/vmax/vmin families (ps2_vfinish/ps2_vslow paths), vdiv/vsqrt/vrsqrt (ps2x_vu0_*): div by 0, sqrt negative, Q result Inf/NaN/huge; VCLIP; vftoi/vitof saturation; I/Q/ACC read of a value that is NaN/huge; MAC/status flag read (CFC2 VI[16..17]) after an op whose result was NaN/denormal.
+ Also: any 128-bit/64-bit scalar store (SQ/SD/SWC1/SQC2) whose float lanes contain |x| > 1e9 or NaN (store of garbage), counted per pc.
+Output: on F10 and at exit print `[an1] top 40 (pc, kind, count)` sorted by count, plus `[an1-first] pc=0x%08x kind=%s a=%08x b=%08x r=%08x` for the first 3 per (pc,kind) (cap 400 lines total). Also PS2X_AN1_RESET=F9 or on a file `an1_reset.txt` existing in cwd: clear counters (so we can arm right before the rope).
+Acceptance: compiles; reply <=5 lines.

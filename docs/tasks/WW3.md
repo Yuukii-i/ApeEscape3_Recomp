@@ -1,0 +1,5 @@
+# Task WW3: PS2X_WWATCH lines must name the innermost guest function (cpp only)
+Budget: "[call N/12]", stop at 12. Edit ONLY ps2_runtime.cpp. No headers. DO NOT BUILD/RUN/COMMIT. Mark `// PROBE-WW3`.
+Problem: the host-symbol attribution (`sym=sub_00248728_0x248728+0x3440`) is the nearest exported symbol and wrong for static/inlined code (the real guest function is a later one).
+Do: in ps2xGuestWriteHit (PROBE-WW1/WW2, same file) also print `fn0=0x%08x fn1=0x%08x fn2=0x%08x` = the 3 most recent entries of the thread_local g_dispatchHistory (pushDispatchPc ring; newest first) taken on the calling thread, plus `sp=0x%08x` and `ra=0x%08x` if the current guest R5900Context is reachable cheaply (e.g. via a thread_local/global ctx pointer used by the runtime, or the ctx in ps2xFnReplay; if not reachable print 0). Keep the existing fields. Also make the per-sym summary keyed by `fn0` (print `[wwatch] summary fn0=0x%08x hits=%u`) in addition to the existing symbol summary.
+Acceptance: compiles. Reply <=3 lines.

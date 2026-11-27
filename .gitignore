@@ -16,6 +16,8 @@ frame_*.png
 # Virtual Memory Cards (Saves)
 mc0/
 mc1/
+mc0_*/
+*.ps2
 # Logs and debug output
 logs/
 ps2_log.txt
@@ -78,3 +80,5 @@ docs/vu1_image_*.txt
 # texture packs / mods derived from game data
 mods/
 ps2x.ini
+
+backups/
