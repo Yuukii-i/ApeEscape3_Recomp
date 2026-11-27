@@ -320,3 +320,8 @@ Every [+0x58] value differs per group (never reused). One pair per group, about 
 - Later (same day): recomp log shows layer depth does NOT reach GS Z. sub_00508E50 = per-frame reset of the layer queues; packet builder = *(*0x00649434+0x34) (accessors 0x3B7820 get / 0x3B7840 commit).
 - UI quad writer (PCSX2 bp, hub): sub_0050897C(a0 = layer queue entry, a1 = quad struct), reached from sub_0024D030(layer, quad) used by SpriteLayer draw 0x52028C. Each quad = DMA cnt + VIF DIRECT + GIF REGLIST packet whose first datum is PRIM (0x14C/0x15C), vertex Z 0xFFFF0000; optional trailing A+D blocks of 0x30 if quad[1]!=0 and if quad[0]&1. Committed by sub_003B7798 (a1 = end, ra 0x508D94, s3 = queue entry, s2 = quad); PRIM qword = end - 0x70 - 0x30*trailers.
 - Font drawer sub_001DF43C commits glyph runs via 0x3B7798 (ra 0x1DF85C, a1 = end); each glyph = VIF DIRECT 4qw GIF REGLIST (tag low64 0x6400000000008001) starting with PRIM 0x156 (PCSX2 bp, pause menu).
+
+## Level-load white screen (user savestate slot 3), 2026-11-27 [pcsx2]
+- White screen first renders normally (0x3B3A90 every vblank), then the load starts: repeated blocking waits in
+  0x1DC578 (a2=1) and NO frame draw for >= 1.7 s (cycles 1857M..2354M). So the real game also stops drawing while it
+  loads; the display keeps the last finished (white) frame. (An earlier note that it keeps rendering was wrong.)
