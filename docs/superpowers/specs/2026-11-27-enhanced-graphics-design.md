@@ -1,6 +1,6 @@
 # Enhanced graphics: design
 
-Status: waiting for approval (2026-11-27). Replaces the draft parts of `docs/OVERHAUL_PLAN.md` and
+Status: approved by the user (2026-11-27). Replaces the draft parts of `docs/OVERHAUL_PLAN.md` and
 `docs/LIGHTING_PLAN.md` where they differ.
 
 ## Intent
@@ -53,8 +53,8 @@ From the code:
 
 - The Vulkan renderer draws into one 8-bit colour image and a 32-bit depth image that cannot yet
   be sampled. There is no post-effect stage.
-- The fast path hands the renderer finished screen-space points (position, colour, texture
-  coordinates, fog). No normals, no world positions, no camera matrix.
+- The fast path hands the renderer clip-space points (position, colour, texture coordinates, fog),
+  so world positions follow from the camera matrix. It does not carry normals or the camera matrix.
 - Level lighting is largely painted into the models' point colours.
 - The game tests object bounds against the view before drawing (`testFrustumAabb`,
   `sub_003BA898`; see `docs/EE_GFX_DATA_MODEL.md`).
@@ -75,22 +75,24 @@ thrown away. The user accepts a long project and per-level tuning.
 ## Stage 1: screen effects
 
 - The camera matrix and the game's depth mapping reach the renderer each frame.
-- The world is drawn to its own images (higher range colour, readable depth). Effects run on them,
-  then the HUD and other 2D are drawn on top.
+- The world is drawn as today. When it is finished, the effects read a copy of it and its depth,
+  work in higher range colour, and write the result back. The HUD and other 2D are drawn on top.
 - Effects: bloom, depth of field, distance and height fog, soft corner darkening, simple light
   shafts, colour grading. Each has an on/off and a strength. Start subtle.
 - The game's own fog stays; added fog is on top of it and can be zero.
 - Switch and sliders live in the existing debug panel (F1), saved to the settings file.
 - Per-level profiles: a small file per level or zone (sun direction and colour, ambient, effect
   strengths). It reloads while the game runs, has a "save" button, and falls back to a default.
+- The tuned profiles ship with the port as a built-in mod (`mods/enhanced/`): committed, editable
+  and removable by players. They hold only our own numbers. The whole overhaul can always be
+  switched off.
 - Needs a reliable "current level and zone" value from the game; finding it is part of this stage.
 
 Done when: the user can walk a level, switch Original/Enhanced, tune it and keep the result.
 
 ## Stage 2: live 3D shape
 
-- Each drawn point also carries what is needed for world position and normal (positions can be
-  derived from screen position and the camera; normals must be added).
+- Each drawn point also carries its normal (world position already follows from the camera).
 - Sun shadows, character shadows, and added point and spot lights placed from the panel
   ("put a light at the camera").
 - Fog and light shafts that respect shadows.
@@ -144,6 +146,4 @@ panel layout.
 
 ## Open questions
 
-- Should tuned level profiles be committed to the repository? Until decided they stay local. They
-  hold only our own numbers, keyed by level name.
 - Names and placement of the switch in the game's own options menu (later).
