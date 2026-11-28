@@ -137,14 +137,19 @@ modify `rd_enhance.h`, `ps2_debug_panel.cpp`.
   built-in values (every strength 0), `default.ini`, `<level>.ini`, `<stage>.ini`. The stage name
   is e.g. `woods_a`; the level is the part before the last `_`.
 
-- [ ] **Step 1:** confirm in PCSX2 that `0x649650` holds the stage name in two levels and the hub;
+- [x] **Step 1:** confirm in PCSX2 that `0x649650` holds the stage name in two levels and the hub;
   record it in `docs/golden_pcsx2.md`, including that the name changes on moving between zones.
-- [ ] **Step 2:** load, reload when the file time changes (checked once per second), save from
+- [x] **Step 2:** load, reload when the file time changes (checked once per second), save from
   "Save for zone" and "Save for level" buttons; panel shows the stage name and the files in use.
-- [ ] **Step 3:** a name with characters outside `[a-z0-9_]` or empty uses the default.
-- [ ] **Step 4:** run: edit a value while the game runs (log `[enh] profile reload <file>`), write
+- [x] **Step 3:** a name with characters outside `[a-z0-9_]` or empty uses the default.
+- [x] **Step 4:** run: edit a value while the game runs (log `[enh] profile reload <file>`), write
   a broken line (log once, old values kept), delete the file (falls back).
-- [ ] **Step 5:** commit in both repos `feat(render): enhanced profiles per level and zone`.
+- [x] **Step 5:** commit in both repos `feat(render): enhanced profiles per level and zone`.
+
+Result 2026-11-28: done except as noted (`docs/HYPOTHESES.md` ENH3). The name is read from the
+area loader's path buffer at `0x649448` (`/stage/<name>`), not `0x649650` as written above. PCSX2
+was not used. Mission screens (`/etc/norma`) count as "no stage", so `default.ini` applies there.
+Not tested: the save buttons, and walking between two zones of one level.
 
 ### Task 4: Trial: can we get the whole level? (stage 3 risk)
 
