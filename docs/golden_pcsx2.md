@@ -311,6 +311,8 @@ Every [+0x58] value differs per group (never reused). One pair per group, about 
 - Stage-entry scene (hub -> level with mission screen), vtable 0x6AE2A8 = {init 0x4E5E54, 0x4E6A80, update 0x4E6D14, ..}.
   Object +0x10 stage name ("woods_a"); factory 0x4E5B90 (caller 0x22054C). init -> 0x255A4C(stage) compares with
   current stage name at 0x649650 and loads; writes state keys next_stage_choice / stage_progress_entered (0x3714F4).
+- [recomp 2026-11-28] 0x649650 stays empty on warp-pad travel. The area loader 0x255784 writes "/stage/<name>" at
+  0x649448 (read as travel_a, snowfesta_a, toyhouse_a, bay_a in replays); "/etc/..." there on title and mission screens.
 
 ## UI layers (2026-11-26, gameplay in hub, PCSX2 reads only)
 - 2D queue manager at *0x006AF340 = 0x00794070: 35 entries of 0x20 bytes; +0x10 float depth = 4035.0 - index (confirmed in RAM). Add = sub_00508804 (via wrappers 0x24D0F4, 0x24CF88; 0x24D0F4 layer 16).
