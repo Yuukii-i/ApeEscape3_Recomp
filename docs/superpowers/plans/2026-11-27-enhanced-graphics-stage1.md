@@ -168,6 +168,12 @@ Not tested: the save buttons, and walking between two zones of one level.
 - [ ] **Step 5:** write the verdict and recommendation, commit
   `docs: level geometry capture trial`, and report to the user before any fallback work.
 
+Result 2026-11-28 (Tasks 5 to 10, first version in one build, `docs/tasks/ENH4.md`, at the user's
+request: "just work so we can work with them"): grading, bloom, fog, corner darkening, depth of
+field, light shafts and screen-space sun shadows run in levels (not menus), tuned by default.ini.
+Not done per the table below: separate passes, the strength-0 pixel check, GPU timing, Task 4 and
+Task 11.
+
 ### Tasks 5 to 10: the effects, one per build
 
 Each task: **modify** `rd_enhance_vk.inc`, `rd_enhance.h`, `rd_enhance_profile.cpp`,
