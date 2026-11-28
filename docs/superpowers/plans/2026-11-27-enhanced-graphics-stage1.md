@@ -107,15 +107,20 @@ create `shaders/fx_debug.frag`.
   get world position from `inverse(gsToClip * camera)`.
 - `PS2X_ENH_DEBUG=depth|grid`, and the same choice as a combo in the panel.
 
-- [ ] **Step 1:** publish the matrix; log once per second `[enh] cam changes=<n> distinct=<n>`.
-- [ ] **Step 2:** `depth` view shows distance as grey; `grid` view draws a one-unit-spaced grid
+- [x] **Step 1:** publish the matrix; log once per second `[enh] cam changes=<n> distinct=<n>`.
+- [x] **Step 2:** `depth` view shows distance as grey; `grid` view draws a one-unit-spaced grid
   from world position over the picture.
-- [ ] **Step 3:** run the shared check with each view. Expected: `distinct=1` in gameplay; the grid
+- [x] **Step 3:** run the shared check with each view. Expected: `distinct=1` in gameplay; the grid
   stays fixed on walls and floor while the camera moves. A grid that slides means the maths is
   wrong: stop and fix before Task 5.
-- [ ] **Step 4:** check a TV or studio stage (render-to-texture) and a level intro for a second
+- [x] **Step 4:** check a TV or studio stage (render-to-texture) and a level intro for a second
   camera taking over.
-- [ ] **Step 5:** commit `feat(render): camera matrix and depth for post effects`.
+- [x] **Step 5:** commit `feat(render): camera matrix and depth for post effects`.
+
+Result 2026-11-28: done (`docs/HYPOTHESES.md` ENH2). Differences from the text above: the grid
+spacing is 50 units; the map from clip space also includes the depth bias. Open before Task 7:
+two cameras per frame in gameplay; no TV or studio stage was checked; menus with a 3D background
+(level select, warp tunnel) get the post stage, so effects must be gated there (Review Focus 1).
 
 ### Task 3: Per-level and per-zone profiles
 
