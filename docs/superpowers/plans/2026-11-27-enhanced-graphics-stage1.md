@@ -54,7 +54,7 @@ through the scratchpad script `fast.ps1`, and take screenshots with Enhanced off
 | File | Role |
 |---|---|
 | `src/lib/render/rd_enhance.h` (new) | `RdEnhanceSettings`, `RdEnhanceFrame` and the calls below |
-| `src/lib/render/rd_enhance_vk.cpp` (new) | post images, pipelines, the effect chain |
+| `src/lib/render/rd_enhance_vk.inc` (new, included by `rd_gfx_vk.cpp`) | post images, pipelines, the effect chain |
 | `src/lib/render/rd_enhance_profile.cpp` (new) | profiles: load, reload, save, stage lookup |
 | `shaders/fx_full.vert`, `shaders/fx_*.frag` (new) | one fragment shader per pass |
 | `src/lib/render/rd_gfx_vk.cpp` | sampled depth usage; hand device and images to the post code |
@@ -67,7 +67,7 @@ through the scratchpad script `fast.ps1`, and take screenshots with Enhanced off
 
 ### Task 1: Switch and pass-through post stage
 
-**Files:** create `rd_enhance.h`, `rd_enhance_vk.cpp`, `shaders/fx_full.vert`,
+**Files:** create `rd_enhance.h`, `rd_enhance_vk.inc`, `shaders/fx_full.vert`,
 `shaders/fx_composite.frag`; modify `rd_gfx_vk.cpp`, `rd_view.cpp`, `ps2x_config.cpp`,
 `ps2_debug_panel.cpp`, `CMakeLists.txt`.
 
@@ -78,22 +78,25 @@ through the scratchpad script `fast.ps1`, and take screenshots with Enhanced off
 - `void ps2xEnhanceApply(const RdEnhanceFrame &);` runs between the world and the HUD, leaves the
   colour target ready for further drawing and the depth contents unchanged.
 
-- [ ] **Step 1:** add the setting, a checkbox "Enhanced graphics" in the Graphics tab (live, saved
+- [x] **Step 1:** add the setting, a checkbox "Enhanced graphics" in the Graphics tab (live, saved
   by "Save to ps2x.ini"), greyed out unless the Vulkan renderer is active.
-- [ ] **Step 2:** implement `ps2xEnhanceApply`: copy or resolve colour, composite it back
+- [x] **Step 2:** implement `ps2xEnhanceApply`: copy or resolve colour, composite it back
   unchanged. Depth gets sampled usage (read sample 0 when multisampled).
-- [ ] **Step 3:** call it only when Enhanced is on and the frame has 3D batches.
-- [ ] **Step 4:** with `PS2X_ENH_VERIFY=1`, read the target before and after on every 60th frame
+- [x] **Step 3:** call it only when Enhanced is on and the frame has 3D batches.
+- [x] **Step 4:** with `PS2X_ENH_VERIFY=1`, read the target before and after on every 60th frame
   and log `[enh] verify maxdiff=<n>`.
-- [ ] **Step 5:** run the shared check. Expected: `maxdiff=0` on every line, HUD present, no
+- [x] **Step 5:** run the shared check. Expected: `maxdiff=0` on every line, HUD present, no
   validation errors.
-- [ ] **Step 6:** run Review Focus 1, 2, 3, 5 (recordings `leveselect`, `saveload`, `pause_user`,
+- [x] **Step 6:** run Review Focus 1, 2, 3, 5 (recordings `leveselect`, `saveload`, `pause_user`,
   `transitions`; MSAA 1 and 4; `render_scale` 50 and 200; ultrawide). Expected: `maxdiff=0`.
-- [ ] **Step 7:** commit `feat(render): enhanced switch and pass-through post stage`.
+- [x] **Step 7:** commit `feat(render): enhanced switch and pass-through post stage`.
+
+Result 2026-11-27: done (`docs/HYPOTHESES.md` ENH1). Not tested: switching on and off while
+playing (Review Focus 5). Game logs must use `ps2xSafeLog`; plain `stderr` is discarded.
 
 ### Task 2: Camera matrix and depth, with debug views
 
-**Files:** modify `vu1_func.inc` (`beginLeanDraw`, publish), `rd_view.cpp`, `rd_enhance_vk.cpp`;
+**Files:** modify `vu1_func.inc` (`beginLeanDraw`, publish), `rd_view.cpp`, `rd_enhance_vk.inc`;
 create `shaders/fx_debug.frag`.
 
 **Interfaces, produces:**
@@ -157,7 +160,7 @@ modify `rd_enhance.h`, `ps2_debug_panel.cpp`.
 
 ### Tasks 5 to 10: the effects, one per build
 
-Each task: **modify** `rd_enhance_vk.cpp`, `rd_enhance.h`, `rd_enhance_profile.cpp`,
+Each task: **modify** `rd_enhance_vk.inc`, `rd_enhance.h`, `rd_enhance_profile.cpp`,
 `ps2_debug_panel.cpp`, `CMakeLists.txt`; **create** its shader. **Consumes** the frame data of
 Task 2 and the settings of Task 3. Common steps:
 
