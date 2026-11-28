@@ -81,12 +81,13 @@ thrown away. The user accepts a long project and per-level tuning.
   shafts, colour grading. Each has an on/off and a strength. Start subtle.
 - The game's own fog stays; added fog is on top of it and can be zero.
 - Switch and sliders live in the existing debug panel (F1), saved to the settings file.
-- Per-level profiles: a small file per level or zone (sun direction and colour, ambient, effect
-  strengths). It reloads while the game runs, has a "save" button, and falls back to a default.
-- The tuned profiles ship with the port as a built-in mod (`mods/enhanced/`): committed, editable
-  and removable by players. They hold only our own numbers. The whole overhaul can always be
-  switched off.
-- Needs a reliable "current level and zone" value from the game; finding it is part of this stage.
+- Profiles per level and per zone: the game's stage names carry both (`woods_a`, `woods_b`). A
+  level file (`woods.ini`) applies to all its zones; a zone file (`woods_a.ini`) overrides it; then
+  `default.ini`. They hold sun direction and colour, ambient and effect strengths, reload while the
+  game runs, and have "save" buttons.
+- The tuned profiles are a normal bundled part of the port (`enhanced/levels/`), committed. They
+  hold only our own numbers. The whole overhaul can always be switched off.
+- The current stage name is read from game memory (`0x649650`, to be confirmed in PCSX2).
 
 Done when: the user can walk a level, switch Original/Enhanced, tune it and keep the result.
 

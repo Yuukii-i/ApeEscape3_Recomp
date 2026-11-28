@@ -9,7 +9,7 @@ whether whole-level geometry can be captured (stage 3).
 
 **Architecture:** the world is drawn exactly as today. Just before the final HUD pass, one call
 copies the colour and depth, runs a post chain, and writes the result back into the same target.
-Settings come from per-level profile files that ship as a built-in mod.
+Settings come from per-level and per-zone profile files bundled with the port.
 
 **Tech Stack:** C++20, Vulkan 1.2 dynamic rendering, GLSL compiled with `glslc`, Dear ImGui.
 
@@ -114,11 +114,10 @@ create `shaders/fx_debug.frag`.
   camera taking over.
 - [ ] **Step 5:** commit `feat(render): camera matrix and depth for post effects`.
 
-### Task 3: Per-level profiles (built-in mod)
+### Task 3: Per-level and per-zone profiles
 
-**Files:** create `rd_enhance_profile.cpp`, `mods/enhanced/levels/default.ini` (parent repo);
-modify `rd_enhance.h`, `ps2_debug_panel.cpp`, `.gitignore` (parent: `mods/` becomes `mods/*` plus
-`!mods/enhanced/`).
+**Files:** create `rd_enhance_profile.cpp`, `enhanced/levels/default.ini` (parent repo);
+modify `rd_enhance.h`, `ps2_debug_panel.cpp`.
 
 **Interfaces, produces:**
 - `struct RdEnhanceSettings` holding every value of Tasks 5 to 10, each effect as
@@ -126,18 +125,18 @@ modify `rd_enhance.h`, `ps2_debug_panel.cpp`, `.gitignore` (parent: `mods/` beco
 - `const RdEnhanceSettings &ps2xEnhanceSettings();`
 - `std::string ps2xEnhanceStageName();` reads the 32-byte name at guest `0x649650`
   (`docs/golden_pcsx2.md`).
-- Files `mods/enhanced/levels/<stage>.ini` (`key=value`), falling back to `default.ini`, then to
-  built-in values with every strength 0.
+- Files in `enhanced/levels/` (`key=value`), applied in order so later ones override key by key:
+  built-in values (every strength 0), `default.ini`, `<level>.ini`, `<stage>.ini`. The stage name
+  is e.g. `woods_a`; the level is the part before the last `_`.
 
 - [ ] **Step 1:** confirm in PCSX2 that `0x649650` holds the stage name in two levels and the hub;
-  record it in `docs/golden_pcsx2.md`. While there, look for a zone value; if none shows up
-  quickly, profiles are per stage and the user is told.
-- [ ] **Step 2:** load, reload when the file time changes (checked once per second), save from a
-  "Save level" button; panel shows the stage name and which file is in use.
+  record it in `docs/golden_pcsx2.md`, including that the name changes on moving between zones.
+- [ ] **Step 2:** load, reload when the file time changes (checked once per second), save from
+  "Save for zone" and "Save for level" buttons; panel shows the stage name and the files in use.
 - [ ] **Step 3:** a name with characters outside `[a-z0-9_]` or empty uses the default.
 - [ ] **Step 4:** run: edit a value while the game runs (log `[enh] profile reload <file>`), write
   a broken line (log once, old values kept), delete the file (falls back).
-- [ ] **Step 5:** commit in both repos `feat(render): per-level enhanced profiles`.
+- [ ] **Step 5:** commit in both repos `feat(render): enhanced profiles per level and zone`.
 
 ### Task 4: Trial: can we get the whole level? (stage 3 risk)
 
@@ -178,7 +177,7 @@ Task 2 and the settings of Task 3. Common steps:
 
 ### Task 11: Stage 1 acceptance
 
-**Files:** modify `mods/enhanced/levels/*.ini`, `docs/HYPOTHESES.md`, `docs/HANDOFF.md`.
+**Files:** modify `enhanced/levels/*.ini`, `docs/HYPOTHESES.md`, `docs/HANDOFF.md`.
 
 - [ ] **Step 1:** Original against the pre-plan build: back-to-back `performance.padrec` runs.
   Expected: no difference beyond run-to-run spread.
